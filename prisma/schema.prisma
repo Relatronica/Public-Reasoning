@@ -1,0 +1,149 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  username      String?   @unique
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  avatar        String?
+  bio           String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts      Account[]
+  sessions      Session[]
+  records       ReasoningRecord[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model PublicAct {
+  id             String   @id @default(cuid())
+  title          String
+  actNumber      String
+  entityName     String
+  entityType     String   @default("comune")
+  location       String?
+  region         String?  @default("Lombardia")
+  province       String?  @default("MI")
+  city           String?  @default("Cormano")
+  date           DateTime
+  officialUrl    String?
+  rawTextExcerpt String?
+  slug           String   @unique
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  records ReasoningRecord[]
+
+  @@map("public_acts")
+}
+
+model ReasoningRecord {
+  id                     String   @id @default(cuid())
+  publicActId            String
+  compilerId             String
+  version                Int      @default(1)
+  status                 String   @default("published")
+  realQuestion           String
+  decision               String
+  uncertaintyLevel       String   @default("medio")
+  uncertaintyExplanation String
+  mindChangingConditions String   // JSON array stored as string
+  interpretativeSummary String
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  publicAct       PublicAct         @relation(fields: [publicActId], references: [id], onDelete: Cascade)
+  compiler        User              @relation(fields: [compilerId], references: [id])
+  discardedOptions DiscardedOption[]
+  verbatimQuotes  VerbatimQuote[]
+  outcomeReviews  OutcomeReview[]
+
+  @@index([publicActId])
+  @@index([compilerId])
+  @@map("reasoning_records")
+}
+
+model DiscardedOption {
+  id                String   @id @default(cuid())
+  reasoningRecordId String
+  title             String
+  reasonDiscarded   String
+  evidenceType      String   @default("interpretation")
+
+  reasoningRecord ReasoningRecord @relation(fields: [reasoningRecordId], references: [id], onDelete: Cascade)
+
+  @@index([reasoningRecordId])
+  @@map("discarded_options")
+}
+
+model VerbatimQuote {
+  id                String   @id @default(cuid())
+  reasoningRecordId String
+  quote             String
+  pageOrParagraph   String?
+  speaker           String?
+
+  reasoningRecord ReasoningRecord @relation(fields: [reasoningRecordId], references: [id], onDelete: Cascade)
+
+  @@index([reasoningRecordId])
+  @@map("verbatim_quotes")
+}
+
+model OutcomeReview {
+  id                String    @id @default(cuid())
+  reasoningRecordId String
+  timeframe         String
+  expectedOutcome   String
+  actualOutcome     String?
+  status            String    @default("pending")
+  reviewDate        DateTime?
+  notes             String?
+
+  reasoningRecord ReasoningRecord @relation(fields: [reasoningRecordId], references: [id], onDelete: Cascade)
+
+  @@index([reasoningRecordId])
+  @@map("outcome_reviews")
+}
