@@ -207,6 +207,44 @@ export const communities: Community[] = [
     ],
     ...defaultCommunityMedia('ai-governance'),
   },
+  {
+    id: 'lab-agora',
+    slug: 'agora',
+    name: 'Agorà',
+    shortName: 'Agorà',
+    type: 'progetto',
+    typeLabel: 'Laboratorio',
+    initials: 'AG',
+    subtitle: 'Vetrina del giudizio pubblico',
+    location: 'Demo',
+    tagline:
+      'Spazio dimostrativo: decisioni complete con grafo, fonti, filosofi, consulenti e richieste di consultazione.',
+    feedTitle: 'Registro del giudizio — Agorà',
+    feedSubtitle:
+      'Esplora schede piene: domanda reale, scarti, stop, spunti e consultazioni aperte.',
+    feedBadge: 'Vetrina',
+    sourceLabel: 'Atto',
+    sourceLabelPlural: 'Atti',
+    archiveLabel: 'Archivio laboratorio',
+    archiveNavLabel: 'Archivio',
+    sourcePlaceholder: 'es. Delibera Laboratorio n. 3/2026',
+    newRecordTitle: 'Documenta una decisione',
+    newRecordHint:
+      'Questa community è pensata per mostrare il potenziale di Reason: compilazione, grafo e consultazione.',
+    searchPlaceholder: 'Cerca piazza, URP, bilancio, spunti…',
+    officialUrlLabel: 'Manifesto Agorà',
+    categories: [
+      { label: 'Spazio pubblico', color: 'bg-blue-500' },
+      { label: 'Servizi digitali', color: 'bg-emerald-500' },
+      { label: 'Partecipazione', color: 'bg-amber-500' },
+      { label: 'Etica pubblica', color: 'bg-teal-500' },
+    ],
+    stats: [
+      { label: 'Schede', value: '3 demo' },
+      { label: 'Ambito', value: 'Vetrina' },
+    ],
+    ...defaultCommunityMedia('agora'),
+  },
 ];
 
 export function getCommunityBySlug(slug?: string | null): Community {

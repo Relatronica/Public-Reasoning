@@ -1,175 +1,125 @@
 'use client';
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useMemo } from 'react';
 import Link from 'next/link';
+import { ExternalLink } from 'lucide-react';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
-import { ArrowRight, ShieldCheck, ShieldAlert, Calendar, MapPin, ExternalLink, Info } from 'lucide-react';
+import { PublicAct, ReasoningRecord } from '@/types';
 
-function DataStatusBadge({ status, note }: { status: string; note?: string }) {
-  if (status === 'verified') {
-    return (
-      <span
-        title={note}
-        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"
-      >
-        <ShieldCheck className="w-3.5 h-3.5" />
-        Fonte verificata
-      </span>
-    );
-  }
-  if (status === 'unverified') {
-    return (
-      <span
-        title={note}
-        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200"
-      >
-        <ShieldAlert className="w-3.5 h-3.5" />
-        Da verificare
-      </span>
-    );
-  }
+function statusLabel(status: string): string {
+  if (status === 'verified') return 'Verificata';
+  if (status === 'unverified') return 'Da verificare';
+  return 'Dimostrativa';
+}
+
+function ActRow({
+  act,
+  records,
+  href,
+  archiveLabel,
+}: {
+  act: PublicAct;
+  records: ReasoningRecord[];
+  href: (path: string) => string;
+  archiveLabel: string;
+}) {
+  const linked = records.filter((r) => r.publicActId === act.id);
+  const primary = linked[0];
+
   return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-500 border border-gray-200">
-      <Info className="w-3.5 h-3.5" />
-      Dimostrativo
-    </span>
+    <article className="reddit-card px-5 py-4 hover:border-gray-300 transition-colors">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-gray-400 mb-1.5">
+        <span>{act.actNumber}</span>
+        <span>·</span>
+        <span>{new Date(act.date).toLocaleDateString('it-IT')}</span>
+        <span>·</span>
+        <span>{statusLabel(act.dataStatus)}</span>
+        {linked.length > 0 && (
+          <>
+            <span>·</span>
+            <span>
+              {linked.length} sched{linked.length === 1 ? 'a' : 'e'}
+            </span>
+          </>
+        )}
+      </div>
+
+      <h2 className="text-base font-semibold text-gray-900 leading-snug">
+        {primary ? (
+          <Link href={href(`/records/${primary.id}`)} className="hover:underline">
+            {act.title}
+          </Link>
+        ) : (
+          act.title
+        )}
+      </h2>
+
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
+        {primary && (
+          <Link
+            href={href(`/records/${primary.id}`)}
+            className="font-medium text-gray-700 hover:text-gray-900"
+          >
+            Apri scheda
+          </Link>
+        )}
+        {act.officialUrl && (
+          <a
+            href={act.officialUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1 text-gray-500 hover:text-gray-800"
+          >
+            {archiveLabel}
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        )}
+      </div>
+    </article>
   );
 }
 
 function PublicActsContent() {
   const { community, href } = useActiveCommunity();
   const { actsForCommunity, recordsForCommunity } = useCuratorData();
-  const acts = actsForCommunity(community.id);
-  const verifiedCount = acts.filter(a => a.dataStatus === 'verified').length;
-  const unverifiedCount = acts.filter(a => a.dataStatus === 'unverified').length;
+  const acts = useMemo(() => actsForCommunity(community.id), [actsForCommunity, community.id]);
+  const records = useMemo(
+    () => recordsForCommunity(community.id),
+    [recordsForCommunity, community.id]
+  );
 
   return (
-    <div className="space-y-5">
-      
-      <div className="reddit-card p-5 bg-white space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-2 text-xs font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full">
-            <ShieldCheck className="w-4 h-4" />
-            <span>Tracciabilità delle fonti</span>
-          </div>
-        </div>
-        <h1 className="text-2xl font-bold text-gray-900">
-          {community.archiveLabel} — {community.name}
-        </h1>
-        <p className="text-xs text-gray-500 max-w-2xl leading-relaxed">
-          Archivio delle fonti da cui sono stati estratti i Reasoning Record in questa community.
+    <div className="space-y-5 w-full max-w-3xl">
+      <header className="space-y-1">
+        <h1 className="text-xl font-semibold text-gray-900">{community.archiveLabel}</h1>
+        <p className="text-sm text-gray-500">
+          Fonti da cui sono state estratte le schede in {community.shortName}.
         </p>
+      </header>
 
-        <div className="flex flex-wrap gap-3 pt-1">
-          <div className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 font-semibold">
-            <ShieldCheck className="w-3.5 h-3.5" />
-            {verifiedCount} {community.sourceLabel.toLowerCase()}{verifiedCount === 1 ? '' : ' verificati'}
-          </div>
-          {unverifiedCount > 0 && (
-            <div className="flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 px-2.5 py-1 rounded-lg border border-amber-200 font-semibold">
-              <ShieldAlert className="w-3.5 h-3.5" />
-              {unverifiedCount} da verificare
-            </div>
-          )}
-          <div className="flex items-center gap-1.5 text-xs text-gray-500 bg-gray-50 px-2.5 py-1 rounded-lg border border-gray-200 font-medium">
-            <Info className="w-3.5 h-3.5" />
-            Fonte: {community.archiveLabel}
-          </div>
+      {acts.length === 0 ? (
+        <p className="text-sm text-gray-500">Nessuna fonte in questo workspace.</p>
+      ) : (
+        <div className="space-y-3">
+          {acts.map((act) => (
+            <ActRow
+              key={act.id}
+              act={act}
+              records={records}
+              href={href}
+              archiveLabel={community.archiveNavLabel || community.archiveLabel}
+            />
+          ))}
         </div>
-      </div>
-
-      <div className="space-y-4">
-        {acts.map((act) => {
-          const linkedRecords = recordsForCommunity(community.id).filter(r => r.publicActId === act.id).length;
-          return (
-          <div key={act.id} className="reddit-card p-5 space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="px-2.5 py-1 bg-blue-50 text-blue-800 font-bold rounded-md">
-                  {act.actNumber}
-                </span>
-                <DataStatusBadge status={act.dataStatus} note={act.verificationNote} />
-              </div>
-              <div className="flex items-center gap-4 text-gray-500">
-                <span className="flex items-center gap-1 font-medium">
-                  <MapPin className="w-3.5 h-3.5 text-blue-600" />
-                  <span>{act.entity.name}</span>
-                </span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-gray-400" />
-                  <span>{new Date(act.date).toLocaleDateString('it-IT')}</span>
-                </span>
-              </div>
-            </div>
-
-            <h2 className="text-base sm:text-lg font-bold text-gray-900 leading-snug">
-              {act.title}
-            </h2>
-
-            {act.verificationNote && (
-              <div className={`flex items-start gap-1.5 text-[11px] rounded-lg px-3 py-2 ${
-                act.dataStatus === 'verified'
-                  ? 'text-emerald-800 bg-emerald-50 border border-emerald-200/70'
-                  : act.dataStatus === 'demo'
-                    ? 'text-gray-700 bg-gray-50 border border-gray-200'
-                    : 'text-amber-800 bg-amber-50 border border-amber-200/70'
-              }`}>
-                {act.dataStatus === 'verified'
-                  ? <ShieldCheck className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-emerald-600" />
-                  : act.dataStatus === 'demo'
-                    ? <Info className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-gray-500" />
-                    : <ShieldAlert className="w-3.5 h-3.5 mt-0.5 flex-shrink-0 text-amber-600" />
-                }
-                <span>{act.verificationNote}</span>
-              </div>
-            )}
-
-            {act.rawTextExcerpt && (
-              <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg text-xs font-mono text-gray-600 leading-relaxed line-clamp-2">
-                &ldquo;{act.rawTextExcerpt}&rdquo;
-              </div>
-            )}
-
-            <div className="pt-3 border-t border-gray-100 flex items-center justify-between text-xs">
-              <span className="text-emerald-700 font-semibold flex items-center gap-1">
-                <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span>{linkedRecords} Reasoning Record associat{linkedRecords === 1 ? 'o' : 'i'}</span>
-              </span>
-
-              <div className="flex items-center gap-3">
-                {act.officialUrl && (
-                  <a
-                    href={act.officialUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-gray-500 hover:text-gray-900 font-medium flex items-center gap-1"
-                    title={community.archiveLabel}
-                  >
-                    <span>{community.archiveLabel}</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                )}
-                <Link
-                  href={href('/')}
-                  className="text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1 hover:underline"
-                >
-                  <span>Vedi giudizio</span>
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </Link>
-              </div>
-            </div>
-          </div>
-          );
-        })}
-      </div>
+      )}
     </div>
   );
 }
 
 export default function PublicActsPage() {
   return (
-    <Suspense fallback={<div className="reddit-card p-8 text-center text-sm text-gray-500">Caricamento fonti...</div>}>
+    <Suspense fallback={<div className="reddit-card p-8 text-center text-sm text-gray-500">Caricamento…</div>}>
       <PublicActsContent />
     </Suspense>
   );

@@ -17,10 +17,11 @@ function CommunityEditorInner() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { community, href, slug } = useActiveCommunity();
-  const { refresh } = useCuratorData();
+  const { refresh, canAdminOrg } = useCuratorData();
 
   const [form, setForm] = useState<Community>(community);
   const [saving, setSaving] = useState(false);
+  const [closing, setClosing] = useState(false);
   const [uploading, setUploading] = useState<'logo' | 'cover' | null>(null);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -115,6 +116,30 @@ function CommunityEditorInner() {
       setError(err instanceof Error ? err.message : 'Errore');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleClose = async () => {
+    if (
+      !confirm(
+        `Chiudere «${community.name}»? Sparirà dal selettore. Le schede restano salvate.`
+      )
+    ) {
+      return;
+    }
+    setClosing(true);
+    setError('');
+    try {
+      const res = await fetch(`/api/curator/communities/${slug}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Chiusura fallita');
+      await refresh();
+      const nextSlug = data.fallbackSlug || 'cormano';
+      router.push(`/?c=${encodeURIComponent(nextSlug)}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Errore');
+    } finally {
+      setClosing(false);
     }
   };
 
@@ -312,15 +337,37 @@ function CommunityEditorInner() {
         {error && <p className="text-xs text-red-600">{error}</p>}
         {success && <p className="text-xs text-emerald-600">Salvato. Le modifiche sono visibili nel feed.</p>}
 
-        <button
-          type="submit"
-          disabled={saving || status !== 'authenticated'}
-          className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 disabled:opacity-50"
-        >
-          <Save className="w-4 h-4" />
-          {saving ? 'Salvataggio…' : 'Salva community'}
-        </button>
+        <div className="flex flex-wrap items-center gap-3 pt-2">
+          <button
+            type="submit"
+            disabled={saving || status !== 'authenticated'}
+            className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 disabled:opacity-50"
+          >
+            <Save className="w-4 h-4" />
+            {saving ? 'Salvataggio…' : 'Salva community'}
+          </button>
+        </div>
       </form>
+
+      {canAdminOrg && (
+        <div className="reddit-card p-5 border-rose-100 space-y-3">
+          <div>
+            <h2 className="text-sm font-bold text-gray-900">Chiudi community</h2>
+            <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+              La nasconde dal selettore. Non cancella le schede già compilate.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={handleClose}
+            disabled={closing}
+            className="flex items-center gap-2 px-4 py-2.5 text-rose-700 border border-rose-200 rounded-lg text-xs font-semibold hover:bg-rose-50 disabled:opacity-50"
+          >
+            <Trash2 className="w-4 h-4" />
+            {closing ? 'Chiusura…' : 'Chiudi questa community'}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

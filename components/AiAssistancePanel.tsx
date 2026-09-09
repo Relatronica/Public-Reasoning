@@ -17,18 +17,11 @@ interface Props {
 
 export function AiAssistanceBadge({ ai }: { ai?: AiAssistance }) {
   if (!hasAiAssistance(ai)) return null;
-  const level = ai!.level;
-  const className =
-    level === 'sostanziale'
-      ? 'bg-violet-100 text-violet-800 border-violet-200'
-      : 'bg-slate-100 text-slate-700 border-slate-200';
 
   return (
-    <span
-      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${className}`}
-    >
-      <Sparkles className="w-3 h-3" />
-      {AI_LEVEL_LABELS[level]}
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-gray-100 text-gray-700 border border-gray-200">
+      <Sparkles className="w-3 h-3 text-gray-500" />
+      {AI_LEVEL_LABELS[ai!.level]}
     </span>
   );
 }
@@ -41,36 +34,41 @@ export default function AiAssistancePanel({ ai, compact = false }: Props) {
   }
 
   return (
-    <div className="p-3 bg-violet-50/70 border border-violet-200/80 rounded-xl text-xs">
-      <div className="font-bold text-violet-900 mb-2 flex items-center gap-1.5">
-        <Sparkles className="w-3.5 h-3.5 text-violet-600" />
-        <span>Supporto IA nella compilazione</span>
-        <span className="font-normal text-violet-700">· {AI_LEVEL_LABELS[ai!.level]}</span>
+    <div className="rounded-lg border border-gray-200 bg-gray-50/80 px-4 py-3 text-sm">
+      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500 mb-2">
+        <span className="inline-flex items-center gap-1.5 font-semibold uppercase tracking-wider">
+          <Sparkles className="w-3.5 h-3.5 text-gray-400" />
+          Supporto IA
+        </span>
+        <span className="text-gray-300">·</span>
+        <span className="text-gray-700 font-medium normal-case tracking-normal">
+          {AI_LEVEL_LABELS[ai!.level]}
+        </span>
       </div>
 
-      {(ai!.scopes?.length ?? 0) > 0 && (
-        <p className="text-gray-700 mb-1.5">
-          <span className="font-semibold text-gray-800">Dove: </span>
-          {ai!.scopes!.map((s) => AI_SCOPE_LABELS[s]).join(', ')}
-        </p>
-      )}
-
-      {ai!.tools && (
-        <p className="text-gray-700 mb-1.5">
-          <span className="font-semibold text-gray-800">Strumento: </span>
-          {ai!.tools}
-        </p>
-      )}
-
-      {ai!.dataExposure && ai!.dataExposure !== 'none' && (
-        <p className="text-gray-700 mb-1.5">
-          <span className="font-semibold text-gray-800">Dati esposti: </span>
-          {AI_EXPOSURE_LABELS[ai!.dataExposure]}
-        </p>
-      )}
+      <dl className="grid gap-1.5 sm:grid-cols-2 text-sm text-gray-700">
+        {(ai!.scopes?.length ?? 0) > 0 && (
+          <div>
+            <dt className="text-[11px] text-gray-500">Dove</dt>
+            <dd>{ai!.scopes!.map((s) => AI_SCOPE_LABELS[s]).join(', ')}</dd>
+          </div>
+        )}
+        {ai!.tools && (
+          <div>
+            <dt className="text-[11px] text-gray-500">Strumento</dt>
+            <dd>{ai!.tools}</dd>
+          </div>
+        )}
+        {ai!.dataExposure && ai!.dataExposure !== 'none' && (
+          <div>
+            <dt className="text-[11px] text-gray-500">Dati esposti</dt>
+            <dd>{AI_EXPOSURE_LABELS[ai!.dataExposure]}</dd>
+          </div>
+        )}
+      </dl>
 
       {ai!.note && (
-        <p className="text-gray-600 leading-relaxed mt-2 pt-2 border-t border-violet-200/60 italic">
+        <p className="text-sm text-gray-600 leading-relaxed mt-3 pt-3 border-t border-gray-200">
           {ai!.note}
         </p>
       )}

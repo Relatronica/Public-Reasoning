@@ -7,7 +7,7 @@ import { actsForCommunityId, recordsForCommunityId } from '@/lib/curator/filters
 import { CuratorBootstrap } from '@/lib/curator/types';
 import { isVisibleOnPublicFeed } from '@/lib/records';
 import { Community, Organization, OrganizationRole, PublicAct, ReasoningRecord } from '@/types';
-import { canAdminOrg, canClose, canCompile } from '@/lib/org/permissions';
+import { canAdminOrg, canAdvise, canClose, canCompile, canRequestConsultation } from '@/lib/org/permissions';
 import { defaultOrganization } from '@/lib/org/defaults';
 
 interface CuratorDataContextValue {
@@ -19,6 +19,8 @@ interface CuratorDataContextValue {
   canCompile: boolean;
   canClose: boolean;
   canAdminOrg: boolean;
+  canAdvise: boolean;
+  canRequestConsultation: boolean;
   loading: boolean;
   refresh: () => Promise<void>;
   recordsForCommunity: (communityId: string) => ReasoningRecord[];
@@ -65,6 +67,8 @@ export function CuratorDataProvider({ children }: { children: React.ReactNode })
       canCompile: canCompile(bootstrap.myRole),
       canClose: canClose(bootstrap.myRole),
       canAdminOrg: canAdminOrg(bootstrap.myRole),
+      canAdvise: canAdvise(bootstrap.myRole),
+      canRequestConsultation: canRequestConsultation(bootstrap.myRole),
       loading,
       refresh,
       recordsForCommunity: (communityId: string) =>

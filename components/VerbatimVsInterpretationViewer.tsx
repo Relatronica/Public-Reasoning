@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { VerbatimQuote } from '@/types';
-import { Quote, BookOpen } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 
 interface Props {
   quotes?: VerbatimQuote[];
@@ -14,6 +14,7 @@ interface Props {
 export default function VerbatimVsInterpretationViewer({
   quotes = [],
   interpretativeSummary,
+  officialUrl,
   sourceLabel = 'Fonte',
 }: Props) {
   const [activeTab, setActiveTab] = useState<'split' | 'verbatim' | 'interpretation'>('split');
@@ -22,85 +23,107 @@ export default function VerbatimVsInterpretationViewer({
 
   if (!hasQuotes && !hasSummary) {
     return (
-      <p className="text-xs text-gray-400 italic p-3 border border-dashed border-gray-200 rounded-xl">
+      <p className="text-sm text-gray-500">
         Nessuna citazione o sintesi collegata a questa scheda.
       </p>
     );
   }
 
   return (
-    <div className="border border-gray-200 rounded-xl overflow-hidden bg-white">
-      <div className="px-3 py-2.5 bg-gray-50 border-b border-gray-200 flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h4 className="text-[11px] font-bold text-gray-800 uppercase tracking-wide">
-            Fonte vs interpretazione
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            Fonte e lettura
           </h4>
-          <p className="text-[10px] text-gray-500 mt-0.5">
+          <p className="text-sm text-gray-600 mt-1">
             Cosa dice il verbale e come il compilatore lo legge.
           </p>
         </div>
 
-        <div className="flex items-center bg-gray-200/80 p-0.5 rounded-lg">
+        <div className="flex items-center gap-1">
           {(
             [
               ['split', 'Entrambi'],
               ['verbatim', 'Citazioni'],
               ['interpretation', 'Analisi'],
             ] as const
-          ).map(([id, label]) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setActiveTab(id)}
-              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold transition-all ${
-                activeTab === id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
+          ).map(([id, label]) => {
+            const active = activeTab === id;
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setActiveTab(id)}
+                className={`px-2.5 py-1 rounded-md text-xs whitespace-nowrap transition-colors ${
+                  active
+                    ? 'bg-gray-900 text-white font-medium'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
+      {officialUrl && (
+        <a
+          href={officialUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-xs text-gray-600 hover:text-gray-900"
+        >
+          <ExternalLink className="w-3.5 h-3.5" />
+          Apri documento ufficiale
+        </a>
+      )}
+
       <div
-        className={`grid p-3 gap-3 ${
-          activeTab === 'split' ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'
+        className={`grid gap-6 ${
+          activeTab === 'split' ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'
         }`}
       >
         {(activeTab === 'split' || activeTab === 'verbatim') && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-1.5 text-blue-700 font-bold text-[10px] uppercase tracking-wider">
-              <Quote className="w-3.5 h-3.5" />
+          <section className="space-y-3 min-w-0">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Citazioni
-            </div>
+            </h5>
             {hasQuotes ? (
-              quotes.map((q) => (
-                <figure key={q.id} className="p-3 bg-blue-50/50 border border-blue-100 rounded-lg">
-                  <blockquote className="text-xs italic text-gray-800 leading-relaxed">
-                    «{q.quote}»
-                  </blockquote>
-                  <figcaption className="mt-2 flex items-center justify-between gap-2 text-[10px] text-gray-500">
-                    <span className="font-semibold text-blue-800">{q.speaker || sourceLabel}</span>
-                    {q.pageOrParagraph && <span>{q.pageOrParagraph}</span>}
-                  </figcaption>
-                </figure>
-              ))
+              <div className="space-y-3">
+                {quotes.map((q) => (
+                  <figure key={q.id} className="border-l-2 border-gray-200 pl-3 py-0.5">
+                    <blockquote className="text-sm italic text-gray-800 leading-relaxed">
+                      «{q.quote}»
+                    </blockquote>
+                    <figcaption className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-gray-500">
+                      <span className="font-medium text-gray-700">{q.speaker || sourceLabel}</span>
+                      {q.pageOrParagraph && (
+                        <>
+                          <span className="text-gray-300">·</span>
+                          <span>{q.pageOrParagraph}</span>
+                        </>
+                      )}
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
             ) : (
-              <p className="text-xs text-gray-400 italic">Nessuna citazione letterale.</p>
+              <p className="text-sm text-gray-500">Nessuna citazione letterale.</p>
             )}
-          </div>
+          </section>
         )}
 
         {(activeTab === 'split' || activeTab === 'interpretation') && (
-          <div className="space-y-2">
-            <div className="flex items-center gap-1.5 text-violet-700 font-bold text-[10px] uppercase tracking-wider">
-              <BookOpen className="w-3.5 h-3.5" />
+          <section className="space-y-3 min-w-0">
+            <h5 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Sintesi del compilatore
-            </div>
-            <div className="p-3 bg-violet-50/50 border border-violet-100 rounded-lg text-xs text-gray-800 leading-relaxed whitespace-pre-line">
+            </h5>
+            <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-line">
               {hasSummary ? interpretativeSummary : 'Nessuna sintesi interpretativa.'}
-            </div>
-          </div>
+            </p>
+          </section>
         )}
       </div>
     </div>

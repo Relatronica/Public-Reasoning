@@ -33,11 +33,26 @@ function RecordEditorInner() {
       router.push('/auth/login?callbackUrl=' + encodeURIComponent(href(`/curator/records/${id}`)));
       return;
     }
+    if (status !== 'authenticated') return;
+
+    let cancelled = false;
+    setLoading(true);
     fetch(`/api/curator/records/${id}`)
       .then((r) => r.json())
-      .then((data) => setRecord(data.record ?? null))
-      .finally(() => setLoading(false));
-  }, [id, status, router, href]);
+      .then((data) => {
+        if (!cancelled) setRecord(data.record ?? null);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+    // href è una nuova funzione a ogni render: non metterlo nelle deps o il fetch
+    // riscrive il form e annulla ciò che stai digitando.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- load only on id/session
+  }, [id, status, router]);
 
   if (loading || !record) {
     return <div className="reddit-card p-8 text-center text-sm text-gray-500">Caricamento…</div>;
@@ -80,6 +95,7 @@ function RecordEditorInner() {
             visibility: record.visibility,
             uncertaintyLevel: record.uncertaintyLevel,
             uncertaintyExplanation: record.uncertaintyExplanation,
+            confidence: record.confidence,
             interpretativeSummary: record.interpretativeSummary,
             discardedOptions: record.discardedOptions,
             mindChangingConditions: record.mindChangingConditions.filter(Boolean),
@@ -253,13 +269,32 @@ function RecordEditorInner() {
         />
 
         <section className="space-y-3 pt-2 border-t border-gray-100">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400">Incertezza</h2>
+          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400">Incertezza e confidenza</h2>
           <select className={inputClass} value={record.uncertaintyLevel} onChange={(e) => updateRecord({ uncertaintyLevel: e.target.value as ReasoningRecord['uncertaintyLevel'] })}>
             <option value="basso">Basso</option>
             <option value="medio">Medio</option>
             <option value="alto">Alto</option>
           </select>
           <textarea className={inputClass} rows={2} value={record.uncertaintyExplanation} onChange={(e) => updateRecord({ uncertaintyExplanation: e.target.value })} placeholder="Perché questo livello di incertezza?" />
+          <div className="space-y-1.5">
+            <span className="text-xs text-gray-500">Confidenza alla decisione (1–5)</span>
+            <div className="flex gap-1">
+              {([1, 2, 3, 4, 5] as const).map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => updateRecord({ confidence: n })}
+                  className={`min-w-[2.25rem] px-2 py-1.5 rounded-md text-xs ${
+                    record.confidence === n
+                      ? 'bg-gray-900 text-white font-medium'
+                      : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+                  }`}
+                >
+                  {n}
+                </button>
+              ))}
+            </div>
+          </div>
         </section>
 
         <section className="space-y-3 pt-2 border-t border-gray-100">

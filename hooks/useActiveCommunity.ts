@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 import {
   COMMUNITY_PARAM,
@@ -20,10 +21,11 @@ export function useActiveCommunity(): {
   const slug = searchParams.get(COMMUNITY_PARAM) || DEFAULT_COMMUNITY_SLUG;
   const community = getCommunityBySlugFromList(communities, slug);
 
-  const href = (
-    pathname: string,
-    extra: Record<string, string | undefined | null> = {}
-  ) => withCommunityQuery(pathname, community.slug, extra);
+  const href = useCallback(
+    (pathname: string, extra: Record<string, string | undefined | null> = {}) =>
+      withCommunityQuery(pathname, community.slug, extra),
+    [community.slug]
+  );
 
   return { community, slug, href };
 }

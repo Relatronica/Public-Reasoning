@@ -10,10 +10,15 @@ function mergeCommunity(base: Community, override?: Partial<Community>): Communi
 }
 
 export function mergeCommunities(store: CuratorStore): Community[] {
-  const merged = baseCommunities.map((base) =>
-    mergeCommunity(base, store.communityOverrides[base.slug])
-  );
-  const custom = store.customCommunities.map((c) => ({ ...c }));
+  const deleted = new Set(store.deletedCommunityIds ?? []);
+  const merged = baseCommunities
+    .filter((base) => !deleted.has(base.id))
+    .map((base) => mergeCommunity(base, store.communityOverrides[base.slug]));
+
+  const custom = store.customCommunities
+    .filter((c) => !deleted.has(c.id))
+    .map((c) => mergeCommunity(c, store.communityOverrides[c.slug]));
+
   return [...merged, ...custom];
 }
 

@@ -38,7 +38,7 @@ function RecordsListInner() {
           className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700"
         >
           <Plus className="w-4 h-4" />
-          Cattura
+          Nuova
         </Link>
       </div>
 

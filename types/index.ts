@@ -71,7 +71,14 @@ export interface Community {
 }
 
 /** Ruolo nella organization (workspace parent). */
-export type OrganizationRole = 'owner' | 'admin' | 'compiler' | 'sponsor' | 'viewer';
+export type OrganizationRole =
+  | 'owner'
+  | 'admin'
+  | 'compiler'
+  | 'sponsor'
+  | 'viewer'
+  | 'filosofo'
+  | 'consulente';
 
 export interface OrganizationMember {
   userId: string;
@@ -142,6 +149,9 @@ export interface OutcomeReview {
   notes?: string;
 }
 
+/** Quanto eravamo sicuri alla chiusura (1 = poco, 5 = molto). Serve alla calibrazione nel tempo. */
+export type ConfidenceLevel = 1 | 2 | 3 | 4 | 5;
+
 /** Tracciamento opzionale del supporto IA nella compilazione del giudizio. */
 export type AiSupportLevel = 'none' | 'assistivo' | 'sostanziale';
 
@@ -176,6 +186,49 @@ export type RecordVisibility = 'private' | 'public';
 
 export type CompliancePack = 'ai_governance' | 'board' | 'capex';
 
+/** Spunti di lettura sulla scheda: filosofi, consulenti, alert, domande. */
+export type DecisionInsightKind = 'spunto' | 'alert' | 'domanda' | 'consulenza';
+
+export interface DecisionInsight {
+  id: string;
+  kind: DecisionInsightKind;
+  title: string;
+  body: string;
+  author?: string;
+  role?: string;
+  /** Collegamento opzionale a uno step del grafo (question, decision, stop, discarded-…). */
+  relatedStepId?: string;
+  /** Richiesta di consultazione a cui risponde (se presente). */
+  consultationRequestId?: string;
+  authorUserId?: string;
+  createdAt?: string;
+}
+
+export type ConsultationKind = 'filosofica' | 'consulenza';
+
+export type ConsultationRequestStatus = 'aperta' | 'in_corso' | 'chiusa';
+
+export interface ConsultationRequester {
+  userId: string;
+  name?: string;
+  email?: string;
+}
+
+/** Richiesta di spunti da filosofo o di consulenza operativa su una scheda. */
+export interface ConsultationRequest {
+  id: string;
+  kind: ConsultationKind;
+  status: ConsultationRequestStatus;
+  question: string;
+  requestedBy: ConsultationRequester;
+  /** Email o userId del destinatario, se scelto. */
+  assigneeUserId?: string;
+  assigneeEmail?: string;
+  createdAt: string;
+  updatedAt?: string;
+  responseInsightId?: string;
+}
+
 export interface ReasoningRecord {
   id: string;
   publicActId: string;
@@ -192,11 +245,17 @@ export interface ReasoningRecord {
   decision: string;
   uncertaintyLevel: 'basso' | 'medio' | 'alto';
   uncertaintyExplanation: string;
+  /** Confidenza alla decisione (calibrazione vs esito). */
+  confidence?: ConfidenceLevel;
   mindChangingConditions: string[];
   verbatimQuotes: VerbatimQuote[];
   interpretativeSummary: string;
   outcomeReviews: OutcomeReview[];
   aiAssistance?: AiAssistance;
+  /** Feedback curati (filosofi, consulenti); se assenti la UI può derivarne di contestuali. */
+  insights?: DecisionInsight[];
+  /** Richieste di consultazione aperte dagli utenti sulla scheda. */
+  consultationRequests?: ConsultationRequest[];
   category?: string;
   upvotes?: number;
   createdAt: Date;

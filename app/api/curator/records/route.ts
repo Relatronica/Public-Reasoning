@@ -81,6 +81,7 @@ export async function POST(request: Request) {
     decision: body.record.decision ?? '',
     uncertaintyLevel: body.record.uncertaintyLevel ?? 'medio',
     uncertaintyExplanation: body.record.uncertaintyExplanation ?? '',
+    confidence: body.record.confidence,
     mindChangingConditions: body.record.mindChangingConditions ?? [],
     verbatimQuotes: body.record.verbatimQuotes ?? [],
     interpretativeSummary: body.record.interpretativeSummary ?? '',

@@ -2,6 +2,8 @@ import { Organization, OrganizationMember, OrganizationRole } from '@/types';
 
 const RANK: Record<OrganizationRole, number> = {
   viewer: 0,
+  filosofo: 0,
+  consulente: 0,
   compiler: 1,
   sponsor: 2,
   admin: 3,
@@ -14,6 +16,8 @@ export const ROLE_LABELS: Record<OrganizationRole, string> = {
   compiler: 'Compilatore',
   sponsor: 'Sponsor',
   viewer: 'Lettore',
+  filosofo: 'Filosofo',
+  consulente: 'Consulente',
 };
 
 export function hasMinRole(role: OrganizationRole | null | undefined, min: OrganizationRole): boolean {
@@ -31,6 +35,30 @@ export function canClose(role: OrganizationRole | null | undefined): boolean {
 
 export function canAdminOrg(role: OrganizationRole | null | undefined): boolean {
   return hasMinRole(role, 'admin');
+}
+
+/** Può lasciare spunti / rispondere a richieste (filosofo, consulente, admin). */
+export function canAdvise(role: OrganizationRole | null | undefined): boolean {
+  return (
+    role === 'filosofo' ||
+    role === 'consulente' ||
+    hasMinRole(role, 'admin')
+  );
+}
+
+/** Qualsiasi membro del workspace può chiedere una consultazione. */
+export function canRequestConsultation(role: OrganizationRole | null | undefined): boolean {
+  return Boolean(role);
+}
+
+export function canReplyToConsultationKind(
+  role: OrganizationRole | null | undefined,
+  kind: 'filosofica' | 'consulenza'
+): boolean {
+  if (!role) return false;
+  if (hasMinRole(role, 'admin')) return true;
+  if (kind === 'filosofica') return role === 'filosofo';
+  return role === 'consulente';
 }
 
 export function resolveMemberRole(

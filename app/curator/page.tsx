@@ -12,7 +12,7 @@ function CuratorHubInner() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { community, href } = useActiveCommunity();
-  const { recordsForCommunity } = useCuratorData();
+  const { recordsForCommunity, canAdminOrg } = useCuratorData();
   const records = recordsForCommunity(community.id);
 
   if (status === 'unauthenticated') {
@@ -44,6 +44,20 @@ function CuratorHubInner() {
       </p>
 
       <div className="grid gap-3 sm:grid-cols-2">
+        {canAdminOrg && (
+          <Link
+            href={href('/curator/community/new')}
+            className="reddit-card p-5 hover:border-blue-200 transition-colors group sm:col-span-2"
+          >
+            <div className="flex items-center gap-2 text-blue-700 mb-2">
+              <Plus className="w-5 h-5" />
+              <span className="text-sm font-bold">Nuova community</span>
+            </div>
+            <p className="text-xs text-gray-500 leading-relaxed">
+              Crea un workspace (ufficio, progetto, comune…) e aprilo nel selettore.
+            </p>
+          </Link>
+        )}
         <Link
           href={href('/curator/org')}
           className="reddit-card p-5 hover:border-blue-200 transition-colors group"
@@ -84,14 +98,14 @@ function CuratorHubInner() {
 
         <Link
           href={href('/records/capture')}
-          className="reddit-card p-5 hover:border-blue-200 transition-colors sm:col-span-2"
+          className="reddit-card p-5 hover:border-gray-300 transition-colors sm:col-span-2"
         >
-          <div className="flex items-center gap-2 text-blue-600 mb-2">
+          <div className="flex items-center gap-2 text-gray-800 mb-2">
             <Plus className="w-5 h-5" />
-            <span className="text-sm font-bold">Cattura decisione</span>
+            <span className="text-sm font-semibold">Nuova decisione</span>
           </div>
           <p className="text-xs text-gray-500 leading-relaxed">
-            Incolla transcript o verbale, rivedi la bozza, salva come draft. Compilazione a mano resta disponibile.
+            Da un testo o a mano: domanda, decisione, scarto e criterio di stop.
           </p>
         </Link>
       </div>

@@ -1,33 +1,33 @@
 'use client';
 
-import React, { Suspense, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Compass,
-  HelpCircle,
-  MapPin,
-  ShieldCheck,
-  Sparkles,
-} from 'lucide-react';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
 import { draftFromSource, SAMPLE_AI_GOVERNANCE_TRANSCRIPT } from '@/lib/capture/draft-from-source';
 import { defaultVisibilityForCommunity } from '@/lib/records';
+import { createPendingOutcome } from '@/lib/records/outcomes';
+import { ConfidenceLevel } from '@/types';
 
-const inputClass =
-  'w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500';
+const field =
+  'w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-300';
 
-function CaptureInner() {
+type Mode = 'source' | 'manual';
+type Phase = 'choose' | 'source' | 'review';
+
+function ComposeInner() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { community, href, slug } = useActiveCommunity();
   const { refresh, canCompile } = useCuratorData();
 
-  const [step, setStep] = useState<1 | 2>(1);
+  const initialMode = searchParams.get('mode') === 'manual' ? 'manual' : null;
+  const [phase, setPhase] = useState<Phase>(initialMode === 'manual' ? 'review' : 'choose');
+  const [mode, setMode] = useState<Mode>(initialMode ?? 'source');
+
   const [sourceText, setSourceText] = useState('');
   const [actNumber, setActNumber] = useState('');
   const [actTitle, setActTitle] = useState('');
@@ -37,24 +37,42 @@ function CaptureInner() {
   const [discardedTitle, setDiscardedTitle] = useState('');
   const [discardedReason, setDiscardedReason] = useState('');
   const [mindChanging, setMindChanging] = useState('');
-  const [missing, setMissing] = useState<string[]>([]);
+  const [confidence, setConfidence] = useState<ConfidenceLevel>(3);
+  const [expectedOutcome, setExpectedOutcome] = useState('');
+  const [hint, setHint] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  if (status === 'unauthenticated') {
-    router.push('/auth/login?callbackUrl=' + encodeURIComponent(href('/records/capture')));
-    return null;
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/login?callbackUrl=' + encodeURIComponent(href('/records/capture')));
+    }
+  }, [status, router, href]);
+
+  if (status === 'loading' || status === 'unauthenticated') {
+    return <div className="reddit-card p-8 text-center text-sm text-gray-500">Caricamento…</div>;
   }
 
-  if (status === 'authenticated' && !canCompile) {
+  if (!canCompile) {
     return (
-      <div className="reddit-card p-8 text-sm text-gray-600">
-        Ruolo insufficiente: serve compiler o superiore per catturare una decisione.
+      <div className="reddit-card p-6 text-sm text-gray-600 max-w-lg">
+        Serve il ruolo di compilatore (o superiore) per inserire una decisione.
       </div>
     );
   }
 
-  const handleGenerate = (e: React.FormEvent) => {
+  const startSource = () => {
+    setMode('source');
+    setPhase('source');
+  };
+
+  const startManual = () => {
+    setMode('manual');
+    setPhase('review');
+    setHint(null);
+  };
+
+  const generateDraft = (e: React.FormEvent) => {
     e.preventDefault();
     const draft = draftFromSource(sourceText, {
       sourceTitle: actTitle,
@@ -67,11 +85,15 @@ function CaptureInner() {
     setDiscardedTitle(draft.discardedTitle);
     setDiscardedReason(draft.discardedReason);
     setMindChanging(draft.mindChanging);
-    setMissing(draft.missing);
-    setStep(2);
+    setHint(
+      draft.missing.length > 0
+        ? `Completa: ${draft.missing.join(', ')}.`
+        : 'Bozza proposta dalla fonte — rivedi e salva.'
+    );
+    setPhase('review');
   };
 
-  const handleSave = async (e: React.FormEvent) => {
+  const save = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
     setError('');
@@ -82,8 +104,8 @@ function CaptureInner() {
         body: JSON.stringify({
           communitySlug: slug,
           act: {
-            title: actTitle || actNumber,
-            actNumber,
+            title: actTitle || actNumber || 'Nuova fonte',
+            actNumber: actNumber || 'Senza riferimento',
             rawTextExcerpt: sourceText.slice(0, 2000),
           },
           record: {
@@ -101,29 +123,33 @@ function CaptureInner() {
                     id: `opt-${Date.now()}`,
                     title: discardedTitle,
                     reasonDiscarded: discardedReason,
-                    evidenceType: 'interpretation',
+                    evidenceType: 'interpretation' as const,
                   },
                 ]
               : [],
             mindChangingConditions: mindChanging ? [mindChanging] : [],
             verbatimQuotes: [],
-            outcomeReviews: [],
-            aiAssistance: {
-              level: 'assistivo',
-              scopes: ['drafting'],
-              tools: 'Reason capture (rule-based)',
-              dataExposure: 'internal_only',
-              note: 'Bozza estratta dalla fonte; campi rivisti in sessione prima della chiusura.',
-            },
+            confidence,
+            outcomeReviews: expectedOutcome.trim()
+              ? [createPendingOutcome({ expectedOutcome })]
+              : [],
+            aiAssistance:
+              mode === 'source'
+                ? {
+                    level: 'assistivo',
+                    scopes: ['drafting'],
+                    tools: 'Reason capture',
+                    dataExposure: 'internal_only',
+                    note: 'Bozza estratta dalla fonte; rivista in sessione.',
+                  }
+                : undefined,
           },
         }),
       });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error ?? 'Invio fallito');
-      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Salvataggio non riuscito');
       await refresh();
-      router.push(href('/'));
+      router.push(href(`/records/${data.record.id}`));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Errore');
       setSubmitting(false);
@@ -131,52 +157,66 @@ function CaptureInner() {
   };
 
   return (
-    <div className="space-y-5">
-      <div className="reddit-card p-5 space-y-2">
-        <div className="flex items-center gap-2 text-xs font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full w-fit">
-          <Sparkles className="w-4 h-4" />
-          <span>Cattura decisione</span>
-        </div>
-        <h1 className="text-2xl font-bold text-gray-900">Dalla fonte alla scheda</h1>
-        <p className="text-xs text-gray-500 max-w-2xl leading-relaxed">
-          Incolla il transcript o il verbale. Reason propone domanda reale, scarto e condizione di stop.
-          Tu (o lo sponsor) chiudi. Non è un form da fare dopo le 19.
+    <div className="space-y-6 w-full">
+      <header className="space-y-1">
+        <h1 className="text-xl font-semibold text-gray-900">Nuova decisione</h1>
+        <p className="text-sm text-gray-500">
+          In {community.shortName}
+          {session?.user?.name ? ` · ${session.user.name}` : ''}
         </p>
-        {session?.user && (
-          <p className="text-[11px] text-gray-400">Compilato da {session.user.name ?? session.user.email}</p>
-        )}
-      </div>
+      </header>
 
-      {step === 1 ? (
-        <form onSubmit={handleGenerate} className="reddit-card p-6 space-y-5">
-          <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2 text-blue-900 font-semibold">
-              <MapPin className="w-4 h-4 text-blue-600" />
-              <span>
-                {community.typeLabel}: {community.name}
-              </span>
-            </div>
-            <span className="text-[11px] text-blue-700">Passo 1 di 2 · fonte</span>
+      {phase === 'choose' && (
+        <div className="space-y-3">
+          <p className="text-sm text-gray-600">Come vuoi partire?</p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={startSource}
+              className="w-full text-left reddit-card px-5 py-4 hover:border-gray-300 transition-colors"
+            >
+              <p className="text-sm font-semibold text-gray-900">Da un testo</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Incolla verbale o appunti: Reason propone domanda, decisione, scarto e stop.
+              </p>
+            </button>
+            <button
+              type="button"
+              onClick={startManual}
+              className="w-full text-left reddit-card px-5 py-4 hover:border-gray-300 transition-colors"
+            >
+              <p className="text-sm font-semibold text-gray-900">A mano</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Compili tu i quattro punti della scheda, senza partire da un documento.
+              </p>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {phase === 'source' && (
+        <form onSubmit={generateDraft} className="reddit-card p-5 sm:p-6 space-y-5">
+          <div className="flex items-center justify-between text-xs text-gray-500">
+            <span>Passo 1 · Fonte</span>
+            <button type="button" onClick={() => setPhase('choose')} className="hover:text-gray-800">
+              Cambia percorso
+            </button>
           </div>
 
-          <label className="space-y-1 block">
-            <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">
-              Transcript o nota di seduta
-            </span>
+          <label className="block space-y-1.5">
+            <span className="text-xs font-semibold text-gray-700">Testo del verbale o degli appunti</span>
             <textarea
               required
-              rows={12}
+              rows={10}
               value={sourceText}
               onChange={(e) => setSourceText(e.target.value)}
-              placeholder="Incolla il verbale, gli appunti o il transcript. Se etichetti DOMANDA REALE / DECISIONE / SCARTATA / CAMBIO IDEA, l’estrazione è più precisa."
-              className={inputClass}
+              placeholder="Incolla qui la fonte…"
+              className={field}
             />
           </label>
 
-          <label className="space-y-1 block">
-            <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">
-              Oppure carica .txt / .vtt / .md
-            </span>
+          <label className="block space-y-1.5">
+            <span className="text-xs font-semibold text-gray-700">Oppure carica un file</span>
             <input
               type="file"
               accept=".txt,.vtt,.md,.text,text/plain"
@@ -184,164 +224,212 @@ function CaptureInner() {
               onChange={async (e) => {
                 const file = e.target.files?.[0];
                 if (!file) return;
-                const text = await file.text();
-                setSourceText(text);
+                setSourceText(await file.text());
                 if (!actTitle) setActTitle(file.name.replace(/\.[^.]+$/, ''));
               }}
             />
           </label>
 
           <div className="grid sm:grid-cols-2 gap-3">
-            <label className="space-y-1 block">
-              <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">
-                Riferimento {community.sourceLabel}
+            <label className="block space-y-1.5">
+              <span className="text-xs font-semibold text-gray-700">
+                Riferimento ({community.sourceLabel})
               </span>
               <input
                 type="text"
                 value={actNumber}
                 onChange={(e) => setActNumber(e.target.value)}
                 placeholder={community.sourcePlaceholder}
-                className={inputClass}
+                className={field}
               />
             </label>
-            <label className="space-y-1 block">
-              <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">Titolo fonte</span>
+            <label className="block space-y-1.5">
+              <span className="text-xs font-semibold text-gray-700">Titolo (opzionale)</span>
               <input
                 type="text"
                 value={actTitle}
                 onChange={(e) => setActTitle(e.target.value)}
-                placeholder="Opzionale: lo deduciamo dalla prima riga"
-                className={inputClass}
+                placeholder="Se vuoto, lo deduciamo dal testo"
+                className={field}
               />
             </label>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3 pt-1">
             <button
               type="submit"
               disabled={sourceText.trim().length < 40}
-              className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-xs transition-colors shadow-sm disabled:opacity-50"
+              className="px-4 py-2 rounded-lg text-xs font-medium bg-gray-900 text-white disabled:opacity-40"
             >
-              Genera bozza
+              Continua
             </button>
             <button
               type="button"
               onClick={() => {
                 setSourceText(SAMPLE_AI_GOVERNANCE_TRANSCRIPT);
                 setActNumber('Verbale Rischio n. 4/2026');
-                setActTitle('Fornitore di modelli linguistici in Risorse umane');
+                setActTitle('Modelli linguistici in selezione');
               }}
-              className="text-xs text-blue-700 hover:underline"
+              className="text-xs text-gray-500 hover:text-gray-800"
             >
-              Usa esempio del pack Governance IA
+              Usa un esempio
             </button>
-            <Link href={href('/records/new')} className="text-xs text-gray-500 hover:underline ml-auto">
-              Compila a mano
-            </Link>
           </div>
         </form>
-      ) : (
-        <form onSubmit={handleSave} className="reddit-card p-6 space-y-5">
-          <div className="p-3 bg-amber-50 border border-amber-100 rounded-lg flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2 text-amber-900 font-semibold">
-              <ShieldCheck className="w-4 h-4 text-amber-700" />
-              <span>Passo 2 di 2 · rivedi e salva come bozza</span>
-            </div>
-            <button type="button" onClick={() => setStep(1)} className="text-[11px] text-amber-800 hover:underline">
-              Torna alla fonte
+      )}
+
+      {phase === 'review' && (
+        <form onSubmit={save} className="reddit-card p-5 sm:p-6 space-y-5">
+          <div className="flex items-center justify-between text-xs text-gray-500">
+            <span>{mode === 'source' ? 'Passo 2 · Scheda' : 'Scheda'}</span>
+            <button
+              type="button"
+              onClick={() => setPhase(mode === 'source' ? 'source' : 'choose')}
+              className="hover:text-gray-800"
+            >
+              Indietro
             </button>
           </div>
 
-          {missing.length > 0 && (
-            <p className="text-xs text-amber-800 bg-amber-50 border border-amber-100 rounded-lg p-3">
-              Completa a mano: {missing.join(', ')}. Senza condizione di cambio idea la scheda non è un reasoning
-              record.
-            </p>
-          )}
+          {hint && <p className="text-xs text-gray-600 bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">{hint}</p>}
 
-          <label className="space-y-1 block">
-            <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">Categoria</span>
-            <select className={inputClass} value={category} onChange={(e) => setCategory(e.target.value)}>
-              {community.categories.map((c) => (
-                <option key={c.label} value={c.label}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label className="space-y-1 block">
-            <span className="text-xs font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1">
-              <HelpCircle className="w-4 h-4" />
-              1. La domanda reale
-            </span>
+          <div className="grid gap-5 lg:grid-cols-2">
+          <label className="block space-y-1.5 lg:col-span-2">
+            <span className="text-xs font-semibold text-gray-700">1 · Domanda reale</span>
+            <p className="text-[11px] text-gray-400">Il conflitto vero, non il titolo dell’atto.</p>
             <textarea
               required
               rows={3}
               value={realQuestion}
               onChange={(e) => setRealQuestion(e.target.value)}
-              className={inputClass}
+              placeholder="Che domanda stavamo davvero rispondendo?"
+              className={field}
             />
           </label>
 
-          <label className="space-y-1 block">
-            <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-1">
-              <CheckCircle2 className="w-4 h-4" />
-              2. La decisione
-            </span>
+          <label className="block space-y-1.5 lg:col-span-2">
+            <span className="text-xs font-semibold text-gray-700">2 · Decisione</span>
+            <p className="text-[11px] text-gray-400">Cosa è stato scelto, in una frase chiara.</p>
             <textarea
               required
               rows={2}
               value={decision}
               onChange={(e) => setDecision(e.target.value)}
-              className={inputClass}
+              placeholder="Cosa abbiamo deciso?"
+              className={field}
             />
           </label>
 
-          <div className="space-y-2">
-            <span className="text-xs font-bold text-amber-700 uppercase tracking-wider flex items-center gap-1">
-              <Compass className="w-4 h-4" />
-              3. Opzione scartata
-            </span>
+          <div className="space-y-1.5">
+            <span className="text-xs font-semibold text-gray-700">3 · Alternativa scartata</span>
+            <p className="text-[11px] text-gray-400">Cosa non avete fatto, e perché.</p>
             <input
               value={discardedTitle}
               onChange={(e) => setDiscardedTitle(e.target.value)}
-              placeholder="Titolo dell'alternativa scartata"
-              className={inputClass}
+              placeholder="Opzione scartata"
+              className={field}
             />
             <textarea
               rows={2}
               value={discardedReason}
               onChange={(e) => setDiscardedReason(e.target.value)}
-              placeholder="Per quale motivo è stata scartata?"
-              className={inputClass}
+              placeholder="Motivo dello scarto"
+              className={field}
             />
           </div>
 
-          <div className="space-y-1 bg-amber-50/60 border border-amber-200 p-3.5 rounded-lg">
-            <label className="text-xs font-bold text-amber-900 uppercase tracking-wider flex items-center gap-1">
-              <AlertTriangle className="w-4 h-4 text-amber-700" />
-              4. Condizione di falsificabilità
-            </label>
+          <label className="block space-y-1.5">
+            <span className="text-xs font-semibold text-gray-700">4 · Cosa ti farebbe cambiare idea?</span>
+            <p className="text-[11px] text-gray-400">Un segnale osservabile — il criterio di stop.</p>
             <textarea
               required
-              rows={2}
+              rows={4}
               value={mindChanging}
               onChange={(e) => setMindChanging(e.target.value)}
-              placeholder="Cosa farebbe cambiare idea?"
-              className="w-full bg-white border border-amber-200 rounded-lg p-2.5 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
+              placeholder="Es. se il fatturato scende oltre il 12% per tre settimane…"
+              className={field}
             />
+          </label>
           </div>
 
-          {error && <p className="text-xs text-red-600">{error}</p>}
+          <div className="space-y-4 pt-1 border-t border-gray-100">
+            <div className="space-y-1.5">
+              <span className="text-xs font-semibold text-gray-700">5 · Confidenza</span>
+              <p className="text-[11px] text-gray-400">
+                Quanto siete sicuri oggi? Serve a calibrare dopo l’esito.
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {([1, 2, 3, 4, 5] as ConfidenceLevel[]).map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setConfidence(n)}
+                    className={`min-w-[2.5rem] px-2.5 py-1.5 rounded-md text-xs ${
+                      confidence === n
+                        ? 'bg-gray-900 text-white font-medium'
+                        : 'text-gray-600 hover:bg-gray-100 border border-gray-200'
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <label className="block space-y-1.5">
+              <span className="text-xs font-semibold text-gray-700">6 · Esito atteso (opzionale)</span>
+              <p className="text-[11px] text-gray-400">Cosa vi aspettate di osservare entro 6 mesi.</p>
+              <textarea
+                rows={2}
+                value={expectedOutcome}
+                onChange={(e) => setExpectedOutcome(e.target.value)}
+                placeholder="Es. pedonalizzazione confermata con fatturato stabile…"
+                className={field}
+              />
+            </label>
+          </div>
+
+          <div className="grid sm:grid-cols-2 gap-3 pt-1 border-t border-gray-100">
+            <label className="block space-y-1.5">
+              <span className="text-xs font-semibold text-gray-700">Argomento</span>
+              <select className={field} value={category} onChange={(e) => setCategory(e.target.value)}>
+                {community.categories.map((c) => (
+                  <option key={c.label} value={c.label}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {mode === 'manual' && (
+              <label className="block space-y-1.5">
+                <span className="text-xs font-semibold text-gray-700">Riferimento fonte</span>
+                <input
+                  type="text"
+                  value={actNumber}
+                  onChange={(e) => setActNumber(e.target.value)}
+                  placeholder={community.sourcePlaceholder}
+                  className={field}
+                />
+              </label>
+            )}
+          </div>
+
+          {error && <p className="text-xs text-rose-600">{error}</p>}
 
           <button
             type="submit"
-            disabled={submitting || status !== 'authenticated'}
-            className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-xs transition-colors shadow-sm disabled:opacity-50"
+            disabled={submitting}
+            className="w-full py-2.5 rounded-lg text-sm font-medium bg-gray-900 text-white disabled:opacity-40"
           >
-            {submitting ? 'Salvataggio…' : 'Salva bozza (non pubblica)'}
+            {submitting ? 'Salvataggio…' : 'Salva bozza'}
           </button>
+          <p className="text-[11px] text-gray-400 text-center">
+            Resta privata finché non la chiudi dall’editor. Oppure{' '}
+            <Link href={href('/')} className="hover:text-gray-700 underline-offset-2 hover:underline">
+              torna alle decisioni
+            </Link>
+            .
+          </p>
         </form>
       )}
     </div>
@@ -350,8 +438,8 @@ function CaptureInner() {
 
 export default function CapturePage() {
   return (
-    <Suspense fallback={<div className="reddit-card p-8 text-center text-sm text-gray-500">Caricamento...</div>}>
-      <CaptureInner />
+    <Suspense fallback={<div className="reddit-card p-8 text-center text-sm text-gray-500">Caricamento…</div>}>
+      <ComposeInner />
     </Suspense>
   );
 }

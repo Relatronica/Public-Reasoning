@@ -1,4 +1,9 @@
 import { displayStatusLabel, resolveVisibility } from '@/lib/records';
+import {
+  confidenceLabel,
+  outcomeStatusLabel,
+  timeframeLabel,
+} from '@/lib/records/outcomes';
 import { ReasoningRecord } from '@/types';
 
 export function recordToMarkdown(record: ReasoningRecord): string {
@@ -13,6 +18,16 @@ export function recordToMarkdown(record: ReasoningRecord): string {
     .map((q) => `> ${q.quote}${q.speaker ? ` — ${q.speaker}` : ''}`)
     .join('\n\n');
   const conditions = (record.mindChangingConditions ?? []).map((c) => `- ${c}`).join('\n');
+  const outcomes = (record.outcomeReviews ?? [])
+    .map((r) => {
+      const lines = [
+        `- **${timeframeLabel(r.timeframe)}** · ${outcomeStatusLabel(r.status)}`,
+        `  - Atteso: ${r.expectedOutcome}`,
+      ];
+      if (r.actualOutcome) lines.push(`  - Accaduto: ${r.actualOutcome}`);
+      return lines.join('\n');
+    })
+    .join('\n');
 
   return `# ${record.realQuestion}
 
@@ -23,6 +38,7 @@ export function recordToMarkdown(record: ReasoningRecord): string {
 - Categoria: ${record.category ?? '—'}
 - Pack: ${record.compliancePack ?? '—'}
 - Incertezza: ${record.uncertaintyLevel}
+- Confidenza: ${confidenceLabel(record.confidence)}
 
 ## Decisione
 
@@ -35,6 +51,10 @@ ${discarded || '_Nessuna_'}
 ## Condizioni di cambio idea
 
 ${conditions || '_Nessuna_'}
+
+## Esito e revisione
+
+${outcomes || '_Nessun esito dichiarato_'}
 
 ## Verbatim
 

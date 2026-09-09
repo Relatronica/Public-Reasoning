@@ -55,7 +55,7 @@ export default function LoginPage() {
 
       <div className="reddit-card p-6 space-y-5">
         <p className="text-xs text-gray-600 leading-relaxed">
-          Accedi con Google per compilare schede, aprire la Decision Bank e gestire il profilo.
+          Accedi con Google per compilare schede, aprire il registro e gestire il profilo.
         </p>
 
         <button

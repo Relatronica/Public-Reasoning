@@ -1,6 +1,13 @@
 import { auth } from '@/auth';
 import { defaultOrganization } from '@/lib/org/defaults';
-import { canAdminOrg, canClose, canCompile, resolveMemberRole } from '@/lib/org/permissions';
+import {
+  canAdminOrg,
+  canAdvise,
+  canClose,
+  canCompile,
+  canRequestConsultation,
+  resolveMemberRole,
+} from '@/lib/org/permissions';
 import { getCuratorBootstrap } from '@/lib/curator/bootstrap.server';
 import { OrganizationRole } from '@/types';
 import { NextResponse } from 'next/server';
@@ -27,7 +34,9 @@ export async function getSessionOrgRole() {
   return { session, organization: org, role };
 }
 
-export async function requirePermission(permission: 'compile' | 'close' | 'admin') {
+export async function requirePermission(
+  permission: 'compile' | 'close' | 'admin' | 'advise' | 'request_consultation'
+) {
   const { session, error } = await requireCuratorSession();
   if (error || !session) return { session: null, role: null as OrganizationRole | null, error };
 
@@ -37,7 +46,11 @@ export async function requirePermission(permission: 'compile' | 'close' | 'admin
       ? canCompile(role)
       : permission === 'close'
         ? canClose(role)
-        : canAdminOrg(role);
+        : permission === 'admin'
+          ? canAdminOrg(role)
+          : permission === 'advise'
+            ? canAdvise(role)
+            : canRequestConsultation(role);
 
   if (!ok) {
     return {

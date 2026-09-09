@@ -10,6 +10,7 @@ export interface CuratorStore {
   customActs: PublicAct[];
   deletedRecordIds: string[];
   deletedActIds: string[];
+  deletedCommunityIds: string[];
   organization?: Organization;
 }
 
@@ -31,4 +32,5 @@ export const EMPTY_CURATOR_STORE: CuratorStore = {
   customActs: [],
   deletedRecordIds: [],
   deletedActIds: [],
+  deletedCommunityIds: [],
 };

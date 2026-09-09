@@ -10,7 +10,6 @@ import {
   MapPin,
   Plus,
   ChevronDown,
-  FileText,
   Briefcase,
   Building2,
   Pencil,
@@ -60,35 +59,6 @@ function useDismissOnOutsideClick(
   }, [open, ref, onClose]);
 }
 
-function AccountMenuButton({
-  avatarUrl,
-  initials,
-  open,
-  onToggle,
-}: {
-  avatarUrl?: string | null;
-  initials: string;
-  open: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onToggle}
-      title="Account"
-      aria-expanded={open}
-      aria-haspopup="menu"
-      className="w-8 h-8 rounded-full bg-blue-100 border border-blue-300 flex items-center justify-center text-blue-700 font-bold text-xs overflow-hidden hover:ring-2 hover:ring-blue-400 transition-all"
-    >
-      {avatarUrl ? (
-        <Image src={avatarUrl} alt="" width={32} height={32} className="w-full h-full object-cover" />
-      ) : (
-        initials
-      )}
-    </button>
-  );
-}
-
 function NavbarInner() {
   const [searchQuery, setSearchQuery] = useState('');
   const [communityOpen, setCommunityOpen] = useState(false);
@@ -101,7 +71,6 @@ function NavbarInner() {
   const { community, href } = useActiveCommunity();
   const { communities, canCompile, canAdminOrg, myRole, organization } = useCuratorData();
   const Icon = communityIcon(community.type, community.slug);
-  const workspaceLabel = community.type === 'comune' || community.type === 'regione' ? 'Community' : 'Workspace';
 
   const user = session?.user as
     | { name?: string | null; email?: string | null; avatar?: string | null; image?: string | null }
@@ -112,8 +81,7 @@ function NavbarInner() {
   const isAuthenticated = status === 'authenticated';
 
   useEffect(() => {
-    const q = searchParams.get('q') || '';
-    setSearchQuery(q);
+    setSearchQuery(searchParams.get('q') || '');
   }, [searchParams]);
 
   useDismissOnOutsideClick(communityOpen, communityRef, () => setCommunityOpen(false));
@@ -125,212 +93,150 @@ function NavbarInner() {
   };
 
   const closeAccount = () => setAccountOpen(false);
-
-  const accountMenuItemClass =
+  const menuItem =
     'flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-gray-50 w-full text-left';
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
-      <div className="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-        <div className="flex items-center gap-6">
-          <Link href={href('/')} className="flex items-center gap-2.5 group text-gray-900 hover:text-blue-700 transition-colors">
-            <Logo className="w-7 h-7" />
-            <span className="font-semibold text-lg tracking-tight leading-none">Reason</span>
-          </Link>
+    <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
+      <div className="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center gap-3 sm:gap-4">
+        <Link href={href('/')} className="flex items-center gap-2 text-gray-900 hover:text-blue-700 flex-shrink-0">
+          <Logo className="w-6 h-6" />
+          <span className="font-semibold text-base tracking-tight hidden xs:inline sm:inline">Reason</span>
+        </Link>
 
-          <div className="flex items-center relative" ref={communityRef}>
-            <button
-              type="button"
-              onClick={() => {
-                setCommunityOpen((v) => !v);
-                setAccountOpen(false);
-              }}
-              title="Cambia community"
-              className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-200/60 text-blue-800 text-xs font-semibold hover:bg-blue-100/80 transition-all cursor-pointer"
-            >
-              <Icon className="w-3.5 h-3.5 text-blue-600" />
-              <span>{community.shortName}</span>
-              <span className="text-[10px] text-blue-500 font-normal">{community.typeLabel}</span>
-              <ChevronDown
-                className={`w-3.5 h-3.5 text-blue-500 ml-0.5 transition-transform ${communityOpen ? 'rotate-180' : ''}`}
-              />
-            </button>
+        <div className="relative flex-shrink-0" ref={communityRef}>
+          <button
+            type="button"
+            onClick={() => {
+              setCommunityOpen((v) => !v);
+              setAccountOpen(false);
+            }}
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-100"
+          >
+            <Icon className="w-3.5 h-3.5 text-gray-500" />
+            <span className="max-w-[9rem] truncate">{community.shortName}</span>
+            <ChevronDown className={`w-3.5 h-3.5 text-gray-400 transition-transform ${communityOpen ? 'rotate-180' : ''}`} />
+          </button>
 
-            {communityOpen && (
-              <div className="absolute top-full left-0 mt-2 w-72 bg-white border border-gray-200 rounded-xl shadow-sm z-50 overflow-hidden">
-                <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100">
-                  {workspaceLabel}
-                  {organization?.name ? ` · ${organization.name}` : ''}
-                </div>
-                {communities.map((item) => {
-                  const ItemIcon = communityIcon(item.type, item.slug);
-                  const active = item.slug === community.slug;
-                  return (
-                    <Link
-                      key={item.id}
-                      href={withCommunityQuery('/', item.slug)}
-                      onClick={() => setCommunityOpen(false)}
-                      className={`flex items-start gap-2.5 px-3 py-2.5 text-xs hover:bg-gray-50 ${
-                        active ? 'bg-blue-50' : ''
-                      }`}
-                    >
-                      <ItemIcon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${active ? 'text-blue-600' : 'text-gray-400'}`} />
-                      <div className="min-w-0">
-                        <div className={`font-semibold ${active ? 'text-blue-800' : 'text-gray-900'}`}>{item.name}</div>
-                        <div className="text-[11px] text-gray-500 truncate">
-                          {item.typeLabel}
-                          {item.subtitle ? ` · ${item.subtitle}` : ''}
-                        </div>
-                      </div>
-                    </Link>
-                  );
-                })}
+          {communityOpen && (
+            <div className="absolute top-full left-0 mt-2 w-72 bg-white border border-gray-200 rounded-xl shadow-sm z-50 overflow-hidden">
+              <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100">
+                {organization?.name || 'Workspace'}
               </div>
-            )}
-          </div>
+              {communities.map((item) => {
+                const ItemIcon = communityIcon(item.type, item.slug);
+                const active = item.slug === community.slug;
+                return (
+                  <Link
+                    key={item.id}
+                    href={withCommunityQuery('/', item.slug)}
+                    onClick={() => setCommunityOpen(false)}
+                    className={`flex items-start gap-2.5 px-3 py-2.5 text-xs hover:bg-gray-50 ${active ? 'bg-blue-50' : ''}`}
+                  >
+                    <ItemIcon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${active ? 'text-blue-600' : 'text-gray-400'}`} />
+                    <div className="min-w-0">
+                      <div className={`font-semibold ${active ? 'text-blue-800' : 'text-gray-900'}`}>{item.name}</div>
+                      <div className="text-[11px] text-gray-500 truncate">{item.typeLabel}</div>
+                    </div>
+                  </Link>
+                );
+              })}
+              {canAdminOrg && (
+                <Link
+                  href={href('/curator/community/new')}
+                  onClick={() => setCommunityOpen(false)}
+                  className="flex items-center gap-2.5 px-3 py-2.5 text-xs font-semibold text-blue-700 hover:bg-blue-50 border-t border-gray-100"
+                >
+                  <Plus className="w-4 h-4" />
+                  Nuova community
+                </Link>
+              )}
+            </div>
+          )}
         </div>
 
-        <div className="flex-1 max-w-xl hidden sm:block">
-          <form onSubmit={handleSearchSubmit} className="relative">
-            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder={community.searchPlaceholder}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-sm bg-gray-50 border border-gray-200 rounded-full focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-800 placeholder-gray-400"
-            />
-          </form>
-        </div>
+        <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-md hidden sm:block">
+          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="Cerca…"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-9 pr-3 py-1.5 text-sm bg-gray-50 border border-transparent rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-800 placeholder-gray-400"
+          />
+        </form>
 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 ml-auto">
           {isAuthenticated && canCompile && (
             <Link
               href={href('/records/capture')}
-              className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-full text-xs font-semibold hover:bg-blue-700 shadow-sm transition-all active:scale-95"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white rounded-lg text-xs font-medium hover:bg-gray-800"
             >
-              <Sparkles className="w-4 h-4" />
-              <span className="hidden sm:inline">Cattura decisione</span>
-              <span className="sm:hidden">Cattura</span>
+              <Plus className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Nuova</span>
             </Link>
           )}
 
-          {isAuthenticated && canCompile && (
-            <Link
-              href={href('/records/new')}
-              className="hidden md:flex items-center gap-1.5 px-3 py-2 text-gray-700 hover:text-gray-900 text-xs font-medium hover:bg-gray-100 rounded-lg transition-colors"
-              title="Compila a mano"
-            >
-              <Plus className="w-4 h-4 text-gray-500" />
-              <span>A mano</span>
-            </Link>
-          )}
-
-          {isAuthenticated && (
-            <>
-              <Link
-                href={href('/bank')}
-                className="hidden lg:flex items-center gap-1.5 px-3 py-2 text-gray-700 hover:text-gray-900 text-xs font-medium hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <Landmark className="w-4 h-4 text-gray-500" />
-                <span>Bank</span>
-              </Link>
-
-              <Link
-                href={href('/curator')}
-                className="hidden lg:flex items-center gap-1.5 px-3 py-2 text-gray-700 hover:text-gray-900 text-xs font-medium hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                <Pencil className="w-4 h-4 text-gray-500" />
-                <span>Editor</span>
-              </Link>
-            </>
-          )}
-
-          <Link
-            href={href('/acts')}
-            className="hidden lg:flex items-center gap-1.5 px-3 py-2 text-gray-700 hover:text-gray-900 text-xs font-medium hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <FileText className="w-4 h-4 text-gray-500" />
-            <span>{community.archiveNavLabel}</span>
-          </Link>
-
-          <div className="h-6 w-px bg-gray-200 hidden sm:block mx-1" />
-
-          <div className="flex items-center relative pl-1" ref={accountRef}>
-            <AccountMenuButton
-              avatarUrl={isAuthenticated ? avatarUrl : null}
-              initials={isAuthenticated ? initials : '?'}
-              open={accountOpen}
-              onToggle={() => {
+          <div className="relative" ref={accountRef}>
+            <button
+              type="button"
+              onClick={() => {
                 setAccountOpen((v) => !v);
                 setCommunityOpen(false);
               }}
-            />
+              title="Account"
+              aria-expanded={accountOpen}
+              className="w-8 h-8 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-700 font-bold text-xs overflow-hidden hover:border-gray-300"
+            >
+              {isAuthenticated && avatarUrl ? (
+                <Image src={avatarUrl} alt="" width={32} height={32} className="w-full h-full object-cover" />
+              ) : (
+                isAuthenticated ? initials : '?'
+              )}
+            </button>
 
             {accountOpen && (
-              <div
-                role="menu"
-                className="absolute top-full right-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-sm z-50 overflow-hidden"
-              >
+              <div role="menu" className="absolute top-full right-0 mt-2 w-60 bg-white border border-gray-200 rounded-xl shadow-sm z-50 overflow-hidden">
                 {status === 'loading' ? (
                   <div className="px-3 py-4 text-xs text-gray-500 text-center">Caricamento…</div>
                 ) : isAuthenticated ? (
                   <>
                     <div className="px-3 py-3 border-b border-gray-100">
                       <div className="font-semibold text-sm text-gray-900 truncate">{displayName}</div>
-                      {user?.email && user.email !== displayName && (
-                        <div className="text-[11px] text-gray-500 truncate mt-0.5">{user.email}</div>
+                      {myRole && (
+                        <div className="text-[11px] text-gray-500 mt-0.5">{ROLE_LABELS[myRole]}</div>
                       )}
-                      <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                        {myRole && (
-                          <span className="text-[10px] uppercase tracking-wider font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">
-                            {ROLE_LABELS[myRole]}
-                          </span>
-                        )}
-                        {organization?.name && (
-                          <span className="text-[10px] text-gray-500 truncate">{organization.name}</span>
-                        )}
-                      </div>
                     </div>
-
                     <div className="py-1">
-                      <Link href="/settings" onClick={closeAccount} className={accountMenuItemClass} role="menuitem">
-                        <Settings className="w-4 h-4 text-gray-400" />
-                        Impostazioni profilo
-                      </Link>
-                      <Link href={href('/bank')} onClick={closeAccount} className={`${accountMenuItemClass} lg:hidden`} role="menuitem">
-                        <Landmark className="w-4 h-4 text-gray-400" />
-                        Decision Bank
-                      </Link>
-                      <Link href={href('/curator')} onClick={closeAccount} className={`${accountMenuItemClass} lg:hidden`} role="menuitem">
+                      <Link href={href('/curator')} onClick={closeAccount} className={menuItem} role="menuitem">
                         <Pencil className="w-4 h-4 text-gray-400" />
                         Editor
                       </Link>
+                      <Link href={href('/bank')} onClick={closeAccount} className={menuItem} role="menuitem">
+                        <Landmark className="w-4 h-4 text-gray-400" />
+                        Registro
+                      </Link>
                       {canAdminOrg && (
-                        <Link href={href('/curator/org')} onClick={closeAccount} className={accountMenuItemClass} role="menuitem">
+                        <Link href={href('/curator/org')} onClick={closeAccount} className={menuItem} role="menuitem">
                           <Users className="w-4 h-4 text-gray-400" />
-                          Organization
+                          Team
                         </Link>
                       )}
-                      {canCompile && (
-                        <Link href={href('/records/capture')} onClick={closeAccount} className={`${accountMenuItemClass} sm:hidden`} role="menuitem">
-                          <Sparkles className="w-4 h-4 text-gray-400" />
-                          Cattura decisione
-                        </Link>
-                      )}
+                      <Link href="/settings" onClick={closeAccount} className={menuItem} role="menuitem">
+                        <Settings className="w-4 h-4 text-gray-400" />
+                        Profilo
+                      </Link>
                     </div>
-
                     <div className="border-t border-gray-100 py-1">
                       <button
                         type="button"
                         role="menuitem"
                         onClick={async () => {
                           closeAccount();
-                          // Evita il redirect di NextAuth (prima finiva su /auth/callback)
                           await signOut({ redirect: false });
                           window.location.assign(href('/'));
                         }}
-                        className={`${accountMenuItemClass} text-red-700 hover:bg-red-50`}
+                        className={`${menuItem} text-red-700 hover:bg-red-50`}
                       >
                         <LogOut className="w-4 h-4 text-red-400" />
                         Esci
@@ -342,13 +248,13 @@ function NavbarInner() {
                     <Link
                       href={`/auth/login?callbackUrl=${encodeURIComponent(href('/'))}`}
                       onClick={closeAccount}
-                      className={accountMenuItemClass}
+                      className={menuItem}
                       role="menuitem"
                     >
                       <LogIn className="w-4 h-4 text-gray-400" />
                       Accedi
                     </Link>
-                    <Link href="/auth/register" onClick={closeAccount} className={accountMenuItemClass} role="menuitem">
+                    <Link href="/auth/register" onClick={closeAccount} className={menuItem} role="menuitem">
                       <UserPlus className="w-4 h-4 text-gray-400" />
                       Registrati
                     </Link>
@@ -365,7 +271,7 @@ function NavbarInner() {
 
 export default function Navbar() {
   return (
-    <Suspense fallback={<header className="h-16 bg-white border-b border-gray-200" />}>
+    <Suspense fallback={<header className="h-14 bg-white border-b border-gray-200" />}>
       <NavbarInner />
     </Suspense>
   );

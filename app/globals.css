@@ -47,6 +47,32 @@ body {
   background: #94a3b8;
 }
 
+/* Decision graph: blend React Flow chrome with app UI */
+.decision-flow .react-flow__attribution {
+  display: none;
+}
+
+.decision-flow .react-flow__controls-button {
+  width: 28px;
+  height: 28px;
+  border: none !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  background: transparent;
+}
+
+.decision-flow .react-flow__controls-button:hover {
+  background: #f3f4f6 !important;
+}
+
+.decision-flow .react-flow__controls-button svg {
+  max-width: 12px;
+  max-height: 12px;
+}
+
+.decision-flow .react-flow__edge-path {
+  stroke-linecap: round;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;
