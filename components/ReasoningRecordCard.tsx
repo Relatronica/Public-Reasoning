@@ -16,6 +16,7 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import VerbatimVsInterpretationViewer from './VerbatimVsInterpretationViewer';
+import AiAssistancePanel, { AiAssistanceBadge } from './AiAssistancePanel';
 
 interface Props {
   record: ReasoningRecord;
@@ -98,6 +99,7 @@ export default function ReasoningRecordCard({ record }: Props) {
                 Da verificare
               </span>
             )}
+            <AiAssistanceBadge ai={record.aiAssistance} />
           </div>
 
           <h2
@@ -133,6 +135,8 @@ export default function ReasoningRecordCard({ record }: Props) {
                   </div>
                 </div>
               )}
+
+              <AiAssistancePanel ai={record.aiAssistance} />
 
               {record.mindChangingConditions && record.mindChangingConditions.length > 0 && (
                 <div className="p-3 bg-amber-50/60 border border-amber-200/70 rounded-xl text-xs">

@@ -52,6 +52,16 @@ Senza questo campo la scheda non è un reasoning record: è un comunicato.
 ### 6. Ciclo di verifica a posteriori (*Outcome Reviews*)
 A 6, 12 o 24 mesi: `pending`, `verified_true`, `verified_false`.
 
+### 7. Supporto IA (opzionale, annex)
+Non è un settimo pilastro obbligatorio. Traccia **come è stata compilata la scheda**, non la decisione del decisore.
+
+- **Livello**: nessuno · assistivo · sostanziale
+- **Dove**: trascrizione, bozza, analisi opzioni, sintesi…
+- **Strumento** e **dati esposti** al modello
+- **Nota** di verifica umana (cosa è stato tenuto, riscritto o scartato)
+
+Distinto da verbatim/interpretazione sulla fonte originale.
+
 ---
 
 ## 3. Workflow

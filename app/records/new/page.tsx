@@ -7,6 +7,9 @@ import { useSession } from 'next-auth/react';
 import { HelpCircle, CheckCircle2, Compass, AlertTriangle, ShieldCheck, MapPin } from 'lucide-react';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
+import AiAssistanceFormFields from '@/components/AiAssistanceFormFields';
+import { DEFAULT_AI_ASSISTANCE } from '@/lib/ai-assistance';
+import { AiAssistance } from '@/types';
 
 const inputClass =
   'w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500';
@@ -25,6 +28,7 @@ function NewReasoningRecordInner() {
   const [discardedReason, setDiscardedReason] = useState('');
   const [mindChanging, setMindChanging] = useState('');
   const [category, setCategory] = useState(community.categories[0]?.label ?? '');
+  const [aiAssistance, setAiAssistance] = useState<AiAssistance>(DEFAULT_AI_ASSISTANCE);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
@@ -68,6 +72,10 @@ function NewReasoningRecordInner() {
             mindChangingConditions: mindChanging ? [mindChanging] : [],
             verbatimQuotes: [],
             outcomeReviews: [],
+            aiAssistance:
+              aiAssistance.level === 'none'
+                ? undefined
+                : aiAssistance,
           },
         }),
       });
@@ -206,6 +214,8 @@ function NewReasoningRecordInner() {
             className="w-full bg-white border border-amber-200 rounded-lg p-2.5 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
           />
         </div>
+
+        <AiAssistanceFormFields value={aiAssistance} onChange={setAiAssistance} />
 
         {error && <p className="text-xs text-red-600">{error}</p>}
 

@@ -119,6 +119,27 @@ export interface OutcomeReview {
   notes?: string;
 }
 
+/** Tracciamento opzionale del supporto IA nella compilazione del giudizio. */
+export type AiSupportLevel = 'none' | 'assistivo' | 'sostanziale';
+
+export type AiDataExposure = 'none' | 'internal_only' | 'client_data';
+
+export type AiAssistanceScope =
+  | 'transcription'
+  | 'drafting'
+  | 'options_analysis'
+  | 'summary'
+  | 'research'
+  | 'other';
+
+export interface AiAssistance {
+  level: AiSupportLevel;
+  scopes?: AiAssistanceScope[];
+  tools?: string;
+  dataExposure?: AiDataExposure;
+  note?: string;
+}
+
 export interface ReasoningRecord {
   id: string;
   publicActId: string;
@@ -136,6 +157,7 @@ export interface ReasoningRecord {
   verbatimQuotes: VerbatimQuote[];
   interpretativeSummary: string;
   outcomeReviews: OutcomeReview[];
+  aiAssistance?: AiAssistance;
   category?: string;
   upvotes?: number;
   createdAt: Date;

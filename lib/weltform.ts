@@ -329,6 +329,13 @@ export const weltformRecords: ReasoningRecord[] = [
       },
     ],
     interpretativeSummary: 'La policy non nasce da paura dell’AI, ma da un fatto concreto. Hanno separato ciò che è interno e reversibile da ciò che è fiducia del cliente.',
+    aiAssistance: {
+      level: 'assistivo',
+      scopes: ['transcription'],
+      tools: 'Azure OpenAI (tenant chiuso, solo trascrizioni)',
+      dataExposure: 'internal_only',
+      note: 'Trascrizione del verbale IT su ambiente approvato. La scheda è stata scritta e validata dal partner; nessun dato cliente nel draft.',
+    },
     outcomeReviews: [
       {
         id: 'out-wf-ai-1',
@@ -537,6 +544,13 @@ export const weltformRecords: ReasoningRecord[] = [
       },
     ],
     interpretativeSummary: 'Hanno scelto pochi testi, liberi e non strumentali, invece della visibilità prestigiosa o del funnel commerciale. Parlare in pubblico è parte del mestiere, ma dopo la parola data.',
+    aiAssistance: {
+      level: 'sostanziale',
+      scopes: ['drafting', 'summary'],
+      tools: 'Claude (account studio, senza upload di file)',
+      dataExposure: 'none',
+      note: 'Prima bozza del saggio annuale; riscritta e approvata in partnership. Nessun caso cliente nel testo.',
+    },
     outcomeReviews: [
       {
         id: 'out-wf-no-1',

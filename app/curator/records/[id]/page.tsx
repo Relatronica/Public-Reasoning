@@ -7,6 +7,8 @@ import { useSession } from 'next-auth/react';
 import { ArrowLeft, Plus, Save, Trash2 } from 'lucide-react';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
+import AiAssistanceFormFields from '@/components/AiAssistanceFormFields';
+import { DEFAULT_AI_ASSISTANCE } from '@/lib/ai-assistance';
 import { DiscardedOption, ReasoningRecord } from '@/types';
 
 const inputClass =
@@ -79,6 +81,10 @@ function RecordEditorInner() {
             interpretativeSummary: record.interpretativeSummary,
             discardedOptions: record.discardedOptions,
             mindChangingConditions: record.mindChangingConditions.filter(Boolean),
+            aiAssistance:
+              record.aiAssistance?.level === 'none' || !record.aiAssistance
+                ? undefined
+                : record.aiAssistance,
           },
           act: act
             ? {
@@ -211,6 +217,11 @@ function RecordEditorInner() {
             </div>
           ))}
         </section>
+
+        <AiAssistanceFormFields
+          value={record.aiAssistance ?? DEFAULT_AI_ASSISTANCE}
+          onChange={(aiAssistance) => updateRecord({ aiAssistance })}
+        />
 
         <section className="space-y-3 pt-2 border-t border-gray-100">
           <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400">Incertezza</h2>
