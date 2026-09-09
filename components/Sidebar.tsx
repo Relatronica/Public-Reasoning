@@ -2,42 +2,42 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { 
   Home, 
-  Flame, 
-  Sparkles, 
   AlertTriangle, 
   CheckCircle2, 
   MapPin, 
-  Tag, 
   FileText, 
-  Bookmark, 
-  Info,
-  Layers,
-  HelpCircle
+  HelpCircle,
+  X
 } from 'lucide-react';
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  
+  const currentFilter = searchParams.get('filter');
+  const currentCategory = searchParams.get('category');
+  const currentSearch = searchParams.get('q');
 
   const navItems = [
-    { label: 'Tutti i Record', href: '/', icon: Home },
-    { label: 'Alta Incertezza', href: '/?filter=uncertainty', icon: AlertTriangle },
-    { label: 'Con Verifiche (6/12 mesi)', href: '/?filter=verified', icon: CheckCircle2 },
-    { label: 'Atti Ufficiali', href: '/acts', icon: FileText },
+    { label: 'Tutti i Record', href: '/', filterKey: null, icon: Home },
+    { label: 'Alta Incertezza', href: '/?filter=uncertainty', filterKey: 'uncertainty', icon: AlertTriangle },
+    { label: 'Con Verifiche (6/12 mesi)', href: '/?filter=verified', filterKey: 'verified', icon: CheckCircle2 },
+    { label: 'Atti Ufficiali', href: '/acts', filterKey: 'acts_page', icon: FileText },
   ];
 
   const categories = [
     { label: 'Mobilità & Viabilità', color: 'bg-blue-500' },
     { label: 'Urbanistica & Territorio', color: 'bg-emerald-500' },
-    { label: 'Bilancio & Servizi', color: 'bg-amber-500' },
+    { label: 'Bilancio & Finanze', color: 'bg-amber-500' },
     { label: 'Ambiente & Parchi', color: 'bg-teal-500' },
   ];
 
   return (
-    <aside className="w-64 flex-shrink-0 hidden md:block py-6 pr-4 border-r border-gray-200/80 bg-white min-h-[calc(100vh-4rem)]">
-      <div className="space-y-6 px-3">
+    <aside className="w-64 flex-shrink-0 hidden md:block py-6 h-full overflow-y-auto pr-2">
+      <div className="space-y-6">
         
         {/* Territory Focus Badge */}
         <div className="p-3 bg-gradient-to-br from-blue-50 to-indigo-50/50 border border-blue-100 rounded-xl">
@@ -57,14 +57,24 @@ export default function Sidebar() {
           <nav className="space-y-1">
             {navItems.map((item) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href;
+              let isActive = false;
+              if (item.filterKey === 'acts_page') {
+                isActive = pathname === '/acts';
+              } else if (pathname === '/') {
+                if (item.filterKey === null) {
+                  isActive = !currentFilter && !currentCategory && !currentSearch;
+                } else {
+                  isActive = currentFilter === item.filterKey;
+                }
+              }
+
               return (
                 <Link
-                  key={item.href}
+                  key={item.label}
                   href={item.href}
                   className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
                     isActive 
-                      ? 'bg-blue-50 text-blue-700 font-bold' 
+                      ? 'bg-blue-50 text-blue-700 font-bold border-l-2 border-blue-600 pl-2.5' 
                       : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                   }`}
                 >
@@ -78,26 +88,53 @@ export default function Sidebar() {
 
         {/* Categories / Topics */}
         <div>
-          <div className="text-[11px] font-bold uppercase tracking-wider text-gray-400 px-3 mb-2">
-            Argomenti Cormano
+          <div className="flex items-center justify-between px-3 mb-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-gray-400">
+              Argomenti Cormano
+            </span>
+            {currentCategory && (
+              <Link
+                href="/"
+                className="text-[10px] text-blue-600 hover:underline flex items-center gap-0.5"
+                title="Resetta argomento"
+              >
+                <X className="w-3 h-3" />
+                Resetta
+              </Link>
+            )}
           </div>
           <div className="space-y-1">
-            {categories.map((cat) => (
-              <button
-                key={cat.label}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 text-left transition-colors"
-              >
-                <div className="flex items-center gap-2.5">
-                  <span className={`w-2 h-2 rounded-full ${cat.color}`}></span>
-                  <span>{cat.label}</span>
-                </div>
-              </button>
-            ))}
+            {categories.map((cat) => {
+              const isSelected = currentCategory === cat.label;
+              const href = isSelected ? '/' : `/?category=${encodeURIComponent(cat.label)}`;
+
+              return (
+                <Link
+                  key={cat.label}
+                  href={href}
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs transition-colors ${
+                    isSelected 
+                      ? 'bg-blue-50 text-blue-800 font-bold border-l-2 border-blue-600 pl-2.5' 
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 font-medium'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span className={`w-2 h-2 rounded-full ${cat.color} ${isSelected ? 'ring-2 ring-blue-400 ring-offset-1' : ''}`}></span>
+                    <span>{cat.label}</span>
+                  </div>
+                  {isSelected && (
+                    <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded font-semibold">
+                      Attivo
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
           </div>
         </div>
 
         {/* Guida Rapida alla Struttura dei Record */}
-        <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs space-y-2">
+        <div className="p-3.5 bg-white border border-gray-200/80 rounded-xl text-xs space-y-2 shadow-xs">
           <div className="font-semibold text-gray-800 flex items-center gap-1.5">
             <HelpCircle className="w-3.5 h-3.5 text-blue-600" />
             <span>Come leggere un Record</span>
@@ -113,3 +150,4 @@ export default function Sidebar() {
     </aside>
   );
 }
+

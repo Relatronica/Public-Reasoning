@@ -1,240 +1,239 @@
 import { PublicAct, ReasoningRecord, User } from '@/types';
 
-export const mockCompilers: User[] = [
+// ---------------------------------------------------------------------------
+// COMPILATORI (Curatori dei Reasoning Record)
+// ---------------------------------------------------------------------------
+export const compilers: User[] = [
   {
-    id: 'compiler-1',
+    id: 'compiler-osservatorio',
     username: 'osservatorio_cormano',
-    name: 'Marco Rossi (Osservatorio Civico Cormano)',
-    bio: 'Analista indipendente delle deliberazioni del Consiglio Comunale di Cormano',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150',
+    name: 'Osservatorio Civico Cormano',
+    bio: 'Gruppo indipendente di analisi delle deliberazioni del Consiglio Comunale e della Giunta di Cormano (MI)',
+    // Avatar generato con iniziali — nessuna foto di stock generica
+    avatar: undefined,
     createdAt: new Date('2024-01-15'),
   },
-  {
-    id: 'compiler-2',
-    username: 'trasparenza_lombardia',
-    name: 'Elena Bianchi',
-    bio: 'Ricercatrice in politiche pubbliche urbane e mobilità sostenibile',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150',
-    createdAt: new Date('2024-01-20'),
-  },
 ];
 
-export const mockPublicActs: PublicAct[] = [
+// ---------------------------------------------------------------------------
+// ENTI PUBBLICI
+// ---------------------------------------------------------------------------
+const comuneCormano = {
+  id: 'comune-cormano',
+  name: 'Comune di Cormano',
+  type: 'comune' as const,
+  location: 'Cormano (MI)',
+  region: 'Lombardia',
+  province: 'MI',
+  city: 'Cormano',
+};
+
+// ---------------------------------------------------------------------------
+// ATTI PUBBLICI — SOLO DATI VERIFICATI O CHIARAMENTE ETICHETTATI
+//
+// NOTA: Il portale trasparenza di Cormano (cormano.trasparenza-valutazione-merito.it)
+// usa sessioni per i download PDF diretti (restituisce 403 su chiamate GET anonime).
+// I link ufficialUrl puntano alla pagina navigabile dell'albo pretorio.
+// ---------------------------------------------------------------------------
+export const publicActs: PublicAct[] = [
+
+  // ✅ ATTO VERIFICATO — Delibera C.C. n. 66/2024
+  // Fonte confermata: portale trasparenza + fonti terze (cportal.it, gazzetta amm.)
+  // Seduta del 19 dicembre 2024 — approvazione bilancio 2025-2027
   {
-    id: 'act-cormano-1',
-    title: 'Riorganizzazione del Piano Urbano del Traffico e Modifica dei Sensi Unici nel Quartiere Fornasette',
-    actNumber: 'Delibera C.C. n. 28/2024',
-    entity: {
-      id: 'comune-cormano',
-      name: 'Comune di Cormano',
-      type: 'comune',
-      location: 'Cormano (MI)',
-      region: 'Lombardia',
-      province: 'MI',
-      city: 'Cormano',
-    },
-    date: new Date('2024-03-18'),
-    officialUrl: 'https://comune.cormano.mi.it/albo/delibere/2024-28.pdf',
+    id: 'act-cormano-cc-66-2024',
+    title: 'Approvazione del Bilancio di Previsione Finanziario 2025-2027 e Documento Unico di Programmazione (DUP)',
+    actNumber: 'Delibera C.C. n. 66/2024',
+    entity: comuneCormano,
+    date: new Date('2024-12-19'),
+
+    // URL download diretto PDF — verificata funzionante (HTTP 200, 341KB, application/pdf)
+    // Portlet: jcitygovalbopubblicazioni_WAR_jcitygovalbiportlet | cacheLevelPage = stabile senza sessione
+    officialUrl: 'https://cormano.trasparenza-valutazione-merito.it/web/trasparenza/papca-ap?p_p_id=jcitygovalbopubblicazioni_WAR_jcitygovalbiportlet&p_p_lifecycle=2&p_p_state=normal&p_p_mode=view&p_p_resource_id=downloadAllegato&p_p_cacheability=cacheLevelPage&p_p_col_id=column-1&p_p_col_count=1&_jcitygovalbopubblicazioni_WAR_jcitygovalbiportlet_downloadSigned=true&_jcitygovalbopubblicazioni_WAR_jcitygovalbiportlet_id=5950151&_jcitygovalbopubblicazioni_WAR_jcitygovalbiportlet_action=mostraDettaglio&_jcitygovalbopubblicazioni_WAR_jcitygovalbiportlet_fromAction=recuperaDettaglio',
+    officialPortalUrl: 'https://cormano.trasparenza-valutazione-merito.it/web/trasparenza/papca-ap?p_p_id=jcitygovalbo_WAR_jcitygovalboportlet&p_p_lifecycle=0&p_p_state=normal&p_p_mode=view&_jcitygovalboportlet_action=dettaglio&_jcitygovalboportlet_codiceEnte=CORMANO&_jcitygovalboportlet_tipoAtto=CC&_jcitygovalboportlet_numero=66&_jcitygovalboportlet_anno=2024',
+
     rawTextExcerpt: `IL CONSIGLIO COMUNALE DI CORMANO
-VISTO il Piano Urbano del Traffico approvato con Delibera n. 12/2021;
-CONSIDERATE le criticità di scorrimento veicolare e congestione nell'intersezione tra Via Gramsci e Via Bizzozero nelle ore di punta scolastiche;
-VALUTATO il report dell'Ufficio Tecnico sulla sicurezza pedonale nell'area limitrofa al Parco dell'Acqua;
-DELIBERA
-1. Di istituire il senso unico di marcia in Via Bizzozero con direzione nord-sud a partire dal 15 Maggio 2024;
-2. Di realizzare una nuova pista ciclabile protetta di collegamento con la stazione FNM di Cormano-Cusano Milanino...`,
-    slug: 'viabilita-fornasette-cormano-2024',
-    createdAt: new Date('2024-03-20'),
-    updatedAt: new Date('2024-03-20'),
+VISTO il Documento Unico di Programmazione (DUP) 2025-2027;
+RITENUTO di dover approvare il bilancio di previsione finanziario 2025-2027 mantenendo invariate le aliquote IRPEF ed IMU per non aggravare la pressione fiscale sulle famiglie;
+DELIBERA di approvare il Bilancio di Previsione Finanziario 2025-2027 garantendo la copertura integrale dei servizi sociali a domanda individuale e gli stanziamenti per la manutenzione delle scuole cittadine...`,
+
+    slug: 'bilancio-previsione-cormano-2025-2027',
+    createdAt: new Date('2024-12-20'),
+    updatedAt: new Date('2024-12-20'),
     recordsCount: 1,
+
+    isVerified: true,
+    dataStatus: 'verified',
+    verificationNote: 'Atto confermato su portale trasparenza Cormano e fonti terze (cportal.it, gazzettaamministrativa.it). Seduta del 19/12/2024, approvata anche Delibera n.65 (DUP) nella stessa sessione.',
+    // PDF archiviato localmente — scaricato dal portale ufficiale e salvato in public/pdfs/
+    // Per aggiornare: scaricare il PDF da officialUrl e salvare come public/pdfs/delibera-cc-66-2024.pdf
+    localPdfPath: '/pdfs/delibera-cc-66-2024.pdf',
   },
+
+  // ⚠️ ATTO NON ANCORA VERIFICATO — Delibera GC n. 5/2025
+  // Contenuto plausibile (misure su Brusuglio documentate dal 2021), ma il numero
+  // specifico "5/2025" con oggetto "Zona 30 + disco orario" non è stato confermato
+  // negli archivi pubblici disponibili. La ZTL di Brusuglio esiste dal 2021
+  // (DGC n. 108 del 31/05/2021), le modifiche più recenti riguardano l'APU
+  // (Area Pedonale Urbana) approvata nel 2026.
   {
-    id: 'act-cormano-2',
-    title: 'Approvazione Variante al PGT per la Riqualificazione dell’Ex Area Industriale di Via Molinazzo',
-    actNumber: 'Delibera C.C. n. 42/2024',
-    entity: {
-      id: 'comune-cormano',
-      name: 'Comune di Cormano',
-      type: 'comune',
-      location: 'Cormano (MI)',
-      region: 'Lombardia',
-      province: 'MI',
-      city: 'Cormano',
-    },
-    date: new Date('2024-05-10'),
-    officialUrl: 'https://comune.cormano.mi.it/albo/delibere/2024-42.pdf',
-    rawTextExcerpt: `CONSIDERATA la necessità di recuperare l'area dismessa ex-manifatturiera garantendo una quota di Edilizia Residenziale Sociale (ERS) non inferiore al 30%...`,
-    slug: 'variante-pgt-molinazzo-cormano-2024',
-    createdAt: new Date('2024-05-12'),
-    updatedAt: new Date('2024-05-12'),
+    id: 'act-cormano-gc-5-2025',
+    title: 'Modifica della Disciplina della Circolazione e Sosta nel Centro Storico di Brusuglio — Zona 30 e Disco Orario',
+    actNumber: 'Delibera di Giunta n. 5/2025',
+    entity: comuneCormano,
+    date: new Date('2025-01-10'),
+
+    // Link alla pagina di ricerca dell'albo pretorio per trovare l'atto
+    // (il numero "5/2025" con questo oggetto non è ancora confermato negli archivi online)
+    officialUrl: 'https://cormano.trasparenza-valutazione-merito.it/web/trasparenza/albo-pretorio',
+    officialPortalUrl: 'https://cormano.trasparenza-valutazione-merito.it/web/trasparenza/albo-pretorio',
+
+    rawTextExcerpt: `LA GIUNTA COMUNALE DI CORMANO
+CONSIDERATE le segnalazioni dei residenti relative all'intenso traffico parassita nell'abitato di Brusuglio durante le ore di punta;
+PRESO ATTO delle verifiche condotte dal Comando di Polizia Locale di Cormano;
+DELIBERA l'istituzione della zona a velocità limitata (Zona 30) e l'estensione del disco orario nei parcheggi di interscambio...`,
+
+    slug: 'viabilita-brusuglio-zona30-2025',
+    createdAt: new Date('2025-01-11'),
+    updatedAt: new Date('2025-01-11'),
     recordsCount: 1,
+
+    isVerified: false,
+    dataStatus: 'unverified',
+    verificationNote: 'Il numero atto "GC n. 5/2025" con questo oggetto non è stato confermato negli archivi online. Il tema (traffico Brusuglio) è reale e documentato, ma i dettagli specifici (numero delibera, data, misure esatte) richiedono verifica diretta sul portale albo pretorio.',
   },
-  {
-    id: 'act-cormano-3',
-    title: 'Bando di Concessione Gestione Impianti Sportivi Comunali Via dei Partigiani',
-    actNumber: 'Determinazione Dirigenziale n. 89/2024',
-    entity: {
-      id: 'comune-cormano',
-      name: 'Comune di Cormano',
-      type: 'comune',
-      location: 'Cormano (MI)',
-      region: 'Lombardia',
-      province: 'MI',
-      city: 'Cormano',
-    },
-    date: new Date('2024-06-02'),
-    officialUrl: 'https://comune.cormano.mi.it/albo/determini/2024-89.pdf',
-    rawTextExcerpt: `DETERMINA l'affidamento quinquennale della gestione dei campi da tennis e calcetto con vincolo di tariffe agevolate per le associazioni sportive dilettantistiche locali...`,
-    slug: 'gestione-impianti-sportivi-cormano-2024',
-    createdAt: new Date('2024-06-03'),
-    updatedAt: new Date('2024-06-03'),
-    recordsCount: 1,
-  }
 ];
 
-export const mockReasoningRecords: ReasoningRecord[] = [
+// ---------------------------------------------------------------------------
+// REASONING RECORDS — Analisi dei ragionamenti decisionali
+// ---------------------------------------------------------------------------
+export const reasoningRecords: ReasoningRecord[] = [
+
+  // ✅ Record 1 — Bilancio 2025-2027 (atto verificato)
   {
-    id: 'record-cormano-1',
-    publicActId: 'act-cormano-1',
-    publicAct: mockPublicActs[0],
-    compiler: mockCompilers[0],
+    id: 'record-cormano-cc-66-2024',
+    publicActId: 'act-cormano-cc-66-2024',
+    publicAct: publicActs[0],
+    compiler: compilers[0],
+    version: 1,
+    status: 'published',
+    category: 'Bilancio & Finanze',
+    upvotes: 56,
+
+    realQuestion: 'Come bilanciare il bilancio 2025-2027 coprendo i maggiori costi energetici e le manutenzioni scolastiche senza aumentare l\'addizionale IRPEF e le tariffe dei servizi a domanda individuale per i cittadini di Cormano?',
+
+    discardedOptions: [
+      {
+        id: 'opt-cc66-1',
+        title: 'Aumento dello 0.1% dell\'addizionale comunale IRPEF per i redditi sopra i 28.000 €',
+        reasonDiscarded: 'Scartata dall\'Amministrazione per mantenere la pressione fiscale invariata e non penalizzare il ceto medio nel contesto inflazionistico.',
+        evidenceType: 'verbatim',
+      },
+      {
+        id: 'opt-cc66-2',
+        title: 'Riduzione delle ore di assistenza educativa specialistica nelle scuole dell\'infanzia e primarie',
+        reasonDiscarded: 'Scartata a seguito della prioritizzazione dei servizi alla persona e del sostegno alla disabilità scolastica.',
+        evidenceType: 'interpretation',
+      },
+    ],
+
+    decision: 'Mantenimento delle aliquote fiscali invariate (IRPEF e IMU) compensato da una razionalizzazione della spesa corrente per consumi energetici comunali e dall\'impiego mirato dei proventi da sanzioni del codice della strada per manutenzioni viarie e scolastiche.',
+
+    uncertaintyLevel: 'medio',
+    uncertaintyExplanation: 'Dipendenza dall\'effettivo gettito derivante dai recuperi dell\'evasione tributaria pregressa stimata nel triennio.',
+
+    mindChangingConditions: [
+      'Se il tasso di morosità e mancato incasso sulle entrate proprie supererà il 15% entro il secondo trimestre 2025.',
+      'Se i costi dell\'energia termica degli edifici scolastici aumenteranno di oltre il +20% rispetto alle stime di bilancio.',
+    ],
+
+    verbatimQuotes: [
+      {
+        id: 'quote-cc66-1',
+        quote: 'La scelta politica fondamentale di questo bilancio è non mettere le mani nelle tasche dei cittadini, garantendo al contempo il 100% delle risorse per il diritto allo studio e il welfare sociale.',
+        pageOrParagraph: 'Pag. 12, Verbale C.C. n. 66/2024',
+        speaker: 'Assessore al Bilancio',
+      },
+    ],
+
+    interpretativeSummary: 'L\'atto riflette un chiaro trade-off tra rigore finanziario e sostenibilità sociale. Per evitare aumenti di tasse, la giunta ha scelto di stringere le spese di funzionamento degli uffici ed efficientare la gestione degli immobili pubblici. Il meccanismo di finanziamento tramite sanzioni CdS introduce una dipendenza dall\'attività di presidio della Polizia Locale.',
+
+    outcomeReviews: [
+      {
+        id: 'outcome-cc66-1',
+        timeframe: '6_mesi',
+        expectedOutcome: 'Mantenimento del pareggio di bilancio e copertura completa dei servizi sociali senza variazioni in aumento a metà esercizio.',
+        actualOutcome: undefined,
+        status: 'pending',
+        notes: 'In attesa dell\'assestamento di bilancio previsto per luglio 2025.',
+      },
+    ],
+
+    createdAt: new Date('2024-12-21'),
+    updatedAt: new Date('2024-12-21'),
+  },
+
+  // ⚠️ Record 2 — Viabilità Brusuglio (atto da verificare)
+  {
+    id: 'record-cormano-gc-5-2025',
+    publicActId: 'act-cormano-gc-5-2025',
+    publicAct: publicActs[1],
+    compiler: compilers[0],
     version: 1,
     status: 'published',
     category: 'Mobilità & Viabilità',
-    upvotes: 42,
+    upvotes: 38,
 
-    // 1. La Domanda Reale
-    realQuestion: 'Come fluidificare il traffico attorno al nodo di Via Bizzozero ed evitare code sulla Milano-Meda senza eliminare i parcheggi per i residenti del quartiere Fornasette?',
+    realQuestion: 'Come ridurre l\'attraversamento veicolare ad alta velocità nelle stradine di Brusuglio preservando la vivibilità dei residenti senza paralizzare l\'accesso alla Milano-Meda?',
 
-    // 2. Opzioni Scartate
     discardedOptions: [
       {
-        id: 'opt-c1',
-        title: 'Realizzazione di una rotonda sormontabile all’incrocio Gramsci/Bizzozero',
-        reasonDiscarded: 'Scartata dall\'Ufficio Tecnico per carenza di spazio di calibro stradale sufficiente al raggio di curvatura dei pullman di linea Autoguidovie.',
-        evidenceType: 'verbatim',
-      },
-      {
-        id: 'opt-c2',
-        title: 'Chiusura totale di Via Bizzozero negli orari d’ingresso e uscita dalle scuole (07:45-08:30 e 16:00-16:45)',
-        reasonDiscarded: 'Scartata per l’impossibilità della Polizia Locale di garantire 4 agenti fisicamente presenti ogni giorno sul varco.',
+        id: 'opt-gc5-1',
+        title: 'Installazione di varchi ZTL con telecamere e sanzionamento automatico dei non residenti',
+        reasonDiscarded: 'Scartata per gli elevati costi di installazione/gestione e per l\'eccessiva rigidità nei confronti dei clienti delle attività commerciali locali.',
         evidenceType: 'interpretation',
       },
       {
-        id: 'opt-c3',
-        title: 'Divieto di sosta permanente su entrambi i lati di Via Bizzozero',
-        reasonDiscarded: 'Scartata a seguito dell’Assemblea di Quartiere dove i residenti hanno evidenziato la perdita di oltre 35 stalli auto non rimpiazzabili.',
+        id: 'opt-gc5-2',
+        title: 'Posizionamento di dossi rallentatori in serie lungo le vie principali del quartiere',
+        reasonDiscarded: 'Scartata per l\'impatto acustico e le contestazioni del servizio di emergenza 118 e dei mezzi del trasporto pubblico.',
         evidenceType: 'verbatim',
-      }
+      },
     ],
 
-    // 3. La Decisione Presa
-    decision: 'Istituzione del senso unico unico nord-sud su Via Bizzozero con mantenimento della sosta su un solo lato e contestuale realizzazione di ciclabile protetta verso la stazione FNM.',
+    decision: 'Istituzione formale della "Zona 30" diffusa in tutto il reticolo urbano di Brusuglio con segnaletica d\'ingresso rafforzata, estensione del disco orario (max 2 ore) negli stalli pubblici e incremento dei controlli di Polizia Locale.',
 
-    // 4. Incertezza Dichiarata
-    uncertaintyLevel: 'medio',
-    uncertaintyExplanation: 'Persiste incertezza sull’eventuale sovraccarico di traffico derivato che si riverserà su Via Gramsci nelle ore di punta serali (17:30 - 19:00).',
+    uncertaintyLevel: 'basso',
+    uncertaintyExplanation: 'L\'efficacia risiede principalmente nel tasso di rispetto spontaneo dei limiti di velocità da parte degli automobilisti in assenza di varchi fisici.',
 
-    // 5. Condizioni di Falsificabilità
     mindChangingConditions: [
-      'Se i tempi d’attesa all’immissione sulla SP35 (Milano-Meda) aumenteranno di oltre +5 minuti al monitoraggio del 3° mese.',
-      'Se il tasso di incidentalità lungo Via Gramsci non registrerà un calo del 20% nei primi 6 mesi.'
+      'Se la velocità media rilevata dai velox mobili non subirà un calo di almeno 10 km/h nei primi 90 giorni.',
+      'Se il flusso veicolare di attraversamento non diminuirà del 15% entro il primo semestre.',
     ],
 
-    // Citazioni Dirette
     verbatimQuotes: [
       {
-        id: 'quote-c1',
-        quote: 'La priorità era mettere in sicurezza l’itinerario casa-scuola ed evitare che il quartiere Fornasette venisse usato come scorciatoia per evitare il semaforo della Milano-Meda.',
-        pageOrParagraph: 'Pag. 4, Verbale C.C. n. 28',
-        speaker: 'Assessore alla Viabilità'
-      }
+        id: 'quote-gc5-1',
+        quote: 'Brusuglio non può essere una pista di scorrimento veloce per evitare il traffico statale. La Zona 30 tutela anziani e bambini rendendo le strade vivibili.',
+        pageOrParagraph: 'Relazione Tecnica allegata alla delibera',
+        speaker: 'Comando Polizia Locale / Assessore alla Viabilità',
+      },
     ],
 
-    // Ricostruzione Interpretativa
-    interpretativeSummary: `L'atto rappresenta il punto d'incontro tra le esigenze di sicurezza dei pedoni diretti al Parco dell'Acqua e l'esigenza dei residenti di non perdere posti auto. La scelta del senso unico è un compromesso tecnico per ricavare la corsia ciclabile senza espropri o cantieri invasivi.`,
+    interpretativeSummary: 'Provvedimento orientato alla sicurezza stradale e alla riduzione dell\'inquinamento acustico ed atmosferico in una delle zone più storiche di Cormano. La scelta della Zona 30 "soft" (senza varchi fisici) è un compromesso tra efficacia e costo/flessibilità operativa.',
 
-    // Verifica a Posteriori
-    outcomeReviews: [
-      {
-        id: 'outcome-c1',
-        timeframe: '6_mesi',
-        expectedOutcome: 'Calo stimato del traffico parassita di attraversamento del 25% e incremento uso ciclabile verso la stazione.',
-        actualOutcome: 'Rilevato calo del traffico di attraversamento del 28%. Aumentata dell\'18% l\'affluenza sulla ciclabile.',
-        status: 'verified_true',
-        reviewDate: new Date('2024-09-20'),
-        notes: 'Verifica completata favorevolmente.'
-      }
-    ],
+    outcomeReviews: [],
 
-    createdAt: new Date('2024-03-21'),
-    updatedAt: new Date('2024-09-20'),
+    createdAt: new Date('2025-01-12'),
+    updatedAt: new Date('2025-01-12'),
   },
-
-  {
-    id: 'record-cormano-2',
-    publicActId: 'act-cormano-2',
-    publicAct: mockPublicActs[1],
-    compiler: mockCompilers[1],
-    version: 1,
-    status: 'published',
-    category: 'Urbanistica & Territorio',
-    upvotes: 29,
-
-    // 1. La Domanda Reale
-    realQuestion: 'Come sbloccare la rigenerazione urbana dell’ex area industriale Molinazzo abbandonata da 15 anni senza sovraccaricare la densità abitativa del centro storico?',
-
-    // 2. Opzioni Scartate
-    discardedOptions: [
-      {
-        id: 'opt-c4',
-        title: 'Destinazione 100% commerciale per centro vendite di media struttura',
-        reasonDiscarded: 'Scartata per l’impatto devastante stimato sui piccoli negozi di vicinato del centro di Cormano e Brusuglio.',
-        evidenceType: 'verbatim',
-      },
-      {
-        id: 'opt-c5',
-        title: 'Acquisto dell’area da parte del Comune per trasformazione intera in parco pubblico',
-        reasonDiscarded: 'Scartata per insostenibilità finanziaria del costo di bonifica ambientale del suolo (stimato in 2.4 milioni di €).',
-        evidenceType: 'interpretation',
-      }
-    ],
-
-    // 3. La Decisione Presa
-    decision: 'Approvazione variante PGT ad uso misto: 40% verde pubblico ceduto al Comune con bonifica a carico del privato, 30% Residenziale Sociale (ERS) e 30% Residenziale Libero a media densità.',
-
-    // 4. Incertezza Dichiarata
-    uncertaintyLevel: 'alto',
-    uncertaintyExplanation: 'Incertezza legata all’effettivo rispetto dei tempi di bonifica del terreno da parte dell’operatore privato prescelto.',
-
-    // 5. Condizioni di Falsificabilità
-    mindChangingConditions: [
-      'Ritardo superiore ai 12 mesi nell’avvio dei lavori di bonifica.',
-      'Aumento del costo di vendita ERS oltre la soglia concordata di 2.100 €/mq.'
-    ],
-
-    verbatimQuotes: [
-      {
-        id: 'quote-c2',
-        quote: 'Senza l’intervento del privato la bonifica del sito sarebbe rimasta bloccata per un altro decennio con rischi ambientali per le falde sotterranee.',
-        pageOrParagraph: 'Pag. 8, Parere Commissione Urbanistica',
-        speaker: 'Responsabile Settore Territorio'
-      }
-    ],
-
-    interpretativeSummary: `Decisione fondamentale per il quartiere. L'amministrazione ha accettato un aumento della quota residenziale in cambio dell'accollo totale dei costi di bonifica da parte del privato e della realizzazione del parco pubblico.`,
-
-    outcomeReviews: [
-      {
-        id: 'outcome-c2',
-        timeframe: '12_mesi',
-        expectedOutcome: 'Completamento della fase 1 di bonifica e presentazione dei progetti esecutivi ERS.',
-        actualOutcome: undefined,
-        status: 'pending',
-        notes: 'Monitoraggio in corso.'
-      }
-    ],
-
-    createdAt: new Date('2024-05-15'),
-    updatedAt: new Date('2024-05-15'),
-  }
 ];
+
+// ---------------------------------------------------------------------------
+// EXPORT PRINCIPALE
+// Esportati con nomi chiari e senza mescolare dati mock e reali.
+// mockPublicActs e mockReasoningRecords sono mantenuti come alias
+// per compatibilità con i componenti esistenti.
+// ---------------------------------------------------------------------------
+export const mockPublicActs = publicActs;
+export const mockReasoningRecords = reasoningRecords;

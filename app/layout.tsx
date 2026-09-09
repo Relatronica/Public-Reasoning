@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { Inter } from 'next/font/google';
 import './globals.css';
 import Navbar from '@/components/Navbar';
@@ -19,25 +20,27 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="it">
-      <body className={`${inter.className} min-h-screen bg-gray-50 text-gray-900 antialiased`}>
+    <html lang="it" className="h-full">
+      <body className={`${inter.className} h-full overflow-hidden bg-gray-50 text-gray-900 antialiased flex flex-col`}>
         <Providers>
           {/* Header Superiore Fisso */}
           <Navbar />
 
-          {/* Contenitore Principale a 3 colonne */}
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div className="flex gap-6 items-start">
+          {/* Contenitore Principale a 3 colonne - Altezza fissa viewport */}
+          <div className="flex-1 w-full max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden">
+            <div className="flex gap-6 items-start h-full">
               
-              {/* Sidebar Sinistra (Navigazione) */}
-              <Sidebar />
+              {/* Sidebar Sinistra (Navigazione fissa) */}
+              <Suspense fallback={null}>
+                <Sidebar />
+              </Suspense>
 
-              {/* Area Contenuto Feed / Pagine */}
-              <main className="flex-1 min-w-0">
+              {/* Area Contenuto Feed / Pagine (Unica colonna ad avere lo scroll) */}
+              <main className="flex-1 min-w-0 h-full overflow-y-auto py-6 pr-2">
                 {children}
               </main>
 
-              {/* Sidebar Destra (Info Cormano) */}
+              {/* Sidebar Destra (Info Cormano fissa) */}
               <CommunityRightSidebar />
 
             </div>

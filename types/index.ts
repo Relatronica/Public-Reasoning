@@ -22,6 +22,9 @@ export interface PublicEntity {
   city?: string;      // es. "Cormano"
 }
 
+// Stato di affidabilità del dato
+export type DataStatus = 'verified' | 'demo' | 'unverified';
+
 // L'atto pubblico originale (Delibera, Determinazione, Verbale di Consiglio)
 export interface PublicAct {
   id: string;
@@ -29,12 +32,18 @@ export interface PublicAct {
   actNumber: string; // es. "Delibera C.C. n. 45/2024"
   entity: PublicEntity;
   date: Date;
-  officialUrl?: string; // Link al PDF dell'Albo Pretorio
-  rawTextExcerpt?: string; // Estratto significativo del testo burocratico grezzo
+  officialUrl?: string;     // Link alla pagina dell'atto sull'Albo Pretorio
+  officialPortalUrl?: string; // Link al portale trasparenza (navigazione)
+  rawTextExcerpt?: string;  // Estratto significativo del testo burocratico grezzo
   slug: string;
   createdAt: Date;
   updatedAt: Date;
   recordsCount?: number;
+  // Affidabilità del dato
+  isVerified: boolean;     // true = atto verificato negli archivi ufficiali
+  dataStatus: DataStatus;  // 'verified' | 'demo' | 'unverified'
+  verificationNote?: string; // Nota sulla verifica o mancata verifica
+  localPdfPath?: string;   // Percorso locale /pdfs/nome-file.pdf (copia archiviata)
 }
 
 // Opzione presa in considerazione durante la decisione ma poi scartata

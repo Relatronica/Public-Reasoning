@@ -14,7 +14,7 @@ import {
 
 export default function CommunityRightSidebar() {
   return (
-    <aside className="w-80 flex-shrink-0 hidden lg:block space-y-5">
+    <aside className="w-80 flex-shrink-0 hidden lg:block py-6 h-full overflow-y-auto space-y-5 pr-1">
       
       {/* Municipality Header Card (Reddit Community Style) */}
       <div className="reddit-card p-4 overflow-hidden relative">
