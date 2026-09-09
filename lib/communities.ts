@@ -169,6 +169,44 @@ export const communities: Community[] = [
     ],
     ...defaultCommunityMedia('weltform'),
   },
+  {
+    id: 'pack-ai-governance',
+    slug: 'ai-governance',
+    name: 'Governance IA',
+    shortName: 'Governance IA',
+    type: 'ufficio',
+    typeLabel: 'Governance',
+    initials: 'IA',
+    subtitle: 'Pack conformità · Regolamento UE sull’IA',
+    location: 'UE',
+    tagline:
+      'Registro delle decisioni sui sistemi di intelligenza artificiale: domanda reale, alternative scartate e criteri di stop. Traccia verificabile, non comunicato.',
+    feedTitle: 'Registro del giudizio — Governance IA',
+    feedSubtitle:
+      'Risorse umane, credito, fornitori: la domanda reale, le alternative scartate e i criteri di stop.',
+    feedBadge: 'Pack IA UE',
+    sourceLabel: 'Verbale',
+    sourceLabelPlural: 'Verbali',
+    archiveLabel: 'Archivio del rischio',
+    archiveNavLabel: 'Archivio',
+    sourcePlaceholder: 'es. Verbale Rischio n. 4/2026 — fornitore di modelli linguistici',
+    newRecordTitle: 'Documenta una decisione sull’IA',
+    newRecordHint:
+      'Incolla il verbale o la trascrizione: la bozza estrae domanda reale, opzioni scartate e criterio di stop. Lo sponsor approva la chiusura.',
+    searchPlaceholder: 'Cerca IA, risorse umane, fornitori, verifiche…',
+    officialUrlLabel: 'Registro interno',
+    categories: [
+      { label: 'IA nelle risorse umane', color: 'bg-blue-500' },
+      { label: 'Fornitori e modelli', color: 'bg-emerald-500' },
+      { label: 'Prodotti verso i clienti', color: 'bg-amber-500' },
+      { label: 'Verifiche', color: 'bg-violet-500' },
+    ],
+    stats: [
+      { label: 'Normativa', value: 'Reg. UE IA' },
+      { label: 'Ambito', value: 'Conformità' },
+    ],
+    ...defaultCommunityMedia('ai-governance'),
+  },
 ];
 
 export function getCommunityBySlug(slug?: string | null): Community {

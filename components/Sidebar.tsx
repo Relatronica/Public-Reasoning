@@ -3,7 +3,7 @@
 import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { Home, FileText, X } from 'lucide-react';
+import { Home, FileText, X, Sparkles, Landmark } from 'lucide-react';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 
 function SidebarInner() {
@@ -31,6 +31,28 @@ function SidebarInner() {
           >
             <Home className={`w-4 h-4 ${isAllRecords ? 'text-blue-600' : 'text-gray-400'}`} />
             Feed
+          </Link>
+          <Link
+            href={href('/bank')}
+            className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold ${
+              pathname === '/bank'
+                ? 'bg-blue-50 text-blue-700'
+                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+            }`}
+          >
+            <Landmark className={`w-4 h-4 ${pathname === '/bank' ? 'text-blue-600' : 'text-gray-400'}`} />
+            Decision Bank
+          </Link>
+          <Link
+            href={href('/records/capture')}
+            className={`flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-semibold ${
+              pathname === '/records/capture'
+                ? 'bg-blue-50 text-blue-700'
+                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+            }`}
+          >
+            <Sparkles className={`w-4 h-4 ${pathname === '/records/capture' ? 'text-blue-600' : 'text-gray-400'}`} />
+            Cattura
           </Link>
           <Link
             href={href('/acts')}

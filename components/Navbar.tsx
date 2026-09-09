@@ -3,14 +3,15 @@
 import React, { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Search, MapPin, Plus, ChevronDown, FileText, Briefcase, Building2, Pencil } from 'lucide-react';
+import { Search, MapPin, Plus, ChevronDown, FileText, Briefcase, Building2, Pencil, Sparkles } from 'lucide-react';
 import { withCommunityQuery } from '@/lib/communities';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
 import { CommunityType } from '@/types';
 import Logo from '@/components/Logo';
 
-function communityIcon(type: CommunityType) {
+function communityIcon(type: CommunityType, slug?: string) {
+  if (slug === 'ai-governance') return Sparkles;
   if (type === 'ufficio' || type === 'azienda') return Building2;
   if (type === 'progetto') return Briefcase;
   return MapPin;
@@ -23,8 +24,9 @@ function NavbarInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { community, href } = useActiveCommunity();
-  const { communities } = useCuratorData();
-  const Icon = communityIcon(community.type);
+  const { communities, canCompile, myRole, organization } = useCuratorData();
+  const Icon = communityIcon(community.type, community.slug);
+  const workspaceLabel = community.type === 'comune' || community.type === 'regione' ? 'Community' : 'Workspace';
 
   useEffect(() => {
     const q = searchParams.get('q') || '';
@@ -75,10 +77,11 @@ function NavbarInner() {
             {open && (
               <div className="absolute top-full left-0 mt-2 w-72 bg-white border border-gray-200 rounded-xl shadow-sm z-50 overflow-hidden">
                 <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100">
-                  Community
+                  {workspaceLabel}
+                  {organization?.name ? ` · ${organization.name}` : ''}
                 </div>
                 {communities.map((item) => {
-                  const ItemIcon = communityIcon(item.type);
+                  const ItemIcon = communityIcon(item.type, item.slug);
                   const active = item.slug === community.slug;
                   return (
                     <Link
@@ -121,12 +124,33 @@ function NavbarInner() {
         </div>
 
         <div className="flex items-center gap-3">
+          {canCompile && (
+            <Link
+              href={href('/records/capture')}
+              className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-full text-xs font-semibold hover:bg-blue-700 shadow-sm transition-all active:scale-95"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Cattura decisione</span>
+            </Link>
+          )}
+
+          {canCompile && (
+            <Link
+              href={href('/records/new')}
+              className="hidden md:flex items-center gap-1.5 px-3 py-2 text-gray-700 hover:text-gray-900 text-xs font-medium hover:bg-gray-100 rounded-lg transition-colors"
+              title="Compila a mano"
+            >
+              <Plus className="w-4 h-4 text-gray-500" />
+              <span>A mano</span>
+            </Link>
+          )}
+
           <Link
-            href={href('/records/new')}
-            className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-full text-xs font-semibold hover:bg-blue-700 shadow-sm transition-all active:scale-95"
+            href={href('/bank')}
+            className="hidden lg:flex items-center gap-1.5 px-3 py-2 text-gray-700 hover:text-gray-900 text-xs font-medium hover:bg-gray-100 rounded-lg transition-colors"
           >
-            <Plus className="w-4 h-4" />
-            <span>Nuovo Record</span>
+            <FileText className="w-4 h-4 text-gray-500" />
+            <span>Bank</span>
           </Link>
 
           <Link
@@ -148,6 +172,11 @@ function NavbarInner() {
           <div className="h-6 w-px bg-gray-200 hidden sm:block mx-1"></div>
 
           <div className="flex items-center gap-2 pl-1">
+            {myRole && (
+              <span className="hidden xl:inline text-[10px] uppercase tracking-wider text-gray-400 font-semibold">
+                {myRole}
+              </span>
+            )}
             <div className="w-8 h-8 rounded-full bg-blue-100 border border-blue-300 flex items-center justify-center text-blue-700 font-bold text-xs cursor-pointer hover:ring-2 hover:ring-blue-400 transition-all">
               MR
             </div>

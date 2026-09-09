@@ -70,6 +70,29 @@ export interface Community {
   stats: CommunityStat[];
 }
 
+/** Ruolo nella organization (workspace parent). */
+export type OrganizationRole = 'owner' | 'admin' | 'compiler' | 'sponsor' | 'viewer';
+
+export interface OrganizationMember {
+  userId: string;
+  email?: string;
+  name?: string;
+  role: OrganizationRole;
+  addedAt: string;
+}
+
+/**
+ * Tenant. Le community (workspace) stanno sotto. Persistenza Fase B: curator-store.
+ * Prisma allineato quando i record lasciano il JSON.
+ */
+export interface Organization {
+  id: string;
+  slug: string;
+  name: string;
+  communityIds: string[];
+  members: OrganizationMember[];
+}
+
 /** Alias: la fonte è agganciata a una community. */
 export type PublicEntity = Community;
 
@@ -140,13 +163,29 @@ export interface AiAssistance {
   note?: string;
 }
 
+/** Workflow della scheda. `published` è l’alias legacy di `closed`. */
+export type RecordStatus =
+  | 'draft'
+  | 'in_session'
+  | 'pending_sponsor'
+  | 'closed'
+  | 'published'
+  | 'under_review';
+
+export type RecordVisibility = 'private' | 'public';
+
+export type CompliancePack = 'ai_governance' | 'board' | 'capex';
+
 export interface ReasoningRecord {
   id: string;
   publicActId: string;
   publicAct?: PublicAct;
   compiler: User;
   version: number;
-  status: 'draft' | 'published' | 'under_review';
+  status: RecordStatus;
+  /** Default: public per corpus demo; private per nuove schede in workspace enterprise. */
+  visibility?: RecordVisibility;
+  compliancePack?: CompliancePack;
 
   realQuestion: string;
   discardedOptions: DiscardedOption[];

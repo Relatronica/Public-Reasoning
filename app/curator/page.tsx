@@ -4,7 +4,7 @@ import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Building2, FileText, Pencil, Plus } from 'lucide-react';
+import { ArrowLeft, Building2, FileText, Pencil, Plus, Users } from 'lucide-react';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
 
@@ -45,6 +45,18 @@ function CuratorHubInner() {
 
       <div className="grid gap-3 sm:grid-cols-2">
         <Link
+          href={href('/curator/org')}
+          className="reddit-card p-5 hover:border-blue-200 transition-colors group"
+        >
+          <div className="flex items-center gap-2 text-violet-700 mb-2">
+            <Users className="w-5 h-5" />
+            <span className="text-sm font-bold">Organization</span>
+          </div>
+          <p className="text-xs text-gray-500 leading-relaxed">
+            Ruoli: owner, admin, compiler, sponsor, viewer.
+          </p>
+        </Link>
+        <Link
           href={href('/curator/community')}
           className="reddit-card p-5 hover:border-blue-200 transition-colors group"
         >
@@ -71,15 +83,15 @@ function CuratorHubInner() {
         </Link>
 
         <Link
-          href={href('/records/new')}
+          href={href('/records/capture')}
           className="reddit-card p-5 hover:border-blue-200 transition-colors sm:col-span-2"
         >
           <div className="flex items-center gap-2 text-blue-600 mb-2">
             <Plus className="w-5 h-5" />
-            <span className="text-sm font-bold">Nuova scheda</span>
+            <span className="text-sm font-bold">Cattura decisione</span>
           </div>
           <p className="text-xs text-gray-500 leading-relaxed">
-            Compila i 6 elementi del giudizio e pubblica nel feed della community.
+            Incolla transcript o verbale, rivedi la bozza, salva come draft. Compilazione a mano resta disponibile.
           </p>
         </Link>
       </div>

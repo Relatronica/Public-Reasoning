@@ -1,6 +1,7 @@
 import { PublicAct, ReasoningRecord, User } from '@/types';
 import { communities } from '@/lib/communities';
 import { weltformActs, weltformCompiler, weltformRecords } from '@/lib/weltform';
+import { aiGovernanceActs, aiGovernanceCompiler, aiGovernanceRecords } from '@/lib/ai-governance';
 
 const comuneCormano = communities[0];
 const ufficioPeople = communities[1];
@@ -24,6 +25,7 @@ export const compilers: User[] = [
     createdAt: new Date('2025-09-01'),
   },
   weltformCompiler,
+  aiGovernanceCompiler,
 ];
 
 export const publicActs: PublicAct[] = [
@@ -105,6 +107,7 @@ DECIDE di non aprire un secondo stabilimento nel 2027 e di vincolare il capex al
     verificationNote: 'Fonte dimostrativa: decision log di progetto. Non è un documento reale.',
   },
   ...weltformActs,
+  ...aiGovernanceActs,
 ];
 
 export const reasoningRecords: ReasoningRecord[] = [
@@ -310,6 +313,7 @@ export const reasoningRecords: ReasoningRecord[] = [
     updatedAt: new Date('2026-04-11'),
   },
   ...weltformRecords,
+  ...aiGovernanceRecords,
 ];
 
 export const mockPublicActs = publicActs;

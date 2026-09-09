@@ -9,6 +9,7 @@ import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
 import AiAssistanceFormFields from '@/components/AiAssistanceFormFields';
 import { DEFAULT_AI_ASSISTANCE } from '@/lib/ai-assistance';
+import { defaultVisibilityForCommunity } from '@/lib/records';
 import { AiAssistance } from '@/types';
 
 const inputClass =
@@ -72,6 +73,8 @@ function NewReasoningRecordInner() {
             mindChangingConditions: mindChanging ? [mindChanging] : [],
             verbatimQuotes: [],
             outcomeReviews: [],
+            status: 'closed',
+            visibility: defaultVisibilityForCommunity(community),
             aiAssistance:
               aiAssistance.level === 'none'
                 ? undefined
@@ -100,6 +103,12 @@ function NewReasoningRecordInner() {
         </div>
         <h1 className="text-2xl font-bold text-gray-900">{community.newRecordTitle}</h1>
         <p className="text-xs text-gray-500 max-w-2xl leading-relaxed">{community.newRecordHint}</p>
+        <p className="text-[11px] text-gray-400">
+          Preferisci partire da un verbale?{' '}
+          <Link href={href('/records/capture')} className="text-blue-700 hover:underline">
+            Cattura da transcript
+          </Link>
+        </p>
         {session?.user && (
           <p className="text-[11px] text-gray-400">Compilato da {session.user.name ?? session.user.email}</p>
         )}
@@ -224,7 +233,7 @@ function NewReasoningRecordInner() {
           disabled={submitting || status !== 'authenticated'}
           className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-xs transition-colors shadow-sm disabled:opacity-50"
         >
-          {submitting ? 'Pubblicazione…' : 'Pubblica Reasoning Record'}
+          {submitting ? 'Chiusura…' : 'Chiudi decisione'}
         </button>
       </form>
     </div>

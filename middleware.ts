@@ -8,7 +8,7 @@ export default auth((req) => {
   const { pathname } = req.nextUrl
   
   // Protected routes
-  const protectedRoutes = ['/positions/new', '/topics/new', '/proposals', '/settings', '/curator', '/records/new']
+  const protectedRoutes = ['/positions/new', '/topics/new', '/proposals', '/settings', '/curator', '/records/new', '/records/capture', '/bank']
   const isProtected = protectedRoutes.some(route => pathname.startsWith(route))
   
   if (isProtected && !req.auth) {
@@ -21,6 +21,6 @@ export default auth((req) => {
 })
 
 export const config = {
-  matcher: ['/positions/new', '/topics/new', '/proposals/:path*', '/settings/:path*', '/curator/:path*', '/records/new'],
+  matcher: ['/positions/new', '/topics/new', '/proposals/:path*', '/settings/:path*', '/curator/:path*', '/records/new', '/records/capture', '/bank'],
 }
 

@@ -1,19 +1,25 @@
 import { NextResponse } from 'next/server';
+import { auth } from '@/auth';
 import { getCuratorBootstrap } from '@/lib/curator/bootstrap.server';
-import { requireCuratorSession } from '@/lib/curator/auth.server';
+import { requirePermission } from '@/lib/curator/auth.server';
 import { reasoningRecords as baseRecords } from '@/lib/data';
 import { serializeAct, serializeRecord } from '@/lib/curator/serialize';
 import { updateCuratorStore } from '@/lib/curator/store.server';
 import { CuratorStore } from '@/lib/curator/types';
+import { isClosedStatus, isVisibleOnPublicFeed } from '@/lib/records';
 import { PublicAct, ReasoningRecord } from '@/types';
 
 type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_request: Request, { params }: Params) {
   const { id } = await params;
+  const session = await auth();
   const { records } = await getCuratorBootstrap();
   const record = records.find((r) => r.id === id);
   if (!record) {
+    return NextResponse.json({ error: 'Record non trovato' }, { status: 404 });
+  }
+  if (!session?.user?.id && !isVisibleOnPublicFeed(record)) {
     return NextResponse.json({ error: 'Record non trovato' }, { status: 404 });
   }
   return NextResponse.json({ record });
@@ -25,11 +31,15 @@ interface PatchBody {
 }
 
 export async function PATCH(request: Request, { params }: Params) {
-  const { session, error } = await requireCuratorSession();
-  if (error || !session) return error;
+  const { error } = await requirePermission('compile');
+  if (error) return error;
 
   const { id } = await params;
   const body = (await request.json()) as PatchBody;
+  if (body.record?.status && isClosedStatus(body.record.status)) {
+    const close = await requirePermission('close');
+    if (close.error) return close.error;
+  }
   const isCustom = !baseRecords.some((r) => r.id === id);
 
   await updateCuratorStore((store) => {
@@ -92,7 +102,7 @@ export async function PATCH(request: Request, { params }: Params) {
 }
 
 export async function DELETE(_request: Request, { params }: Params) {
-  const { error } = await requireCuratorSession();
+  const { error } = await requirePermission('admin');
   if (error) return error;
 
   const { id } = await params;

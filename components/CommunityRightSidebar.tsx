@@ -1,6 +1,7 @@
 'use client';
 
 import React, { Suspense } from 'react';
+import Link from 'next/link';
 import Image from 'next/image';
 import { ExternalLink } from 'lucide-react';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
@@ -27,7 +28,7 @@ function CommunityLogo({ logoUrl, initials }: { logoUrl?: string; initials: stri
 }
 
 function CommunityRightSidebarInner() {
-  const { community } = useActiveCommunity();
+  const { community, href } = useActiveCommunity();
   const { recordsForCommunity } = useCuratorData();
   const records = recordsForCommunity(community.id);
 
@@ -87,8 +88,11 @@ function CommunityRightSidebarInner() {
           <p className="text-xs text-gray-500 leading-relaxed mt-3">{community.tagline}</p>
 
           <p className="text-[11px] text-gray-400 pt-3 mt-3 border-t border-gray-100">
-            {records.length} schede in questa community
+            {records.length} schede in questo workspace
           </p>
+          <Link href={href('/bank')} className="mt-2 inline-block text-[11px] text-blue-700 hover:underline">
+            Apri Decision Bank
+          </Link>
         </div>
       </div>
     </aside>

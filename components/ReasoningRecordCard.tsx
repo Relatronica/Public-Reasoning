@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import VerbatimVsInterpretationViewer from './VerbatimVsInterpretationViewer';
 import AiAssistancePanel, { AiAssistanceBadge } from './AiAssistancePanel';
+import { displayStatusLabel, isClosedStatus, isEnterpriseCommunityType, resolveVisibility } from '@/lib/records';
 
 interface Props {
   record: ReasoningRecord;
@@ -26,6 +27,9 @@ export default function ReasoningRecordCard({ record }: Props) {
   const [upvotes, setUpvotes] = useState(record.upvotes || 12);
   const [voteState, setVoteState] = useState<'up' | 'down' | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const showVotes = !isEnterpriseCommunityType(record.publicAct?.entity?.type ?? 'comune');
+  const visibility = resolveVisibility(record);
+  const statusLabel = displayStatusLabel(record.status);
 
   const handleVote = (direction: 'up' | 'down') => {
     if (voteState === direction) {
@@ -53,6 +57,7 @@ export default function ReasoningRecordCard({ record }: Props) {
   return (
     <article className="reddit-card overflow-hidden border border-gray-200/90 hover:border-gray-300">
       <div className="flex">
+        {showVotes ? (
         <div className="w-11 bg-gray-50/80 p-2 border-r border-gray-100 flex flex-col items-center pt-3 flex-shrink-0">
           <button
             onClick={() => handleVote('up')}
@@ -72,6 +77,9 @@ export default function ReasoningRecordCard({ record }: Props) {
             <ArrowBigDown className={`w-6 h-6 ${voteState === 'down' ? 'fill-rose-600' : ''}`} />
           </button>
         </div>
+        ) : (
+          <div className="w-2 bg-indigo-50 border-r border-indigo-100 flex-shrink-0" />
+        )}
 
         <div className="flex-1 p-4 sm:p-5">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-gray-500 mb-2">
@@ -99,6 +107,20 @@ export default function ReasoningRecordCard({ record }: Props) {
                 Da verificare
               </span>
             )}
+            {!isClosedStatus(record.status) && (
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-gray-100 text-gray-700 font-semibold">
+                {statusLabel}
+              </span>
+            )}
+            <span
+              className={`inline-flex items-center px-1.5 py-0.5 rounded font-semibold ${
+                visibility === 'private'
+                  ? 'bg-slate-100 text-slate-700'
+                  : 'bg-emerald-50 text-emerald-800'
+              }`}
+            >
+              {visibility === 'private' ? 'Privato' : 'Registro pubblico'}
+            </span>
             <AiAssistanceBadge ai={record.aiAssistance} />
           </div>
 
@@ -181,6 +203,13 @@ export default function ReasoningRecordCard({ record }: Props) {
               {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </button>
 
+            <div className="flex items-center gap-3">
+              <a
+                href={`/api/curator/records/${record.id}/export`}
+                className="hover:text-gray-900"
+              >
+                Export .md
+              </a>
             {sourceHref && (
               <a
                 href={sourceHref}
@@ -193,6 +222,7 @@ export default function ReasoningRecordCard({ record }: Props) {
                 <ExternalLink className="w-2.5 h-2.5 text-gray-400" />
               </a>
             )}
+            </div>
           </div>
         </div>
       </div>

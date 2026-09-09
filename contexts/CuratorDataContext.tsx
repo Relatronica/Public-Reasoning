@@ -5,12 +5,20 @@ import { communities as staticCommunities } from '@/lib/communities';
 import { publicActs as staticActs, reasoningRecords as staticRecords } from '@/lib/data';
 import { actsForCommunityId, recordsForCommunityId } from '@/lib/curator/filters';
 import { CuratorBootstrap } from '@/lib/curator/types';
-import { Community, PublicAct, ReasoningRecord } from '@/types';
+import { isVisibleOnPublicFeed } from '@/lib/records';
+import { Community, Organization, OrganizationRole, PublicAct, ReasoningRecord } from '@/types';
+import { canAdminOrg, canClose, canCompile } from '@/lib/org/permissions';
+import { defaultOrganization } from '@/lib/org/defaults';
 
 interface CuratorDataContextValue {
   communities: Community[];
   acts: PublicAct[];
   records: ReasoningRecord[];
+  organization: Organization;
+  myRole: OrganizationRole | null;
+  canCompile: boolean;
+  canClose: boolean;
+  canAdminOrg: boolean;
   loading: boolean;
   refresh: () => Promise<void>;
   recordsForCommunity: (communityId: string) => ReasoningRecord[];
@@ -22,7 +30,9 @@ const CuratorDataContext = createContext<CuratorDataContextValue | null>(null);
 const initialBootstrap: CuratorBootstrap = {
   communities: staticCommunities,
   acts: staticActs,
-  records: staticRecords,
+  records: staticRecords.filter(isVisibleOnPublicFeed),
+  organization: defaultOrganization(),
+  myRole: null,
 };
 
 export function CuratorDataProvider({ children }: { children: React.ReactNode }) {
@@ -50,6 +60,11 @@ export function CuratorDataProvider({ children }: { children: React.ReactNode })
       communities: bootstrap.communities,
       acts: bootstrap.acts,
       records: bootstrap.records,
+      organization: bootstrap.organization ?? defaultOrganization(),
+      myRole: bootstrap.myRole ?? null,
+      canCompile: canCompile(bootstrap.myRole),
+      canClose: canClose(bootstrap.myRole),
+      canAdminOrg: canAdminOrg(bootstrap.myRole),
       loading,
       refresh,
       recordsForCommunity: (communityId: string) =>

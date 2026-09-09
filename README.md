@@ -2,9 +2,20 @@
 
 > **"Le decisioni dicono *cosa* si è scelto. Reason conserva e verifica *perché*."**
 
-Reason è un feed in stile Reddit per le schede di giudizio. Una community è un luogo di decisione: un **comune**, un **ufficio** o un **progetto**. Il dominio (civico o aziendale) è configurazione, non un secondo prodotto. Il metodo è fisso: domanda reale, opzioni scartate, incertezza, condizioni di cambio idea, verifica a posteriori, verbatim vs interpretazione.
+Reason è un feed in stile Reddit per le schede di giudizio **e**, in modalità enterprise, un **Decision Bank** privato. Una community è un luogo di decisione: un **comune**, un **ufficio**, un **progetto** o un **pack compliance**. Il dominio (civico o aziendale) è configurazione, non un secondo prodotto. Il metodo è fisso: domanda reale, opzioni scartate, incertezza, condizioni di cambio idea, verifica a posteriori, verbatim vs interpretazione.
 
-Il mock attuale mostra tre community nello stesso selettore: Comune di Cormano, Ufficio People (Officine Moretti) e Progetto Capex 2027.
+Due modalità sullo stesso kernel:
+
+| Lab pubblico (civic) | Decision Bank (default enterprise) |
+| :--- | :--- |
+| Record visibili, albo, Cormano | Cattura da transcript, bozza privata, chiusura da sponsor |
+| Feed tipo Reddit | Stesso schema a sei elementi, visibilità `private` |
+
+Il mock attuale mostra più community nello stesso selettore, incluso **AI Governance** (`?c=ai-governance`).
+
+Flusso principale per una nuova decisione: **Cattura** (`/records/capture`) → bozza → chiusura. Il form a mano resta secondario. **Decision Bank** (`/bank`) è la vista tabella. Ruoli in Editor → Organization.
+
+Piano di evoluzione: [`docs/DECISION_OS_PLAN.md`](docs/DECISION_OS_PLAN.md). Pack compliance: [`docs/AI_GOVERNANCE_PACK.md`](docs/AI_GOVERNANCE_PACK.md).
 
 ---
 
@@ -13,6 +24,8 @@ Il mock attuale mostra tre community nello stesso selettore: Comune di Cormano, 
 La documentazione professionale completa è organizzata nella cartella [`docs/`](docs):
 
 - **[Architettura & System Design](docs/ARCHITECTURE.md)**: Architettura applicativa, community configurabili, stack e modello dati.
+- **[Piano Decision OS](docs/DECISION_OS_PLAN.md)**: Evoluzione Capture → Bank → API (Fase A in corso).
+- **[Pack AI Governance](docs/AI_GOVERNANCE_PACK.md)**: Template compliance EU AI Act.
 - **[Guida Operativa Curatori & Analisti](docs/CURATOR_GUIDE.md)**: Standard metodologico per estrarre domande reali, opzioni scartate e condizioni di falsificabilità da qualsiasi fonte (atto, verbale, deck).
 - **[Setup Google OAuth](docs/SETUP_GOOGLE_OAUTH.md)**: Guida dettagliata per la configurazione del provider Google su Google Cloud Console e NextAuth v5.
 - **[Note e Flow Autenticazione](docs/SETUP_AUTH.md)**: Flusso di registrazione integrata, configurazione `.env` e gestione del database Prisma.
@@ -133,4 +146,4 @@ npx prisma migrate dev
 npm run dev
 ```
 
-Apri [http://localhost:3000](http://localhost:3000) per il feed. Il selettore in navbar passa da una community all’altra (`?c=cormano`, `?c=people-moretti`, `?c=capex-2027`).
+Apri [http://localhost:3000](http://localhost:3000) per il feed. Il selettore in navbar passa da una community all’altra (`?c=cormano`, `?c=people-moretti`, `?c=capex-2027`, `?c=ai-governance`). **Cattura decisione** genera una bozza da transcript; le bozze private non appaiono nel feed pubblico.

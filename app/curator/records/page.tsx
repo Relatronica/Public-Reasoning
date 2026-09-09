@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react';
 import { ArrowLeft, ChevronRight, Plus } from 'lucide-react';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
+import { displayStatusLabel } from '@/lib/records';
 
 function RecordsListInner() {
   const { status } = useSession();
@@ -33,11 +34,11 @@ function RecordsListInner() {
           </div>
         </div>
         <Link
-          href={href('/records/new')}
+          href={href('/records/capture')}
           className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700"
         >
           <Plus className="w-4 h-4" />
-          Nuova
+          Cattura
         </Link>
       </div>
 
@@ -58,6 +59,10 @@ function RecordsListInner() {
                 {record.realQuestion}
               </p>
               <p className="text-xs text-gray-500 mt-1 line-clamp-1">{record.decision}</p>
+              <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-wider">
+                {displayStatusLabel(record.status)}
+                {record.visibility === 'private' ? ' · Privato' : ''}
+              </p>
             </div>
             <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0 mt-1" />
           </Link>

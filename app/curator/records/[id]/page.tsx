@@ -9,7 +9,7 @@ import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
 import AiAssistanceFormFields from '@/components/AiAssistanceFormFields';
 import { DEFAULT_AI_ASSISTANCE } from '@/lib/ai-assistance';
-import { DiscardedOption, ReasoningRecord } from '@/types';
+import { DiscardedOption, RecordStatus, RecordVisibility, ReasoningRecord } from '@/types';
 
 const inputClass =
   'w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500';
@@ -76,6 +76,8 @@ function RecordEditorInner() {
             category: record.category,
             realQuestion: record.realQuestion,
             decision: record.decision,
+            status: record.status,
+            visibility: record.visibility,
             uncertaintyLevel: record.uncertaintyLevel,
             uncertaintyExplanation: record.uncertaintyExplanation,
             interpretativeSummary: record.interpretativeSummary,
@@ -158,6 +160,33 @@ function RecordEditorInner() {
 
         <section className="space-y-3 pt-2 border-t border-gray-100">
           <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400">Giudizio</h2>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <label className="space-y-1 block">
+              <span className="text-xs font-semibold text-gray-700">Stato</span>
+              <select
+                className={inputClass}
+                value={record.status === 'published' ? 'closed' : record.status}
+                onChange={(e) => updateRecord({ status: e.target.value as RecordStatus })}
+              >
+                <option value="draft">Bozza</option>
+                <option value="in_session">In sessione</option>
+                <option value="pending_sponsor">In attesa dello sponsor</option>
+                <option value="closed">Chiusa</option>
+                <option value="under_review">In verifica</option>
+              </select>
+            </label>
+            <label className="space-y-1 block">
+              <span className="text-xs font-semibold text-gray-700">Visibilità</span>
+              <select
+                className={inputClass}
+                value={record.visibility ?? 'public'}
+                onChange={(e) => updateRecord({ visibility: e.target.value as RecordVisibility })}
+              >
+                <option value="private">Privato</option>
+                <option value="public">Registro pubblico</option>
+              </select>
+            </label>
+          </div>
           <label className="space-y-1 block">
             <span className="text-xs font-semibold text-gray-700">Categoria</span>
             <select
