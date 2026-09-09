@@ -8,9 +8,10 @@ interface Props {
   quotes?: VerbatimQuote[];
   interpretativeSummary?: string;
   officialUrl?: string;
+  sourceLabel?: string;
 }
 
-export default function VerbatimVsInterpretationViewer({ quotes = [], interpretativeSummary, officialUrl }: Props) {
+export default function VerbatimVsInterpretationViewer({ quotes = [], interpretativeSummary, officialUrl, sourceLabel = 'Fonte' }: Props) {
   const [activeTab, setActiveTab] = useState<'split' | 'verbatim' | 'interpretation'>('split');
 
   return (
@@ -22,11 +23,11 @@ export default function VerbatimVsInterpretationViewer({ quotes = [], interpreta
           <div className="flex items-center gap-2">
             <Columns className="w-4 h-4 text-blue-600" />
             <h4 className="text-xs font-bold text-gray-900 uppercase tracking-wide">
-              Matrice di Distinzione: Fonti Ufficiali vs Interpretazione
+              Matrice di Distinzione: {sourceLabel} vs Interpretazione
             </h4>
           </div>
           <p className="text-[11px] text-gray-500 mt-0.5">
-            Separazione netta tra le citazioni letterali formali e l&apos;analisi sintetica del compilatore.
+            Separazione netta tra le citazioni letterali e l&apos;analisi sintetica del compilatore.
           </p>
         </div>
 
@@ -71,7 +72,7 @@ export default function VerbatimVsInterpretationViewer({ quotes = [], interpreta
                 <span>Citazione Letterale Verbale</span>
               </div>
               <span className="text-[10px] font-semibold bg-blue-50 text-blue-700 px-2 py-0.5 rounded border border-blue-200">
-                Fonte Formale Ufficiale
+                {sourceLabel} verbatim
               </span>
             </div>
 
@@ -83,13 +84,13 @@ export default function VerbatimVsInterpretationViewer({ quotes = [], interpreta
                       &ldquo;{q.quote}&rdquo;
                     </p>
                     <div className="flex items-center justify-between text-[11px] text-gray-500 font-mono pt-1">
-                      <span className="font-semibold text-blue-800">{q.speaker || 'Verbale Ufficiale'}</span>
+                      <span className="font-semibold text-blue-800">{q.speaker || sourceLabel}</span>
                       <span>{q.pageOrParagraph}</span>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-xs text-gray-400 italic">Nessuna citazione letterale estratta per questo atto.</p>
+                <p className="text-xs text-gray-400 italic">Nessuna citazione letterale estratta per questa fonte.</p>
               )}
             </div>
           </div>

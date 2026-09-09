@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "communityOverrides": {
+    "weltform": {
+      "logoUrl": "/communities/weltform/logo.jpg",
+      "coverImageUrl": "/communities/weltform/cover.jpg",
+      "name": "Weltform",
+      "shortName": "Weltform",
+      "subtitle": "Consulenza strategica · Milano",
+      "tagline": "Boutique di strategia: mandati, offerta, partnership. Il giudizio resta quando il progetto col cliente chiude.",
+      "feedTitle": "Registro del giudizio — Weltform",
+      "feedSubtitle": "Le decisioni sulla pratica: chi accettare, come vendere il giudizio, dove non andare.",
+      "feedBadge": "Studio",
+      "sourceLabel": "Verbale",
+      "sourceLabelPlural": "Verbali",
+      "archiveLabel": "Archivio partnership",
+      "archiveNavLabel": "Archivio",
+      "sourcePlaceholder": "es. Verbale partnership n. 8/2026",
+      "newRecordTitle": "Ricostruisci una decisione",
+      "newRecordHint": "Estrai l’architettura decisionale da un verbale di partnership o da una nota di mandato.",
+      "searchPlaceholder": "Cerca mandati, offerta, partnership, metodo…",
+      "officialUrlLabel": "Archivio interno",
+      "categories": [
+        {
+          "label": "Mandati",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "Offerta",
+          "color": "bg-emerald-500"
+        },
+        {
+          "label": "Partnership",
+          "color": "bg-amber-500"
+        },
+        {
+          "label": "Metodo",
+          "color": "bg-teal-500"
+        },
+        {
+          "label": "Geografie",
+          "color": "bg-violet-500"
+        }
+      ],
+      "stats": [
+        {
+          "label": "Sede",
+          "value": "Milano"
+        },
+        {
+          "label": "Ambito",
+          "value": "Studio"
+        }
+      ]
+    }
+  },
+  "customCommunities": [],
+  "recordOverrides": {},
+  "actOverrides": {},
+  "customRecords": [],
+  "customActs": [],
+  "deletedRecordIds": [],
+  "deletedActIds": []
+}

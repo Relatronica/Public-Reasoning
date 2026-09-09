@@ -1,4 +1,4 @@
-// Definizione del dominio dati per "Reasoning Records" - Memoria del Giudizio Amministrativo e Decisionale
+// Dominio Reasoning Records: feed di giudizio su community configurabili.
 
 export interface User {
   id: string;
@@ -9,108 +9,135 @@ export interface User {
   createdAt: Date;
 }
 
-// Categoria di ambito decisionale pubblico
-export type EntityType = 'comune' | 'regione' | 'ente_regolatorio' | 'azienda_pubblica';
+/** Unità tipo subreddit: comune, ufficio, progetto, ente. */
+export type CommunityType =
+  | 'comune'
+  | 'regione'
+  | 'ente_regolatorio'
+  | 'azienda_pubblica'
+  | 'azienda'
+  | 'ufficio'
+  | 'progetto';
 
-export interface PublicEntity {
-  id: string;
-  name: string; // es. "Comune di Cormano"
-  type: EntityType;
-  location?: string;
-  region?: string;    // es. "Lombardia"
-  province?: string;  // es. "MI"
-  city?: string;      // es. "Cormano"
+export type EntityType = CommunityType;
+
+export interface CommunityCategory {
+  label: string;
+  color: string;
 }
 
-// Stato di affidabilità del dato
+export interface CommunityStat {
+  label: string;
+  value: string;
+}
+
+/**
+ * Pack di configurazione della community.
+ * Il kernel (domanda reale, opzioni scartate, falsificabilità) non sta qui.
+ */
+export interface Community {
+  id: string;
+  slug: string;
+  name: string;
+  shortName: string;
+  type: CommunityType;
+  typeLabel: string;
+  initials: string;
+  subtitle?: string;
+  location?: string;
+  region?: string;
+  province?: string;
+  city?: string;
+  tagline: string;
+  feedTitle: string;
+  feedSubtitle: string;
+  feedBadge: string;
+  sourceLabel: string;
+  sourceLabelPlural: string;
+  archiveLabel: string;
+  archiveNavLabel: string;
+  sourcePlaceholder: string;
+  newRecordTitle: string;
+  newRecordHint: string;
+  searchPlaceholder: string;
+  officialUrl?: string;
+  officialUrlLabel?: string;
+  /** Logo quadrato (es. /communities/weltform/logo.svg). Se assente, si usano le iniziali. */
+  logoUrl?: string;
+  /** Banner in cima alla sidebar destra (es. /communities/weltform/cover.svg). */
+  coverImageUrl?: string;
+  categories: CommunityCategory[];
+  stats: CommunityStat[];
+}
+
+/** Alias: la fonte è agganciata a una community. */
+export type PublicEntity = Community;
+
 export type DataStatus = 'verified' | 'demo' | 'unverified';
 
-// L'atto pubblico originale (Delibera, Determinazione, Verbale di Consiglio)
+/** Fonte della decisione (delibera, verbale, deck, nota di seduta). */
 export interface PublicAct {
   id: string;
-  title: string; // Titolo formale burocratico dell'atto
-  actNumber: string; // es. "Delibera C.C. n. 45/2024"
-  entity: PublicEntity;
+  title: string;
+  actNumber: string;
+  entity: Community;
   date: Date;
-  officialUrl?: string;     // Link alla pagina dell'atto sull'Albo Pretorio
-  officialPortalUrl?: string; // Link al portale trasparenza (navigazione)
-  rawTextExcerpt?: string;  // Estratto significativo del testo burocratico grezzo
+  officialUrl?: string;
+  officialPortalUrl?: string;
+  rawTextExcerpt?: string;
   slug: string;
   createdAt: Date;
   updatedAt: Date;
   recordsCount?: number;
-  // Affidabilità del dato
-  isVerified: boolean;     // true = atto verificato negli archivi ufficiali
-  dataStatus: DataStatus;  // 'verified' | 'demo' | 'unverified'
-  verificationNote?: string; // Nota sulla verifica o mancata verifica
-  localPdfPath?: string;   // Percorso locale /pdfs/nome-file.pdf (copia archiviata)
+  isVerified: boolean;
+  dataStatus: DataStatus;
+  verificationNote?: string;
+  localPdfPath?: string;
 }
 
-// Opzione presa in considerazione durante la decisione ma poi scartata
 export interface DiscardedOption {
   id: string;
-  title: string; // Descrizione sintetica dell'opzione scartata
-  reasonDiscarded: string; // Spiegazione formale o dedotta del perché è stata scartata
-  evidenceType: 'verbatim' | 'interpretation'; // Se presente nel verbale o desunta
+  title: string;
+  reasonDiscarded: string;
+  evidenceType: 'verbatim' | 'interpretation';
 }
 
-// Estratto diretto letterale per garantire la tracciabilità della fonte
 export interface VerbatimQuote {
   id: string;
-  quote: string; // Testo esatto citato dall'atto
-  pageOrParagraph?: string; // Riferimento (es. "Pag. 4, par. 2")
-  speaker?: string; // Chi ha espresso la frase (es. "Assessore alla Mobilità")
+  quote: string;
+  pageOrParagraph?: string;
+  speaker?: string;
 }
 
-// Ciclo di verifica a posteriori (Outcome Review)
 export interface OutcomeReview {
   id: string;
   timeframe: '6_mesi' | '12_mesi' | '24_mesi' | 'lungo_termine';
-  expectedOutcome: string; // Cosa ci si aspettava che accadesse
-  actualOutcome?: string; // Cosa si è verificato effettivamente a posteriori
+  expectedOutcome: string;
+  actualOutcome?: string;
   status: 'pending' | 'verified_true' | 'verified_false' | 'inconclusive';
   reviewDate?: Date;
   notes?: string;
 }
 
-// Il cuore della piattaforma: Il Reasoning Record
 export interface ReasoningRecord {
   id: string;
   publicActId: string;
   publicAct?: PublicAct;
-  compiler: User; // Utente o curatore che ha ricostruito il record
+  compiler: User;
   version: number;
   status: 'draft' | 'published' | 'under_review';
 
-  // 1. La domanda reale
-  realQuestion: string; // La domanda sostanziale (non burocratica) a cui si rispondeva
-
-  // 2. Le opzioni scartate e perché
+  realQuestion: string;
   discardedOptions: DiscardedOption[];
-
-  // 3. La decisione presa
   decision: string;
-
-  // 4. Incertezza dichiarata & assunzioni
   uncertaintyLevel: 'basso' | 'medio' | 'alto';
-  uncertaintyExplanation: string; // Su cosa c'era incertezza (es. impatto sui ricavi dei negoziari)
-
-  // 5. Condizione di Falsificabilità (Cosa avrebbe fatto cambiare idea)
-  mindChangingConditions: string[]; // Requisito fondamentale: punti specifici che avrebbero invertito la scelta
-
-  // Distinzione rigorosa fonte
+  uncertaintyExplanation: string;
+  mindChangingConditions: string[];
   verbatimQuotes: VerbatimQuote[];
-  interpretativeSummary: string; // Ricostruzione sintetica interpretativa del compilatore
-
-  // Verifica a posteriori
+  interpretativeSummary: string;
   outcomeReviews: OutcomeReview[];
-
-  // Categoria tematica (es. "Mobilità", "Urbanistica", "Bilancio", "Ambiente")
   category?: string;
-
-  // Apprezzamento civico / Upvote
   upvotes?: number;
-
   createdAt: Date;
   updatedAt: Date;
 }

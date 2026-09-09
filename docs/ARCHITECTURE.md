@@ -1,6 +1,6 @@
 # Architecture & System Design — Reasoning Records
 
-> **"Le delibere dicono *cosa* si è deciso. Reasoning Records conserva e verifica *perché* si è deciso."**
+> **"Le decisioni dicono *cosa* si è scelto. Reasoning Records conserva e verifica *perché*."**
 
 Questo documento dettaglia l'architettura tecnica, le scelte di design dei dati e il flusso dei componenti della piattaforma **Reasoning Records**.
 
@@ -8,18 +8,22 @@ Questo documento dettaglia l'architettura tecnica, le scelte di design dei dati 
 
 ## 1. Principi Architetturali
 
-1. **Separazione Rigida delle Fonti**:
-   - **Verbatim (Fonte Ufficiale)**: Quotazioni esatte estratte dal testo grezzo dell'atto pubblico (es. delibere comunali, determine).
-   - **Interpretazione (Analisi del Curatore)**: Ricostruzione sintetica della domanda reale, delle opzioni scartate e delle assunzioni.
+1. **Community configurabile, metodo fisso**:
+   - Il feed è uno. Una *community* è un luogo di giudizio (comune, ufficio, progetto).
+   - Il pack (nome, categorie, come si chiama la fonte) è configurazione. Lo schema a sei elementi non lo è.
 
-2. **Falsificabilità delle Decisioni Amministrative**:
-   - Ogni scheda (*ReasoningRecord*) richiede una o più **Condizioni di Falsificabilità**: criteri misurabili a priori che avrebbero fatto o faranno cambiare idea al decisore.
+2. **Separazione Rigida delle Fonti**:
+   - **Verbatim**: citazioni esatte dalla fonte (delibera, verbale, deck).
+   - **Interpretazione**: ricostruzione della domanda reale, delle opzioni scartate e delle assunzioni.
 
-3. **Ciclo di Verifica a Posteriori (Outcome Reviews)**:
-   - Valutazione degli impatti reali a distanza di 6, 12 o 24 mesi per confrontare i risultati previsti con quelli registrati sul campo.
+3. **Falsificabilità**:
+   - Ogni scheda (*ReasoningRecord*) richiede una o più **Condizioni di Falsificabilità**: criteri misurabili a priori che avrebbero fatto o faranno cambiare idea.
 
-4. **Reddit-Style Feed & Territoriali**:
-   - Struttura basata sulla consultazione snella a card, filtri rapidi per livello di incertezza e presenza di verifiche completate, contestualizzata su ambiti locali (es. Comune di Cormano - MI).
+4. **Ciclo di Verifica a Posteriori (Outcome Reviews)**:
+   - Valutazione degli impatti reali a 6, 12 o 24 mesi.
+
+5. **Reddit-Style Feed**:
+   - Card, filtri per incertezza e verifiche, selettore community in navbar (`?c=`). Mock: Cormano, Ufficio People, Progetto Capex 2027.
 
 ---
 
@@ -37,40 +41,47 @@ Questo documento dettaglia l'architettura tecnica, le scelte di design dei dati 
 
 ```mermaid
 erDiagram
+    Community ||--o{ PublicAct : "archivia"
     User ||--o{ ReasoningRecord : "compila"
     PublicAct ||--o{ ReasoningRecord : "analizzato da"
     ReasoningRecord ||--o{ DiscardedOption : "contiene"
     ReasoningRecord ||--o{ VerbatimQuote : "cita"
     ReasoningRecord ||--o{ OutcomeReview : "valuta"
 
+    User {
+        string id PK
+        string username
+    }
+
+    Community {
+        string id PK
+        string slug
+        string type
+        string name
+        string sourceLabel
+    }
+
     PublicAct {
         string id PK
         string title
         string actNumber
         string entityName
-        string city
         datetime date
         string officialUrl
         string slug
     }
 
-    ReasoningRecord {
+    OutcomeReview {
         string id PK
-        string publicActId FK
-        string compilerId FK
-        string realQuestion
-        string decision
-        string uncertaintyLevel
-        string uncertaintyExplanation
-        string mindChangingConditions
-        string interpretativeSummary
+        string reasoningRecordId FK
+        string timeframe
+        string status
     }
 
     DiscardedOption {
         string id PK
         string reasoningRecordId FK
         string title
-        string reasonDiscarded
         string evidenceType
     }
 
@@ -78,27 +89,18 @@ erDiagram
         string id PK
         string reasoningRecordId FK
         string quote
-        string pageOrParagraph
-        string speaker
-    }
-
-    OutcomeReview {
-        string id PK
-        string reasoningRecordId FK
-        string timeframe
-        string expectedOutcome
-        string actualOutcome
-        string status
     }
 ```
+
+Oggi il pack `Community` vive in [`lib/communities.ts`](../lib/communities.ts) (mock). Lo schema Prisma resta centrato su `PublicAct`; allinearlo al tipo `Community` è un passo successivo, quando serve persistenza.
 
 ---
 
 ## 4. Struttura dei Moduli nel Repository
 
-- `app/`: Next.js App Router (Pagine per feed principale, dettagli atti `/acts/[slug]`, schede `/records/[id]`, e autenticazione `/auth`).
-- `components/`: Componenti UI focalizzati (es. `ReasoningRecordCard.tsx`, `VerbatimVsInterpretationViewer.tsx`, `Sidebar.tsx`).
-- `prisma/`: Schemi e definizioni del database.
-- `types/`: Definizioni dei tipi TypeScript del dominio.
-- `lib/`: Utilities e mock data di sviluppo.
-- `docs/`: Documentazione tecnica e operativa.
+- `app/`: Next.js App Router (feed `/`, fonti `/acts`, schede `/records/new`, autenticazione `/auth`).
+- `components/`: UI (Navbar con selettore community, Sidebar, card, matrice verbatim).
+- `lib/communities.ts`: pack delle community; `hooks/useActiveCommunity.ts` legge `?c=`.
+- `prisma/`: schemi database (non ancora allineati al pack Community).
+- `types/`: dominio TypeScript (`Community`, `ReasoningRecord`).
+- `docs/`: documentazione tecnica e operativa.

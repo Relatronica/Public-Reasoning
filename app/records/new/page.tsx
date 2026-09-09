@@ -1,138 +1,230 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { Suspense, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { HelpCircle, CheckCircle2, Compass, AlertTriangle, ShieldCheck, MapPin } from 'lucide-react';
+import { useActiveCommunity } from '@/hooks/useActiveCommunity';
+import { useCuratorData } from '@/contexts/CuratorDataContext';
 
-export default function NewReasoningRecordPage() {
-  const [submitted, setSubmitted] = useState(false);
+const inputClass =
+  'w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500';
 
-  if (submitted) {
-    return (
-      <div className="reddit-card p-8 text-center space-y-4 max-w-lg mx-auto">
-        <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
-        <h2 className="text-xl font-bold text-gray-900">Record Inviato al Registro</h2>
-        <p className="text-xs text-gray-600 leading-relaxed">
-          La ricostruzione del giudizio per questo atto del Comune di Cormano è stata inviata e sarà pubblicata nel feed civico.
-        </p>
-        <button
-          onClick={() => setSubmitted(false)}
-          className="px-5 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 transition-colors"
-        >
-          Compila un altro Record
-        </button>
-      </div>
-    );
+function NewReasoningRecordInner() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const { community, href, slug } = useActiveCommunity();
+  const { refresh } = useCuratorData();
+
+  const [actNumber, setActNumber] = useState('');
+  const [actTitle, setActTitle] = useState('');
+  const [realQuestion, setRealQuestion] = useState('');
+  const [decision, setDecision] = useState('');
+  const [discardedTitle, setDiscardedTitle] = useState('');
+  const [discardedReason, setDiscardedReason] = useState('');
+  const [mindChanging, setMindChanging] = useState('');
+  const [category, setCategory] = useState(community.categories[0]?.label ?? '');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  if (status === 'unauthenticated') {
+    router.push('/auth/login?callbackUrl=' + encodeURIComponent(href('/records/new')));
+    return null;
   }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError('');
+    try {
+      const res = await fetch('/api/curator/records', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          communitySlug: slug,
+          act: {
+            title: actTitle || actNumber,
+            actNumber,
+            rawTextExcerpt: '',
+          },
+          record: {
+            category,
+            realQuestion,
+            decision,
+            uncertaintyLevel: 'medio',
+            uncertaintyExplanation: '',
+            interpretativeSummary: '',
+            discardedOptions: discardedTitle
+              ? [
+                  {
+                    id: `opt-${Date.now()}`,
+                    title: discardedTitle,
+                    reasonDiscarded: discardedReason,
+                    evidenceType: 'interpretation',
+                  },
+                ]
+              : [],
+            mindChangingConditions: mindChanging ? [mindChanging] : [],
+            verbatimQuotes: [],
+            outcomeReviews: [],
+          },
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? 'Invio fallito');
+      }
+      await refresh();
+      router.push(href('/'));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Errore');
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="space-y-5">
-      
-      {/* Header Banner */}
       <div className="reddit-card p-5 space-y-2">
         <div className="flex items-center gap-2 text-xs font-semibold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-full w-fit">
           <ShieldCheck className="w-4 h-4" />
           <span>Nuovo Reasoning Record</span>
         </div>
-        <h1 className="text-2xl font-bold text-gray-900">
-          Ricostruisci una Decisione Pubblica
-        </h1>
-        <p className="text-xs text-gray-500 max-w-2xl leading-relaxed">
-          Estrai l&apos;architettura decisionale di una delibera del Comune di Cormano seguendo i 5 pilastri della trasparenza civica.
-        </p>
+        <h1 className="text-2xl font-bold text-gray-900">{community.newRecordTitle}</h1>
+        <p className="text-xs text-gray-500 max-w-2xl leading-relaxed">{community.newRecordHint}</p>
+        {session?.user && (
+          <p className="text-[11px] text-gray-400">Compilato da {session.user.name ?? session.user.email}</p>
+        )}
       </div>
 
-      {/* Form Card */}
-      <form onSubmit={(e) => { e.preventDefault(); setSubmitted(true); }} className="reddit-card p-6 space-y-5">
-        
-        {/* Comune Preimpostato */}
+      <form onSubmit={handleSubmit} className="reddit-card p-6 space-y-5">
         <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg flex items-center justify-between text-xs">
           <div className="flex items-center gap-2 text-blue-900 font-semibold">
             <MapPin className="w-4 h-4 text-blue-600" />
-            <span>Ambito Territoriale: Cormano (MI)</span>
+            <span>{community.typeLabel}: {community.name}</span>
           </div>
-          <span className="text-[11px] text-blue-700">Lombardia</span>
+          <Link href={href('/curator')} className="text-[11px] text-blue-700 hover:underline">
+            Apri editor
+          </Link>
         </div>
 
-        {/* Rif Atto */}
-        <div className="space-y-1">
-          <label className="text-xs font-bold text-gray-700 uppercase tracking-wider block">
-            Riferimento Atto Pubblico / Delibera
-          </label>
+        <label className="space-y-1 block">
+          <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">
+            Riferimento {community.sourceLabel}
+          </span>
           <input
             type="text"
             required
-            placeholder="es. Delibera C.C. n. 45/2024 - Comune di Cormano"
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            value={actNumber}
+            onChange={(e) => setActNumber(e.target.value)}
+            placeholder={community.sourcePlaceholder}
+            className={inputClass}
           />
-        </div>
+        </label>
 
-        {/* 1. Domanda Reale */}
-        <div className="space-y-1">
-          <label className="text-xs font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1">
+        <label className="space-y-1 block">
+          <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">Titolo fonte</span>
+          <input
+            type="text"
+            value={actTitle}
+            onChange={(e) => setActTitle(e.target.value)}
+            placeholder="Titolo breve della delibera o verbale"
+            className={inputClass}
+          />
+        </label>
+
+        <label className="space-y-1 block">
+          <span className="text-xs font-bold text-gray-700 uppercase tracking-wider">Categoria</span>
+          <select className={inputClass} value={category} onChange={(e) => setCategory(e.target.value)}>
+            {community.categories.map((c) => (
+              <option key={c.label} value={c.label}>{c.label}</option>
+            ))}
+          </select>
+        </label>
+
+        <label className="space-y-1 block">
+          <span className="text-xs font-bold text-blue-600 uppercase tracking-wider flex items-center gap-1">
             <HelpCircle className="w-4 h-4" />
-            <span>1. La Domanda Reale</span>
-          </label>
-          <p className="text-[11px] text-gray-500">Qual è il problema sostanziale a cui si rispondeva?</p>
+            1. La Domanda Reale
+          </span>
           <textarea
             required
             rows={3}
-            placeholder="es. Come fluidificare il traffico scolastico senza togliere parcheggi ai residenti?"
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            value={realQuestion}
+            onChange={(e) => setRealQuestion(e.target.value)}
+            placeholder="Qual è il problema sostanziale a cui si rispondeva?"
+            className={inputClass}
           />
-        </div>
+        </label>
 
-        {/* 2. Decisione Presa */}
-        <div className="space-y-1">
-          <label className="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-1">
+        <label className="space-y-1 block">
+          <span className="text-xs font-bold text-emerald-700 uppercase tracking-wider flex items-center gap-1">
             <CheckCircle2 className="w-4 h-4" />
-            <span>2. La Decisione Presa</span>
-          </label>
+            2. La Decisione Presa
+          </span>
           <textarea
             required
             rows={2}
-            placeholder="Sintesi formale della misura adottata..."
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            value={decision}
+            onChange={(e) => setDecision(e.target.value)}
+            placeholder="Sintesi chiara della scelta..."
+            className={inputClass}
           />
-        </div>
+        </label>
 
-        {/* 3. Opzioni Scartate */}
-        <div className="space-y-1">
-          <label className="text-xs font-bold text-amber-700 uppercase tracking-wider flex items-center gap-1">
+        <div className="space-y-2">
+          <span className="text-xs font-bold text-amber-700 uppercase tracking-wider flex items-center gap-1">
             <Compass className="w-4 h-4" />
-            <span>3. Opzione Scartata e Motivazione</span>
-          </label>
+            3. Opzione Scartata
+          </span>
+          <input
+            value={discardedTitle}
+            onChange={(e) => setDiscardedTitle(e.target.value)}
+            placeholder="Titolo dell'alternativa scartata"
+            className={inputClass}
+          />
           <textarea
             rows={2}
-            placeholder="Quale alternativa è stata scartata e per quale motivo specifico?"
-            className="w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+            value={discardedReason}
+            onChange={(e) => setDiscardedReason(e.target.value)}
+            placeholder="Per quale motivo è stata scartata?"
+            className={inputClass}
           />
         </div>
 
-        {/* 4. Condizioni di Falsificabilità */}
         <div className="space-y-1 bg-amber-50/60 border border-amber-200 p-3.5 rounded-lg">
           <label className="text-xs font-bold text-amber-900 uppercase tracking-wider flex items-center gap-1">
             <AlertTriangle className="w-4 h-4 text-amber-700" />
-            <span>4. Condizione di Falsificabilità</span>
+            4. Condizione di Falsificabilità
           </label>
-          <p className="text-[11px] text-amber-800">Cosa farebbe cambiare idea e invertire la decisione?</p>
           <textarea
             required
             rows={2}
-            placeholder="es. Se dopo 6 mesi l'incidentalità non cala del 20%..."
+            value={mindChanging}
+            onChange={(e) => setMindChanging(e.target.value)}
+            placeholder="Cosa farebbe cambiare idea?"
             className="w-full bg-white border border-amber-200 rounded-lg p-2.5 text-xs text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20"
           />
         </div>
 
-        {/* Submit */}
+        {error && <p className="text-xs text-red-600">{error}</p>}
+
         <button
           type="submit"
-          className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-xs transition-colors shadow-sm"
+          disabled={submitting || status !== 'authenticated'}
+          className="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-xs transition-colors shadow-sm disabled:opacity-50"
         >
-          Pubblica Reasoning Record
+          {submitting ? 'Pubblicazione…' : 'Pubblica Reasoning Record'}
         </button>
-
       </form>
-
     </div>
+  );
+}
+
+export default function NewReasoningRecordPage() {
+  return (
+    <Suspense fallback={<div className="reddit-card p-8 text-center text-sm text-gray-500">Caricamento...</div>}>
+      <NewReasoningRecordInner />
+    </Suspense>
   );
 }

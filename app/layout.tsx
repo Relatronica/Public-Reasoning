@@ -10,8 +10,11 @@ import { Providers } from './providers';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Reasoning Records — Cormano (MI) | Memoria del Giudizio Amministrativo',
-  description: 'Strato civico di trasparenza sopra le decisioni pubbliche del Comune di Cormano: le domande reali, le opzioni scartate e le condizioni di falsificabilità.',
+  title: 'Reason',
+  description: 'Feed delle decisioni: domanda reale, opzioni scartate e condizioni di falsificabilità.',
+  icons: {
+    icon: '/logo.svg',
+  },
 };
 
 export default function RootLayout({
@@ -40,7 +43,7 @@ export default function RootLayout({
                 {children}
               </main>
 
-              {/* Sidebar Destra (Info Cormano fissa) */}
+              {/* Sidebar destra: pack della community attiva */}
               <CommunityRightSidebar />
 
             </div>

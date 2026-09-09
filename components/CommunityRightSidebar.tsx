@@ -1,96 +1,104 @@
 'use client';
 
-import React from 'react';
-import { 
-  Building2, 
-  Users, 
-  FileCheck, 
-  ExternalLink, 
-  MapPin, 
-  BarChart3,
-  Calendar,
-  AlertCircle
-} from 'lucide-react';
+import React, { Suspense } from 'react';
+import Image from 'next/image';
+import { ExternalLink } from 'lucide-react';
+import { useActiveCommunity } from '@/hooks/useActiveCommunity';
+import { useCuratorData } from '@/contexts/CuratorDataContext';
+
+function CommunityLogo({ logoUrl, initials }: { logoUrl?: string; initials: string }) {
+  if (logoUrl) {
+    return (
+      <Image
+        src={logoUrl}
+        alt=""
+        width={48}
+        height={48}
+        className="relative w-12 h-12 rounded-full border-4 border-white bg-white object-cover shadow-sm"
+      />
+    );
+  }
+
+  return (
+    <div className="relative w-12 h-12 rounded-full border-4 border-white bg-blue-700 text-white flex items-center justify-center text-sm font-bold shadow-sm">
+      {initials}
+    </div>
+  );
+}
+
+function CommunityRightSidebarInner() {
+  const { community } = useActiveCommunity();
+  const { recordsForCommunity } = useCuratorData();
+  const records = recordsForCommunity(community.id);
+
+  return (
+    <aside className="w-72 flex-shrink-0 hidden lg:block py-6 h-full overflow-y-auto pr-1">
+      <div className="reddit-card">
+        {community.coverImageUrl ? (
+          <div className="relative h-20 w-full overflow-hidden rounded-t-xl bg-gray-100">
+            <Image
+              src={community.coverImageUrl}
+              alt=""
+              fill
+              className="object-cover"
+              sizes="288px"
+              priority
+            />
+          </div>
+        ) : (
+          <div className="h-20 w-full rounded-t-xl bg-gradient-to-br from-blue-700 to-blue-500" />
+        )}
+
+        <div className="px-4 pb-4">
+          <div className="relative z-10 -mt-6 mb-3 flex items-end justify-between gap-2">
+            <CommunityLogo logoUrl={community.logoUrl} initials={community.initials} />
+            {community.officialUrl && (
+              <a
+                href={community.officialUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="mb-0.5 text-gray-400 hover:text-blue-600"
+                title={community.officialUrlLabel}
+              >
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            )}
+          </div>
+
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+            {community.typeLabel}
+          </p>
+          <h3 className="font-bold text-gray-900 text-sm mt-0.5">{community.name}</h3>
+          {community.subtitle && (
+            <p className="text-xs text-gray-500 mt-0.5">{community.subtitle}</p>
+          )}
+
+          {community.stats.length > 0 && (
+            <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 pt-3 border-t border-gray-100">
+              {community.stats.map((stat) => (
+                <div key={stat.label}>
+                  <p className="text-[10px] uppercase tracking-wide text-gray-400">{stat.label}</p>
+                  <p className="text-xs font-semibold text-gray-800">{stat.value}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <p className="text-xs text-gray-500 leading-relaxed mt-3">{community.tagline}</p>
+
+          <p className="text-[11px] text-gray-400 pt-3 mt-3 border-t border-gray-100">
+            {records.length} schede in questa community
+          </p>
+        </div>
+      </div>
+    </aside>
+  );
+}
 
 export default function CommunityRightSidebar() {
   return (
-    <aside className="w-80 flex-shrink-0 hidden lg:block py-6 h-full overflow-y-auto space-y-5 pr-1">
-      
-      {/* Municipality Header Card (Reddit Community Style) */}
-      <div className="reddit-card p-4 overflow-hidden relative">
-        <div className="h-14 -mx-4 -mt-4 bg-gradient-to-r from-blue-600 to-indigo-700 p-3 flex items-end">
-          <span className="text-white text-xs font-bold tracking-wide">Comune di Cormano (MI)</span>
-        </div>
-        
-        <div className="relative -mt-6 mb-3 flex items-end justify-between">
-          <div className="w-12 h-12 rounded-xl bg-white p-1 border-2 border-white shadow-md flex items-center justify-center font-black text-blue-700 text-lg">
-            MI
-          </div>
-          <a
-            href="https://comune.cormano.mi.it"
-            target="_blank"
-            rel="noreferrer"
-            className="text-[11px] font-semibold text-blue-600 hover:underline flex items-center gap-1 bg-blue-50 px-2 py-1 rounded-md"
-          >
-            <span>Albo Pretorio</span>
-            <ExternalLink className="w-3 h-3" />
-          </a>
-        </div>
-
-        <h3 className="font-bold text-gray-900 text-base">Comune di Cormano</h3>
-        <p className="text-xs text-gray-500 mt-1 leading-relaxed">
-          Monitoraggio civico indipendente e ricostruzione del ragionamento decisionale amministrativo.
-        </p>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 gap-2 mt-4 pt-3 border-t border-gray-100 text-xs">
-          <div>
-            <div className="text-gray-400 font-medium text-[10px] uppercase">Abitanti</div>
-            <div className="font-bold text-gray-900 text-sm mt-0.5">~20.100</div>
-          </div>
-          <div>
-            <div className="text-gray-400 font-medium text-[10px] uppercase">Atti Archiviati</div>
-            <div className="font-bold text-blue-600 text-sm mt-0.5">3 Delibere</div>
-          </div>
-          <div>
-            <div className="text-gray-400 font-medium text-[10px] uppercase">Verifiche a 6M</div>
-            <div className="font-bold text-emerald-600 text-sm mt-0.5">1 Completata</div>
-          </div>
-          <div>
-            <div className="text-gray-400 font-medium text-[10px] uppercase">Incertezza Media</div>
-            <div className="font-bold text-amber-600 text-sm mt-0.5">Medio-Alta</div>
-          </div>
-        </div>
-
-      </div>
-
-      {/* Regole & Principi di Trasparenza */}
-      <div className="reddit-card p-4 space-y-3">
-        <h4 className="font-bold text-gray-900 text-xs uppercase tracking-wider flex items-center gap-1.5">
-          <FileCheck className="w-4 h-4 text-blue-600" />
-          <span>Standard Reasoning Record</span>
-        </h4>
-        <div className="space-y-2 text-xs text-gray-600">
-          <div className="p-2 bg-gray-50 rounded-lg">
-            <p className="font-semibold text-gray-800">1. Domanda Sostanziale</p>
-            <p className="text-[11px] text-gray-500 mt-0.5">Separare la sostanza dall&apos;artificiale burocratico.</p>
-          </div>
-          <div className="p-2 bg-gray-50 rounded-lg">
-            <p className="font-semibold text-gray-800">2. Falsificabilità</p>
-            <p className="text-[11px] text-gray-500 mt-0.5">Definire quali dati avrebbero invertito la scelta.</p>
-          </div>
-          <div className="p-2 bg-gray-50 rounded-lg">
-            <p className="font-semibold text-gray-800">3. Distinzione delle Fonti</p>
-            <p className="text-[11px] text-gray-500 mt-0.5">Citazioni dirette divise dalle interpretazioni.</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Footer minimal */}
-      <div className="text-[11px] text-gray-400 px-1 leading-relaxed">
-        Reasoning Records © 2024 — Strato leggibile civico sopra gli atti pubblici di Cormano (MI).
-      </div>
-
-    </aside>
+    <Suspense fallback={<aside className="w-72 flex-shrink-0 hidden lg:block" />}>
+      <CommunityRightSidebarInner />
+    </Suspense>
   );
 }
