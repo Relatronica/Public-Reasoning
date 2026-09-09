@@ -2,11 +2,30 @@
 
 import React, { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Search, MapPin, Plus, ChevronDown, FileText, Briefcase, Building2, Pencil, Sparkles } from 'lucide-react';
+import { signOut, useSession } from 'next-auth/react';
+import {
+  Search,
+  MapPin,
+  Plus,
+  ChevronDown,
+  FileText,
+  Briefcase,
+  Building2,
+  Pencil,
+  Sparkles,
+  Settings,
+  Landmark,
+  Users,
+  LogOut,
+  LogIn,
+  UserPlus,
+} from 'lucide-react';
 import { withCommunityQuery } from '@/lib/communities';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
+import { ROLE_LABELS } from '@/lib/org/permissions';
 import { CommunityType } from '@/types';
 import Logo from '@/components/Logo';
 
@@ -17,64 +36,127 @@ function communityIcon(type: CommunityType, slug?: string) {
   return MapPin;
 }
 
+function userInitials(name?: string | null, email?: string | null): string {
+  const source = name?.trim() || email?.split('@')[0] || '?';
+  const parts = source.split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return source.slice(0, 2).toUpperCase();
+}
+
+function useDismissOnOutsideClick(
+  open: boolean,
+  ref: React.RefObject<HTMLElement | null>,
+  onClose: () => void
+) {
+  useEffect(() => {
+    if (!open) return;
+    const onPointerDown = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        onClose();
+      }
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    return () => document.removeEventListener('mousedown', onPointerDown);
+  }, [open, ref, onClose]);
+}
+
+function AccountMenuButton({
+  avatarUrl,
+  initials,
+  open,
+  onToggle,
+}: {
+  avatarUrl?: string | null;
+  initials: string;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      title="Account"
+      aria-expanded={open}
+      aria-haspopup="menu"
+      className="w-8 h-8 rounded-full bg-blue-100 border border-blue-300 flex items-center justify-center text-blue-700 font-bold text-xs overflow-hidden hover:ring-2 hover:ring-blue-400 transition-all"
+    >
+      {avatarUrl ? (
+        <Image src={avatarUrl} alt="" width={32} height={32} className="w-full h-full object-cover" />
+      ) : (
+        initials
+      )}
+    </button>
+  );
+}
+
 function NavbarInner() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [open, setOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [communityOpen, setCommunityOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const communityRef = useRef<HTMLDivElement>(null);
+  const accountRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { data: session, status } = useSession();
   const { community, href } = useActiveCommunity();
-  const { communities, canCompile, myRole, organization } = useCuratorData();
+  const { communities, canCompile, canAdminOrg, myRole, organization } = useCuratorData();
   const Icon = communityIcon(community.type, community.slug);
   const workspaceLabel = community.type === 'comune' || community.type === 'regione' ? 'Community' : 'Workspace';
+
+  const user = session?.user as
+    | { name?: string | null; email?: string | null; avatar?: string | null; image?: string | null }
+    | undefined;
+  const avatarUrl = user?.avatar || user?.image;
+  const displayName = user?.name || user?.email || 'Account';
+  const initials = userInitials(user?.name, user?.email);
+  const isAuthenticated = status === 'authenticated';
 
   useEffect(() => {
     const q = searchParams.get('q') || '';
     setSearchQuery(q);
   }, [searchParams]);
 
-  useEffect(() => {
-    if (!open) return;
-    const onPointerDown = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', onPointerDown);
-    return () => document.removeEventListener('mousedown', onPointerDown);
-  }, [open]);
+  useDismissOnOutsideClick(communityOpen, communityRef, () => setCommunityOpen(false));
+  useDismissOnOutsideClick(accountOpen, accountRef, () => setAccountOpen(false));
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     router.push(href('/', { q: searchQuery.trim() || undefined }));
   };
 
+  const closeAccount = () => setAccountOpen(false);
+
+  const accountMenuItemClass =
+    'flex items-center gap-2.5 px-3 py-2.5 text-xs text-gray-700 hover:bg-gray-50 w-full text-left';
+
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
       <div className="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
-        
         <div className="flex items-center gap-6">
           <Link href={href('/')} className="flex items-center gap-2.5 group text-gray-900 hover:text-blue-700 transition-colors">
             <Logo className="w-7 h-7" />
-            <span className="font-semibold text-lg tracking-tight leading-none">
-              Reason
-            </span>
+            <span className="font-semibold text-lg tracking-tight leading-none">Reason</span>
           </Link>
 
-          <div className="flex items-center relative" ref={dropdownRef}>
+          <div className="flex items-center relative" ref={communityRef}>
             <button
               type="button"
-              onClick={() => setOpen((v) => !v)}
+              onClick={() => {
+                setCommunityOpen((v) => !v);
+                setAccountOpen(false);
+              }}
               title="Cambia community"
               className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-blue-50 border border-blue-200/60 text-blue-800 text-xs font-semibold hover:bg-blue-100/80 transition-all cursor-pointer"
             >
               <Icon className="w-3.5 h-3.5 text-blue-600" />
               <span>{community.shortName}</span>
               <span className="text-[10px] text-blue-500 font-normal">{community.typeLabel}</span>
-              <ChevronDown className={`w-3.5 h-3.5 text-blue-500 ml-0.5 transition-transform ${open ? 'rotate-180' : ''}`} />
+              <ChevronDown
+                className={`w-3.5 h-3.5 text-blue-500 ml-0.5 transition-transform ${communityOpen ? 'rotate-180' : ''}`}
+              />
             </button>
 
-            {open && (
+            {communityOpen && (
               <div className="absolute top-full left-0 mt-2 w-72 bg-white border border-gray-200 rounded-xl shadow-sm z-50 overflow-hidden">
                 <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100">
                   {workspaceLabel}
@@ -87,16 +169,14 @@ function NavbarInner() {
                     <Link
                       key={item.id}
                       href={withCommunityQuery('/', item.slug)}
-                      onClick={() => setOpen(false)}
+                      onClick={() => setCommunityOpen(false)}
                       className={`flex items-start gap-2.5 px-3 py-2.5 text-xs hover:bg-gray-50 ${
                         active ? 'bg-blue-50' : ''
                       }`}
                     >
                       <ItemIcon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${active ? 'text-blue-600' : 'text-gray-400'}`} />
                       <div className="min-w-0">
-                        <div className={`font-semibold ${active ? 'text-blue-800' : 'text-gray-900'}`}>
-                          {item.name}
-                        </div>
+                        <div className={`font-semibold ${active ? 'text-blue-800' : 'text-gray-900'}`}>{item.name}</div>
                         <div className="text-[11px] text-gray-500 truncate">
                           {item.typeLabel}
                           {item.subtitle ? ` · ${item.subtitle}` : ''}
@@ -124,17 +204,18 @@ function NavbarInner() {
         </div>
 
         <div className="flex items-center gap-3">
-          {canCompile && (
+          {isAuthenticated && canCompile && (
             <Link
               href={href('/records/capture')}
               className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-full text-xs font-semibold hover:bg-blue-700 shadow-sm transition-all active:scale-95"
             >
               <Sparkles className="w-4 h-4" />
-              <span>Cattura decisione</span>
+              <span className="hidden sm:inline">Cattura decisione</span>
+              <span className="sm:hidden">Cattura</span>
             </Link>
           )}
 
-          {canCompile && (
+          {isAuthenticated && canCompile && (
             <Link
               href={href('/records/new')}
               className="hidden md:flex items-center gap-1.5 px-3 py-2 text-gray-700 hover:text-gray-900 text-xs font-medium hover:bg-gray-100 rounded-lg transition-colors"
@@ -145,21 +226,25 @@ function NavbarInner() {
             </Link>
           )}
 
-          <Link
-            href={href('/bank')}
-            className="hidden lg:flex items-center gap-1.5 px-3 py-2 text-gray-700 hover:text-gray-900 text-xs font-medium hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <FileText className="w-4 h-4 text-gray-500" />
-            <span>Bank</span>
-          </Link>
+          {isAuthenticated && (
+            <>
+              <Link
+                href={href('/bank')}
+                className="hidden lg:flex items-center gap-1.5 px-3 py-2 text-gray-700 hover:text-gray-900 text-xs font-medium hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <Landmark className="w-4 h-4 text-gray-500" />
+                <span>Bank</span>
+              </Link>
 
-          <Link
-            href={href('/curator')}
-            className="hidden lg:flex items-center gap-1.5 px-3 py-2 text-gray-700 hover:text-gray-900 text-xs font-medium hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <Pencil className="w-4 h-4 text-gray-500" />
-            <span>Editor</span>
-          </Link>
+              <Link
+                href={href('/curator')}
+                className="hidden lg:flex items-center gap-1.5 px-3 py-2 text-gray-700 hover:text-gray-900 text-xs font-medium hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <Pencil className="w-4 h-4 text-gray-500" />
+                <span>Editor</span>
+              </Link>
+            </>
+          )}
 
           <Link
             href={href('/acts')}
@@ -169,17 +254,108 @@ function NavbarInner() {
             <span>{community.archiveNavLabel}</span>
           </Link>
 
-          <div className="h-6 w-px bg-gray-200 hidden sm:block mx-1"></div>
+          <div className="h-6 w-px bg-gray-200 hidden sm:block mx-1" />
 
-          <div className="flex items-center gap-2 pl-1">
-            {myRole && (
-              <span className="hidden xl:inline text-[10px] uppercase tracking-wider text-gray-400 font-semibold">
-                {myRole}
-              </span>
+          <div className="flex items-center relative pl-1" ref={accountRef}>
+            <AccountMenuButton
+              avatarUrl={isAuthenticated ? avatarUrl : null}
+              initials={isAuthenticated ? initials : '?'}
+              open={accountOpen}
+              onToggle={() => {
+                setAccountOpen((v) => !v);
+                setCommunityOpen(false);
+              }}
+            />
+
+            {accountOpen && (
+              <div
+                role="menu"
+                className="absolute top-full right-0 mt-2 w-64 bg-white border border-gray-200 rounded-xl shadow-sm z-50 overflow-hidden"
+              >
+                {status === 'loading' ? (
+                  <div className="px-3 py-4 text-xs text-gray-500 text-center">Caricamento…</div>
+                ) : isAuthenticated ? (
+                  <>
+                    <div className="px-3 py-3 border-b border-gray-100">
+                      <div className="font-semibold text-sm text-gray-900 truncate">{displayName}</div>
+                      {user?.email && user.email !== displayName && (
+                        <div className="text-[11px] text-gray-500 truncate mt-0.5">{user.email}</div>
+                      )}
+                      <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                        {myRole && (
+                          <span className="text-[10px] uppercase tracking-wider font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded">
+                            {ROLE_LABELS[myRole]}
+                          </span>
+                        )}
+                        {organization?.name && (
+                          <span className="text-[10px] text-gray-500 truncate">{organization.name}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="py-1">
+                      <Link href="/settings" onClick={closeAccount} className={accountMenuItemClass} role="menuitem">
+                        <Settings className="w-4 h-4 text-gray-400" />
+                        Impostazioni profilo
+                      </Link>
+                      <Link href={href('/bank')} onClick={closeAccount} className={`${accountMenuItemClass} lg:hidden`} role="menuitem">
+                        <Landmark className="w-4 h-4 text-gray-400" />
+                        Decision Bank
+                      </Link>
+                      <Link href={href('/curator')} onClick={closeAccount} className={`${accountMenuItemClass} lg:hidden`} role="menuitem">
+                        <Pencil className="w-4 h-4 text-gray-400" />
+                        Editor
+                      </Link>
+                      {canAdminOrg && (
+                        <Link href={href('/curator/org')} onClick={closeAccount} className={accountMenuItemClass} role="menuitem">
+                          <Users className="w-4 h-4 text-gray-400" />
+                          Organization
+                        </Link>
+                      )}
+                      {canCompile && (
+                        <Link href={href('/records/capture')} onClick={closeAccount} className={`${accountMenuItemClass} sm:hidden`} role="menuitem">
+                          <Sparkles className="w-4 h-4 text-gray-400" />
+                          Cattura decisione
+                        </Link>
+                      )}
+                    </div>
+
+                    <div className="border-t border-gray-100 py-1">
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={async () => {
+                          closeAccount();
+                          // Evita il redirect di NextAuth (prima finiva su /auth/callback)
+                          await signOut({ redirect: false });
+                          window.location.assign(href('/'));
+                        }}
+                        className={`${accountMenuItemClass} text-red-700 hover:bg-red-50`}
+                      >
+                        <LogOut className="w-4 h-4 text-red-400" />
+                        Esci
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="py-1">
+                    <Link
+                      href={`/auth/login?callbackUrl=${encodeURIComponent(href('/'))}`}
+                      onClick={closeAccount}
+                      className={accountMenuItemClass}
+                      role="menuitem"
+                    >
+                      <LogIn className="w-4 h-4 text-gray-400" />
+                      Accedi
+                    </Link>
+                    <Link href="/auth/register" onClick={closeAccount} className={accountMenuItemClass} role="menuitem">
+                      <UserPlus className="w-4 h-4 text-gray-400" />
+                      Registrati
+                    </Link>
+                  </div>
+                )}
+              </div>
             )}
-            <div className="w-8 h-8 rounded-full bg-blue-100 border border-blue-300 flex items-center justify-center text-blue-700 font-bold text-xs cursor-pointer hover:ring-2 hover:ring-blue-400 transition-all">
-              MR
-            </div>
           </div>
         </div>
       </div>

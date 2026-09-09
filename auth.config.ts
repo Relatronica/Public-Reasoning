@@ -14,10 +14,11 @@ export const authConfig = {
   },
   callbacks: {
     async redirect({ url, baseUrl }) {
-      // Dopo il login, reindirizza sempre alla pagina di callback per controllare lo stato
-      if (url.startsWith('/')) return `${baseUrl}/auth/callback?callbackUrl=${encodeURIComponent(url)}`
-      if (new URL(url).origin === baseUrl) return `${baseUrl}/auth/callback?callbackUrl=${encodeURIComponent(url)}`
-      return baseUrl
+      // Solo same-origin. Non wrappare il logout (né altri redirect) in /auth/callback:
+      // quel passaggio è solo per il login Google e va impostato esplicitamente in signIn().
+      if (url.startsWith('/')) return `${baseUrl}${url}`;
+      if (url.startsWith(baseUrl)) return url;
+      return baseUrl;
     },
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user

@@ -1,26 +1,26 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useSession } from 'next-auth/react'
-import { motion } from 'framer-motion'
-import { CheckCircle, Loader2 } from 'lucide-react'
-import Link from 'next/link'
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useSession } from 'next-auth/react';
+import { CheckCircle, Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 
 export default function RegisterCompletePage() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const { data: session, status, update } = useSession()
-  const [isCompleting, setIsCompleting] = useState(true)
+  const router = useRouter();
+  const { href } = useActiveCommunity();
+  const searchParams = useSearchParams();
+  const { data: session, status, update } = useSession();
+  const [isCompleting, setIsCompleting] = useState(true);
 
-  const username = searchParams.get('username')
-  const avatar = searchParams.get('avatar')
+  const username = searchParams.get('username');
+  const avatar = searchParams.get('avatar');
 
   useEffect(() => {
     const completeRegistration = async () => {
       if (status === 'authenticated' && session?.user) {
         try {
-          // Completa la registrazione aggiornando l'utente con username e avatar
           const response = await fetch('/api/auth/complete-registration', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -29,61 +29,52 @@ export default function RegisterCompletePage() {
               username,
               avatar,
             }),
-          })
+          });
 
           if (response.ok) {
-            // Aggiorna la sessione per includere l'avatar e username appena salvati
-            await update()
-            setIsCompleting(false)
-            // Redirect dopo 2 secondi
+            await update();
+            setIsCompleting(false);
             setTimeout(() => {
-              router.push('/')
-            }, 2000)
+              router.push(href('/'));
+            }, 2000);
           } else {
-            console.error('Errore nel completamento registrazione')
+            console.error('Errore nel completamento registrazione');
           }
         } catch (error) {
-          console.error('Errore:', error)
+          console.error('Errore:', error);
         }
       }
-    }
+    };
 
-    completeRegistration()
-  }, [status, session, username, avatar, router])
+    completeRegistration();
+  }, [status, session, username, avatar, router, update, href]);
 
   if (status === 'loading' || isCompleting) {
     return (
-      <div className="min-h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-8">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-primary-500 animate-spin mx-auto mb-4" />
-          <p className="text-white/70">Completamento registrazione...</p>
-        </div>
+      <div className="reddit-card p-8 text-center max-w-md space-y-3">
+        <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto" />
+        <p className="text-sm text-gray-500">Completamento registrazione…</p>
       </div>
-    )
+    );
   }
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-8">
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-12 shadow-2xl text-center max-w-md"
-      >
-        <CheckCircle className="w-16 h-16 text-emerald-500 mx-auto mb-6" />
-        <h1 className="text-3xl font-bold text-white mb-4">
-          Registrazione completata!
-        </h1>
-        <p className="text-white/70 mb-8">
-          Il tuo account è stato creato con successo. Verrai reindirizzato alla home...
-        </p>
+    <div className="space-y-5 max-w-md">
+      <div className="reddit-card p-8 text-center space-y-4">
+        <CheckCircle className="w-12 h-12 text-emerald-600 mx-auto" />
+        <div>
+          <h1 className="text-xl font-bold text-gray-900">Registrazione completata</h1>
+          <p className="text-xs text-gray-500 mt-1 leading-relaxed">
+            Il tuo account è pronto. Tra poco torni al feed.
+          </p>
+        </div>
         <Link
-          href="/"
-          className="inline-block px-6 py-3 bg-primary-600 text-white rounded-xl font-semibold hover:bg-primary-700 transition"
+          href={href('/')}
+          className="inline-flex px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-xs transition-colors"
         >
-          Vai alla home
+          Vai al feed
         </Link>
-      </motion.div>
+      </div>
     </div>
-  )
+  );
 }
-

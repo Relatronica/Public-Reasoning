@@ -9,11 +9,11 @@ const RANK: Record<OrganizationRole, number> = {
 };
 
 export const ROLE_LABELS: Record<OrganizationRole, string> = {
-  owner: 'Owner',
-  admin: 'Admin',
-  compiler: 'Compiler',
+  owner: 'Proprietario',
+  admin: 'Amministratore',
+  compiler: 'Compilatore',
   sponsor: 'Sponsor',
-  viewer: 'Viewer',
+  viewer: 'Lettore',
 };
 
 export function hasMinRole(role: OrganizationRole | null | undefined, min: OrganizationRole): boolean {
