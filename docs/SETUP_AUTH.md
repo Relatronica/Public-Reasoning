@@ -52,13 +52,15 @@ In produzione usa `npm run db:deploy` (vedi [`DEPLOY.md`](DEPLOY.md)).
 2. Continua con Google
 3. `/auth/register/complete` completa il profilo
 
-## 5. Persistenza Editor (non Auth)
+## 5. Persistenza Editor
 
-Auth (utenti/sessioni) → Postgres.  
-Override community, team, spunti → `data/curator-store.json` (locale, gitignored). Seed: `data/curator-store.example.json`.
+Auth (utenti/sessioni) e overlay Editor (community, team, spunti, override) → **PostgreSQL**  
+(`curator_store`). Seed: `data/curator-store.example.json`. Un eventuale `curator-store.json` locale
+viene importato solo al primo avvio se il DB è vuoto.
 
 ## Note produzione
 
 - Aggiorna `AUTH_URL` / `NEXTAUTH_URL` al dominio HTTPS
 - Aggiungi i redirect OAuth di produzione
-- Non committare `.env` né `data/curator-store.json` con dati reali
+- Non committare `.env` né store JSON con dati reali
+- Guida deploy: [`DEPLOY.md`](DEPLOY.md)

@@ -32,7 +32,7 @@ Questo documento dettaglia l'architettura tecnica, le scelte di design dei dati 
 - **Framework Web**: Next.js 14 (App Router con Server & Client Components)
 - **Linguaggio**: TypeScript (Strict Mode)
 - **Styling**: Tailwind CSS (Custom design system in `globals.css` per card stile Reddit, badge di stato e typography)
-- **Database & ORM**: Prisma ORM con **PostgreSQL** (utenti e sessioni Auth.js). I Reasoning Record demo vivono ancora in `lib/` + override locali in `data/curator-store.json` (gitignored; seed `curator-store.example.json`).
+- **Database & ORM**: Prisma + **PostgreSQL** — Auth.js (User/Account/Session) e overlay Editor (`CuratorStoreState` → tabella `curator_store`, JSON). I Reasoning Record demo restano in `lib/` come seed di lettura, con override applicati dall’overlay.
 - **Autenticazione**: NextAuth.js v5 (Auth.js) con Prisma Adapter e Google OAuth
 - **Grafo**: @xyflow/react per la board decisionale sulla scheda
 

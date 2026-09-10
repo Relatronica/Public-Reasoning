@@ -147,3 +147,15 @@ model OutcomeReview {
   @@index([reasoningRecordId])
   @@map("outcome_reviews")
 }
+
+/**
+ * Persistenza overlay curator (ex data/curator-store.json).
+ * Una riga Json = intero CuratorStore; le API/merge restano invariate.
+ */
+model CuratorStoreState {
+  id        String   @id @default("default")
+  data      Json
+  updatedAt DateTime @updatedAt
+
+  @@map("curator_store")
+}

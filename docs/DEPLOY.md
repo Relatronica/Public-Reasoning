@@ -1,62 +1,56 @@
 # Deploy — Reason
 
-Checklist per pubblicare Reason su un server o un hosting Node (VPS, Railway, Render, Fly.io, ecc.).
+Checklist per pubblicare Reason (Vercel + Neon, VPS, Railway, …).
 
 ---
 
-## Cosa è pronto / cosa no
+## Architettura persistenza
 
-| Pronto | Attenzione |
+| Dati | Dove |
 | :--- | :--- |
-| App Next.js 14, Auth Google, Prisma su PostgreSQL | Persistenza **Editor / team / spunti / override** su file `data/curator-store.json` |
-| Community e schede demo in codice (`lib/`) | Su **serverless** (es. Vercel senza volume) le scritture al JSON non restano |
-| `.env.example` allineato allo schema Postgres | I Reasoning Record di prodotto non sono ancora tutti su Prisma |
+| Utenti / sessioni Auth.js | PostgreSQL (Prisma) |
+| Editor: community, team, spunti, override schede | PostgreSQL tabella `curator_store` (JSON overlay) |
+| Corpus demo (Cormano, Agorà, …) | Codice in `lib/` (seed di lettura) |
 
-Per una demo pubblica stabile: preferisci un **VPS o container con filesystem persistente**, oppure accetta un deploy read-mostly (feed demo) senza affidarti all’Editor.
+L’Editor è **production-ready su Postgres**: funziona anche su Vercel (niente disco locale obbligatorio).
 
 ---
 
 ## 1. Database
 
-1. Crea un database PostgreSQL.
-2. Imposta `DATABASE_URL` (connection string completa).
-3. In build o release:
+1. Crea un Postgres (es. [Neon](https://neon.tech) free).
+2. Imposta `DATABASE_URL`.
+3. In build/release:
 
 ```bash
 npm run db:generate
 npm run db:deploy
 ```
 
-(`db:deploy` = `prisma migrate deploy`)
+La migrazione `curator_store` crea la tabella overlay.
 
 ---
 
 ## 2. Variabili d’ambiente
-
-Copia da `.env.example` e valorizza in produzione:
 
 ```bash
 DATABASE_URL="postgresql://..."
 AUTH_URL="https://tuodominio.com"
 NEXTAUTH_URL="https://tuodominio.com"
 AUTH_SECRET="<openssl rand -base64 32>"
-NEXTAUTH_SECRET="<stesso valore di AUTH_SECRET>"
+NEXTAUTH_SECRET="<stesso valore>"
 GOOGLE_CLIENT_ID="..."
 GOOGLE_CLIENT_SECRET="..."
 ```
-
-Auth.js v5 legge preferibilmente `AUTH_*`; gli alias `NEXTAUTH_*` restano utili.
 
 ---
 
 ## 3. Google OAuth
 
-In [Google Cloud Console](https://console.cloud.google.com/):
+- Origins: `https://tuodominio.com`
+- Redirect: `https://tuodominio.com/api/auth/callback/google`
 
-- **Authorized JavaScript origins**: `https://tuodominio.com`
-- **Authorized redirect URIs**: `https://tuodominio.com/api/auth/callback/google`
-
-Guida dettagliata: [`SETUP_GOOGLE_OAUTH.md`](SETUP_GOOGLE_OAUTH.md).
+Dettagli: [`SETUP_GOOGLE_OAUTH.md`](SETUP_GOOGLE_OAUTH.md).
 
 ---
 
@@ -70,37 +64,50 @@ npm run build
 npm start
 ```
 
-Assicurati che il processo possa **scrivere** in `data/` (directory presente o creabile). Al primo avvio, se manca `curator-store.json`, viene creato da `curator-store.example.json`.
+Su **Vercel**: imposta le env, collega il repo, build command default `next build` (aggiungi `prisma generate` in `postinstall` o nel build script se serve).
+
+Consigliato in `package.json` (già presenti gli script `db:*`):
+
+```bash
+# build su CI
+npx prisma generate && npx prisma migrate deploy && next build
+```
+
+Oppure configura il build command della piattaforma di conseguenza.
 
 ---
 
 ## 5. Checklist pre-go-live
 
-- [ ] Postgres raggiungibile e migrazioni applicate
-- [ ] `AUTH_SECRET` / `NEXTAUTH_SECRET` forti e univoci
-- [ ] `AUTH_URL` / `NEXTAUTH_URL` = URL pubblico HTTPS
-- [ ] Redirect Google di produzione configurati
-- [ ] `data/` scrivibile (se usi Editor / team / consultazioni)
-- [ ] Nessun `.env` o store con email reali nel repository
-- [ ] HTTPS terminato (reverse proxy o piattaforma)
+- [ ] Postgres + migrazioni applicate (incluso `curator_store`)
+- [ ] Secret Auth forti
+- [ ] `AUTH_URL` / `NEXTAUTH_URL` = HTTPS pubblico
+- [ ] Redirect Google di produzione
+- [ ] Nessun store/env con PII nel repository
+- [ ] Smoke test: login → Editor → salva community / aggiungi membro team → refresh → dati presenti
 
 ---
 
-## 6. Limiti noti (onesti)
+## 6. Migrazione da JSON locale
 
-1. **Curator store su file** — non multi-istanza: due replica che scrivono lo stesso JSON non sono supportate.
-2. **Serverless** — filesystem effimero: override e roster si perdono al cold start / redeploy.
-3. **Prisma** — oggi serve soprattutto Auth (User / Account / Session); il corpus decisionale demo vive ancora in `lib/` + store JSON.
-4. **Roadmap** — migrazione record/org su Postgres: [`DECISION_OS_PLAN.md`](DECISION_OS_PLAN.md).
+Se in locale esiste ancora `data/curator-store.json`, al **primo** avvio con DB vuoto viene importato automaticamente nella tabella `curator_store`. Dopo, il file non è più la source of truth.
 
 ---
 
-## 7. Suggerimenti hosting
+## 7. Limiti residui (onesti)
 
-| Opzione | Note |
+1. Overlay JSON monolitico — ok per un tenant demo; multi-tenant vero richiederà tabelle relazionali.
+2. Corpus seed in `lib/` — le schede demo non sono ancora tutte su Prisma come entità di dominio.
+3. Upload logo/banner community scrive ancora in `public/communities/...` (su Vercel serve Blob o URL esterni a lungo termine).
+
+Roadmap dominio: [`DECISION_OS_PLAN.md`](DECISION_OS_PLAN.md).
+
+---
+
+## 8. Stack gratis consigliato
+
+| Servizio | Ruolo |
 | :--- | :--- |
-| VPS (Docker / systemd) | Consigliato per Editor completo + disco persistente |
-| Railway / Render / Fly | Ok con volume o accept-demo senza scritture critiche |
-| Vercel | Ok per UI/demo; non affidarti a `curator-store.json` senza Blob/DB esterno |
-
-Per CI: build `npm run build` dopo `prisma generate`; secret solo nelle env della piattaforma, mai in git.
+| Vercel Hobby | App Next.js |
+| Neon free | PostgreSQL |
+| Google Cloud | OAuth |

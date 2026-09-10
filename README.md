@@ -30,10 +30,10 @@ Piano di evoluzione: [`docs/DECISION_OS_PLAN.md`](docs/DECISION_OS_PLAN.md).
 ## Stack
 
 - **Next.js 14** (App Router) · **TypeScript** · **Tailwind CSS**
-- **Prisma** + **PostgreSQL** (utenti / sessioni Auth.js)
+- **Prisma** + **PostgreSQL** (Auth.js + overlay Editor in `curator_store`)
 - **NextAuth.js v5 (Auth.js)** + Google OAuth
 - **@xyflow/react** — grafo decisionale
-- Persistenza editor/demo: `data/curator-store.json` (locale, non versionato; seed da `curator-store.example.json`)
+- Corpus demo in `lib/`; override Editor in Postgres (non più file JSON in produzione)
 
 ---
 
@@ -74,9 +74,10 @@ Apri [http://localhost:3000](http://localhost:3000). Community via `?c=` (es. `c
 
 Dettagli: [`docs/SETUP_AUTH.md`](docs/SETUP_AUTH.md) e [`docs/SETUP_GOOGLE_OAUTH.md`](docs/SETUP_GOOGLE_OAUTH.md).
 
-### Persistenza curator
+### Persistenza Editor
 
-Le modifiche da Editor (community, team, spunti, override schede) finiscono in `data/curator-store.json`, **ignorato da git** per evitare di committare dati personali. Al primo avvio viene creato da `data/curator-store.example.json`.
+Community, team, spunti e override schede → PostgreSQL (`curator_store`).  
+Seed iniziale: `data/curator-store.example.json` (o import one-shot da un eventuale `curator-store.json` locale).
 
 ---
 
@@ -87,9 +88,9 @@ app/                 # Route App Router (feed, records, curator, auth, API)
 components/          # UI (Navbar, grafo, dock spunti, …)
 contexts/            # CuratorDataProvider
 lib/                 # Domain, communities, curator store, org RBAC
-data/                # curator-store.example.json (seed); store locale runtime
+data/                # curator-store.example.json (seed); JSON locale solo per import
 docs/                # Documentazione
-prisma/              # Schema Auth + legacy records (migrazione in corso)
+prisma/              # Schema Auth + curator_store (+ modelli dominio legacy)
 ```
 
 ---
@@ -98,7 +99,7 @@ prisma/              # Schema Auth + legacy records (migrazione in corso)
 
 Vedi **[`docs/DEPLOY.md`](docs/DEPLOY.md)**.
 
-In breve: Postgres + env di produzione + redirect Google. L’editor su filesystem JSON è adatto a **VPS/container con disco**; su serverless le scritture non persistono — pianificare storage esterno o migrazione Prisma (roadmap).
+In breve: Postgres + env di produzione + redirect Google. L’Editor persiste su Postgres (ok anche su Vercel + Neon free).
 
 ---
 

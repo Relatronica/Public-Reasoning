@@ -39,10 +39,8 @@ function CuratorHubInner() {
       </div>
 
       <p className="text-xs text-gray-500 leading-relaxed">
-        Le modifiche dell’Editor restano in locale in{' '}
-        <code className="text-[11px] bg-gray-100 px-1 rounded">data/curator-store.json</code>
-        {' '}(non versionato; seed da{' '}
-        <code className="text-[11px] bg-gray-100 px-1 rounded">curator-store.example.json</code>
+        Le modifiche dell’Editor (community, team, spunti) sono salvate su{' '}
+        <strong>PostgreSQL</strong> (tabella <code className="text-[11px] bg-gray-100 px-1 rounded">curator_store</code>
         ). Accedi come {session?.user?.name ?? session?.user?.email}.
       </p>
 

@@ -17,7 +17,7 @@
 | Verbatim vs interpretazione | `components/VerbatimVsInterpretationViewer.tsx` |
 | Tracciamento IA in compilazione | `types/index.ts`, `components/AiAssistance*` |
 | Community = workspace configurabile | `lib/communities.ts`, `hooks/useActiveCommunity.ts` |
-| Editor + persistenza override | `app/curator/*`, `lib/curator/*`, `data/curator-store.json` |
+| Editor + persistenza override | `app/curator/*`, `lib/curator/*`, Postgres `curator_store` |
 | API creazione record | `app/api/curator/records/route.ts` |
 | Auth Google + sessione | `auth.ts`, `middleware.ts` |
 | Corpus demo civic + enterprise | `lib/data.ts`, `lib/weltform.ts` |
@@ -140,12 +140,12 @@ flowchart LR
 
 ### B1 — Modello Organization
 
-Persistenza **nel curator-store** (i record non sono ancora su Prisma). Prisma `Organization` si allinea quando i record migrano.
+Persistenza overlay **in Postgres** (`curator_store` JSON). I record di dominio non sono ancora tabelle Prisma dedicate; il corpus demo resta in `lib/` + override.
 
 | Task | Dettaglio |
 |------|-----------|
 | `Organization` + ruoli owner/admin/compiler/sponsor/viewer | `types/index.ts`, `lib/org/` |
-| Roster in `data/curator-store.json` | `organization.members` |
+| Roster in `curator_store` (campo `organization.members`) | `organization.members` |
 | Roster vuota = ogni utente loggato è owner (demo) | `resolveMemberRole` |
 
 ### B2 — Allineamento PublicAct ↔ Community
