@@ -3,6 +3,7 @@ import { communities } from '@/lib/communities';
 import { weltformActs, weltformCompiler, weltformRecords } from '@/lib/weltform';
 import { aiGovernanceActs, aiGovernanceCompiler, aiGovernanceRecords } from '@/lib/ai-governance';
 import { agoraActs, agoraCompiler, agoraRecords } from '@/lib/agora';
+import { aiEthicsActs, aiEthicsCompiler, aiEthicsRecords } from '@/lib/ai-ethics';
 
 const comuneCormano = communities[0];
 const ufficioPeople = communities[1];
@@ -28,6 +29,7 @@ export const compilers: User[] = [
   weltformCompiler,
   aiGovernanceCompiler,
   agoraCompiler,
+  aiEthicsCompiler,
 ];
 
 export const publicActs: PublicAct[] = [
@@ -111,6 +113,7 @@ DECIDE di non aprire un secondo stabilimento nel 2027 e di vincolare il capex al
   ...weltformActs,
   ...aiGovernanceActs,
   ...agoraActs,
+  ...aiEthicsActs,
 ];
 
 export const reasoningRecords: ReasoningRecord[] = [
@@ -318,6 +321,7 @@ export const reasoningRecords: ReasoningRecord[] = [
   ...weltformRecords,
   ...aiGovernanceRecords,
   ...agoraRecords,
+  ...aiEthicsRecords,
 ];
 
 export const mockPublicActs = publicActs;

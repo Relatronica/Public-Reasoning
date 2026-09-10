@@ -245,6 +245,44 @@ export const communities: Community[] = [
     ],
     ...defaultCommunityMedia('agora'),
   },
+  {
+    id: 'lab-ai-ethics',
+    slug: 'ai-ethics',
+    name: 'AI Ethics Board',
+    shortName: 'AI Ethics',
+    type: 'progetto',
+    typeLabel: 'Ethics Board',
+    initials: 'AE',
+    subtitle: 'Demo etica digitale aziendale',
+    location: 'Demo enterprise',
+    tagline:
+      'Registro del giudizio su scelte di AI e digital ethics: cosa abbiamo scartato, perché, e quando ci fermiamo.',
+    feedTitle: 'Registro del giudizio — AI Ethics',
+    feedSubtitle:
+      'Hiring, biometriche, dati di training, human-in-the-loop: schede pronte per una demo board / risk / legal.',
+    feedBadge: 'Demo etica',
+    sourceLabel: 'Verbale',
+    sourceLabelPlural: 'Verbali',
+    archiveLabel: 'Archivio Ethics Board',
+    archiveNavLabel: 'Archivio',
+    sourcePlaceholder: 'es. Verbale Ethics Board n. 4/2026',
+    newRecordTitle: 'Documenta una decisione etica',
+    newRecordHint:
+      'Rendi verificabile lo scarto e il criterio di stop — non solo la policy finale.',
+    searchPlaceholder: 'Cerca hiring, biometria, training, HITL…',
+    officialUrlLabel: 'Charter Ethics Board',
+    categories: [
+      { label: 'Trasparenza algoritmica', color: 'bg-blue-500' },
+      { label: 'Bias & equità', color: 'bg-emerald-500' },
+      { label: 'Consenso & dati', color: 'bg-amber-500' },
+      { label: 'Autonomia umana', color: 'bg-teal-500' },
+    ],
+    stats: [
+      { label: 'Schede', value: '4 demo' },
+      { label: 'Ambito', value: 'Etica digitale' },
+    ],
+    ...defaultCommunityMedia('ai-ethics'),
+  },
 ];
 
 export function getCommunityBySlug(slug?: string | null): Community {

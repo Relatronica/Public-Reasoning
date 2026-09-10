@@ -256,11 +256,83 @@ function DecisionGraphInner({
     : null;
 
   const [showMap, setShowMap] = useState(false);
+  const selectedIndex = Math.max(
+    0,
+    steps.findIndex((s) => s.id === selectedId)
+  );
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1 overflow-x-auto pb-0.5 min-w-0 flex-1">
+      {/* Mobile: lista verticale degli step (niente scroll orizzontale) */}
+      <nav className="sm:hidden space-y-2" aria-label="Passaggi della decisione">
+        <div className="flex items-center justify-between gap-2 px-0.5">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+            Passaggi · {selectedIndex + 1}/{steps.length}
+          </p>
+          <button
+            type="button"
+            onClick={() => setShowMap((v) => !v)}
+            className="text-[11px] font-medium text-gray-600 hover:text-gray-900 px-2 py-1 rounded-md hover:bg-gray-100"
+          >
+            {showMap ? 'Nascondi mappa' : 'Mostra mappa'}
+          </button>
+        </div>
+        <ol className="reddit-card reddit-card--static divide-y divide-gray-100 overflow-hidden">
+          {steps.map((step, i) => {
+            const active = step.id === selectedId;
+            const count = insightCounts[step.id] ?? 0;
+            return (
+              <li key={step.id} className="flex items-stretch">
+                <button
+                  type="button"
+                  onClick={() => onStepClick(step.id)}
+                  aria-current={active ? 'step' : undefined}
+                  className={`min-w-0 flex-1 flex items-center gap-3 px-3.5 py-2.5 text-left transition-colors ${
+                    active ? 'bg-gray-900 text-white' : 'bg-white text-gray-800 hover:bg-gray-50'
+                  }`}
+                >
+                  <span
+                    className={`flex-shrink-0 w-6 h-6 rounded-full text-[11px] font-semibold tabular-nums flex items-center justify-center ${
+                      active ? 'bg-white/15 text-white' : 'bg-gray-100 text-gray-500'
+                    }`}
+                  >
+                    {i + 1}
+                  </span>
+                  <span className={`flex-1 text-sm font-medium truncate ${active ? 'text-white' : 'text-gray-900'}`}>
+                    {step.label}
+                  </span>
+                </button>
+                {count > 0 && onOpenInsights && (
+                  <button
+                    type="button"
+                    title={`${count} spunti — apri`}
+                    onClick={() => {
+                      onStepClick(step.id);
+                      onOpenInsights(step.id);
+                    }}
+                    className={`flex-shrink-0 px-3 flex items-center border-l ${
+                      active
+                        ? 'bg-gray-900 border-white/10 text-white'
+                        : 'bg-white border-gray-100 text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span
+                      className={`inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full text-[10px] font-semibold tabular-nums ${
+                        active ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'
+                      }`}
+                    >
+                      {count}
+                    </span>
+                  </button>
+                )}
+              </li>
+            );
+          })}
+        </ol>
+      </nav>
+
+      {/* Desktop: chip orizzontali */}
+      <div className="hidden sm:flex items-center gap-1 overflow-x-auto pb-0.5" aria-label="Passaggi della decisione">
         {steps.map((step, i) => {
           const active = step.id === selectedId;
           const count = insightCounts[step.id] ?? 0;
@@ -297,14 +369,6 @@ function DecisionGraphInner({
             </React.Fragment>
           );
         })}
-        </div>
-        <button
-          type="button"
-          onClick={() => setShowMap((v) => !v)}
-          className="sm:hidden flex-shrink-0 text-[11px] font-medium text-gray-600 hover:text-gray-900 px-2 py-1 rounded-md hover:bg-gray-100"
-        >
-          {showMap ? 'Nascondi mappa' : 'Mappa'}
-        </button>
       </div>
 
       <div className="reddit-card reddit-card--static overflow-hidden">
