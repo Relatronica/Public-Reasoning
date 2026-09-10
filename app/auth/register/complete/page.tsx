@@ -32,7 +32,11 @@ function RegisterCompletePageInner() {
           });
 
           if (response.ok) {
-            await update();
+            await update({
+              username: username || undefined,
+              avatar: avatar || undefined,
+              name: username || undefined,
+            });
             setIsCompleting(false);
             setTimeout(() => {
               router.push(href('/'));

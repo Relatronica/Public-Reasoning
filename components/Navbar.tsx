@@ -192,7 +192,14 @@ function NavbarInner() {
             >
               <span className="absolute inset-0 rounded-full bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center text-gray-700 font-bold text-xs">
                 {isAuthenticated && avatarUrl ? (
-                  <Image src={avatarUrl} alt="" width={32} height={32} className="w-full h-full object-cover" />
+                  <Image
+                    key={avatarUrl}
+                    src={avatarUrl}
+                    alt=""
+                    width={32}
+                    height={32}
+                    className="w-full h-full object-cover"
+                  />
                 ) : (
                   isAuthenticated ? initials : '?'
                 )}

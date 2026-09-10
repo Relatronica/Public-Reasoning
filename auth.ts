@@ -12,20 +12,17 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     async session({ session, token }: any) {
       if (token?.sub && session.user) {
         session.user.id = token.sub
-        // Aggiungi avatar, username e bio dal token (recuperati dal database nel callback jwt)
-        if (token.avatar) {
-          session.user.avatar = token.avatar as string
-        }
+        // Sincronizza sempre dal token (anche se undefined), così un cambio avatar/username si vede subito.
+        session.user.avatar = (token.avatar as string | undefined) || undefined
+        session.user.username = (token.username as string | undefined) || undefined
+        session.user.bio = (token.bio as string | undefined) || undefined
         if (token.username) {
-          session.user.username = token.username as string
-        }
-        if (token.bio) {
-          session.user.bio = token.bio as string
+          session.user.name = token.username as string
         }
       }
       return session
     },
-    async jwt({ token, user, trigger }: any) {
+    async jwt({ token, user, trigger, session }: any) {
       // Quando l'utente fa login per la prima volta
       if (user) {
         token.sub = user.id
@@ -41,9 +38,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           token.bio = dbUser.bio || undefined
         }
       }
-      // Quando viene aggiornato il profilo (trigger === 'update')
+      // update() da useSession: applica il payload e/o rileggi il DB
       if (trigger === 'update' && token.sub) {
-        // Recupera sempre i dati più recenti dal database
+        if (session && typeof session === 'object') {
+          if (session.avatar !== undefined) token.avatar = session.avatar || undefined
+          if (session.username !== undefined) token.username = session.username || undefined
+          if (session.bio !== undefined) token.bio = session.bio || undefined
+        }
         const dbUser = await prisma.user.findUnique({
           where: { id: token.sub },
           select: { avatar: true, username: true, image: true, bio: true }

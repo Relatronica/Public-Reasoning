@@ -51,16 +51,23 @@ function SettingsPageInner() {
     } else if (status === 'unauthenticated') {
       router.push('/auth/login?callbackUrl=' + encodeURIComponent('/settings'));
     }
-  }, [status, session, router]);
+  }, [status, session?.user?.id, router]);
 
+  // Non riscrivere il form da una sessione stale mentre/dopo il salvataggio:
+  // update() aggiorna il JWT; qui si allinea solo quando non stiamo salvando.
   useEffect(() => {
-    if (session?.user && !isSaving) {
-      const u = session.user as { username?: string; name?: string; avatar?: string; bio?: string };
-      setUsername(u.username || u.name || '');
-      setSelectedAvatar(u.avatar || null);
-      setBio(u.bio || '');
-    }
-  }, [session, isSaving]);
+    if (!session?.user || isSaving || isLoading) return;
+    const u = session.user as { username?: string; name?: string; avatar?: string; bio?: string };
+    setUsername(u.username || u.name || '');
+    setSelectedAvatar(u.avatar || null);
+    setBio(u.bio || '');
+  }, [
+    isSaving,
+    isLoading,
+    (session?.user as { avatar?: string } | undefined)?.avatar,
+    (session?.user as { username?: string } | undefined)?.username,
+    (session?.user as { bio?: string } | undefined)?.bio,
+  ]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -100,16 +107,19 @@ function SettingsPageInner() {
 
       if (response.ok) {
         const data = await response.json();
-        if (data.user) {
-          setUsername(data.user.username || '');
-          setSelectedAvatar(data.user.avatar || null);
-          setBio(data.user.bio || '');
-        }
-        await new Promise((resolve) => setTimeout(resolve, 100));
-        await update();
-        setTimeout(() => {
-          window.dispatchEvent(new Event('session-update'));
-        }, 200);
+        const nextUsername = data.user?.username || username;
+        const nextAvatar = data.user?.avatar || selectedAvatar;
+        const nextBio = (data.user?.bio ?? bio.trim()) || null;
+        setUsername(nextUsername);
+        setSelectedAvatar(nextAvatar);
+        setBio(nextBio || '');
+        // Passa i nuovi campi a update() così il JWT si aggiorna subito (navbar inclusa).
+        await update({
+          avatar: nextAvatar,
+          username: nextUsername,
+          name: nextUsername,
+          bio: nextBio,
+        });
         setSuccess(true);
         setTimeout(() => setSuccess(false), 3000);
       } else {
