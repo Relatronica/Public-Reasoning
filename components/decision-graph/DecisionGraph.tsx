@@ -29,6 +29,7 @@ import { confidenceLabel } from '@/lib/records/outcomes';
 import {
   insightsByStepId,
   resolveDecisionInsights,
+  findDiscardedByStepId,
 } from '@/lib/records/decision-insights';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
 
@@ -69,9 +70,7 @@ function StepContent({
   }
 
   if (kind === 'discarded') {
-    const opt =
-      record.discardedOptions.find((o) => `discarded-${o.id}` === selectedId) ||
-      record.discardedOptions[0];
+    const opt = findDiscardedByStepId(record, selectedId);
     if (!opt) return <p className="text-xs text-gray-500">Nessuna opzione scartata.</p>;
     return (
       <div className="space-y-2">
@@ -184,7 +183,11 @@ function DecisionGraphInner({
   useEffect(() => {
     setNodes(built.nodes);
     setEdges(built.edges);
-    setSelectedId(steps[0]?.id ?? 'question');
+    setSelectedId((prev) => {
+      const stillThere =
+        steps.some((s) => s.id === prev) || built.nodes.some((n) => n.id === prev);
+      return stillThere ? prev : (steps[0]?.id ?? 'question');
+    });
   }, [built, steps, setNodes, setEdges]);
 
   useEffect(() => {

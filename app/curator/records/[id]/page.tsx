@@ -136,7 +136,7 @@ function RecordEditorInner() {
   };
 
   return (
-    <div className="space-y-5 max-w-2xl">
+    <div className="space-y-5 w-full">
       <div className="flex items-center gap-3">
         <Link href={href('/curator/records')} className="text-gray-400 hover:text-gray-700">
           <ArrowLeft className="w-5 h-5" />
@@ -151,32 +151,34 @@ function RecordEditorInner() {
         {act && (
           <section className="space-y-3">
             <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400">Fonte</h2>
-            <label className="space-y-1 block">
-              <span className="text-xs font-semibold text-gray-700">Titolo {community.sourceLabel.toLowerCase()}</span>
-              <input
-                className={inputClass}
-                value={act.title}
-                onChange={(e) =>
-                  setRecord({ ...record, publicAct: { ...act, title: e.target.value } })
-                }
-              />
-            </label>
-            <label className="space-y-1 block">
-              <span className="text-xs font-semibold text-gray-700">Riferimento</span>
-              <input
-                className={inputClass}
-                value={act.actNumber}
-                onChange={(e) =>
-                  setRecord({ ...record, publicAct: { ...act, actNumber: e.target.value } })
-                }
-              />
-            </label>
+            <div className="grid sm:grid-cols-2 gap-3">
+              <label className="space-y-1 block sm:col-span-1">
+                <span className="text-xs font-semibold text-gray-700">Titolo {community.sourceLabel.toLowerCase()}</span>
+                <input
+                  className={inputClass}
+                  value={act.title}
+                  onChange={(e) =>
+                    setRecord({ ...record, publicAct: { ...act, title: e.target.value } })
+                  }
+                />
+              </label>
+              <label className="space-y-1 block">
+                <span className="text-xs font-semibold text-gray-700">Riferimento</span>
+                <input
+                  className={inputClass}
+                  value={act.actNumber}
+                  onChange={(e) =>
+                    setRecord({ ...record, publicAct: { ...act, actNumber: e.target.value } })
+                  }
+                />
+              </label>
+            </div>
           </section>
         )}
 
         <section className="space-y-3 pt-2 border-t border-gray-100">
           <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400">Giudizio</h2>
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid sm:grid-cols-3 gap-3">
             <label className="space-y-1 block">
               <span className="text-xs font-semibold text-gray-700">Stato</span>
               <select
@@ -202,27 +204,29 @@ function RecordEditorInner() {
                 <option value="public">Registro pubblico</option>
               </select>
             </label>
+            <label className="space-y-1 block">
+              <span className="text-xs font-semibold text-gray-700">Categoria</span>
+              <select
+                className={inputClass}
+                value={record.category ?? ''}
+                onChange={(e) => updateRecord({ category: e.target.value })}
+              >
+                {community.categories.map((c) => (
+                  <option key={c.label} value={c.label}>{c.label}</option>
+                ))}
+              </select>
+            </label>
           </div>
-          <label className="space-y-1 block">
-            <span className="text-xs font-semibold text-gray-700">Categoria</span>
-            <select
-              className={inputClass}
-              value={record.category ?? ''}
-              onChange={(e) => updateRecord({ category: e.target.value })}
-            >
-              {community.categories.map((c) => (
-                <option key={c.label} value={c.label}>{c.label}</option>
-              ))}
-            </select>
-          </label>
-          <label className="space-y-1 block">
-            <span className="text-xs font-semibold text-blue-700">Domanda reale</span>
-            <textarea className={inputClass} rows={3} value={record.realQuestion} onChange={(e) => updateRecord({ realQuestion: e.target.value })} />
-          </label>
-          <label className="space-y-1 block">
-            <span className="text-xs font-semibold text-emerald-700">Decisione</span>
-            <textarea className={inputClass} rows={3} value={record.decision} onChange={(e) => updateRecord({ decision: e.target.value })} />
-          </label>
+          <div className="grid lg:grid-cols-2 gap-3">
+            <label className="space-y-1 block">
+              <span className="text-xs font-semibold text-blue-700">Domanda reale</span>
+              <textarea className={inputClass} rows={4} value={record.realQuestion} onChange={(e) => updateRecord({ realQuestion: e.target.value })} />
+            </label>
+            <label className="space-y-1 block">
+              <span className="text-xs font-semibold text-emerald-700">Decisione</span>
+              <textarea className={inputClass} rows={4} value={record.decision} onChange={(e) => updateRecord({ decision: e.target.value })} />
+            </label>
+          </div>
           <label className="space-y-1 block">
             <span className="text-xs font-semibold text-gray-700">Sintesi interpretativa</span>
             <textarea className={inputClass} rows={2} value={record.interpretativeSummary} onChange={(e) => updateRecord({ interpretativeSummary: e.target.value })} />
@@ -252,15 +256,17 @@ function RecordEditorInner() {
               <Plus className="w-3 h-3" /> Aggiungi
             </button>
           </div>
-          {record.discardedOptions.map((opt, i) => (
-            <div key={opt.id} className="p-3 bg-gray-50 rounded-lg space-y-2">
-              <input className={inputClass} placeholder="Titolo opzione" value={opt.title} onChange={(e) => updateOption(i, { title: e.target.value })} />
-              <textarea className={inputClass} rows={2} placeholder="Perché scartata" value={opt.reasonDiscarded} onChange={(e) => updateOption(i, { reasonDiscarded: e.target.value })} />
-              <button type="button" onClick={() => updateRecord({ discardedOptions: record.discardedOptions.filter((_, j) => j !== i) })} className="text-xs text-red-600 hover:underline flex items-center gap-1">
-                <Trash2 className="w-3 h-3" /> Rimuovi
-              </button>
-            </div>
-          ))}
+          <div className="grid lg:grid-cols-2 gap-3">
+            {record.discardedOptions.map((opt, i) => (
+              <div key={opt.id} className="p-3 bg-gray-50 rounded-lg space-y-2">
+                <input className={inputClass} placeholder="Titolo opzione" value={opt.title} onChange={(e) => updateOption(i, { title: e.target.value })} />
+                <textarea className={inputClass} rows={2} placeholder="Perché scartata" value={opt.reasonDiscarded} onChange={(e) => updateOption(i, { reasonDiscarded: e.target.value })} />
+                <button type="button" onClick={() => updateRecord({ discardedOptions: record.discardedOptions.filter((_, j) => j !== i) })} className="text-xs text-red-600 hover:underline flex items-center gap-1">
+                  <Trash2 className="w-3 h-3" /> Rimuovi
+                </button>
+              </div>
+            ))}
+          </div>
         </section>
 
         <AiAssistanceFormFields
@@ -270,31 +276,36 @@ function RecordEditorInner() {
 
         <section className="space-y-3 pt-2 border-t border-gray-100">
           <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400">Incertezza e confidenza</h2>
-          <select className={inputClass} value={record.uncertaintyLevel} onChange={(e) => updateRecord({ uncertaintyLevel: e.target.value as ReasoningRecord['uncertaintyLevel'] })}>
-            <option value="basso">Basso</option>
-            <option value="medio">Medio</option>
-            <option value="alto">Alto</option>
-          </select>
-          <textarea className={inputClass} rows={2} value={record.uncertaintyExplanation} onChange={(e) => updateRecord({ uncertaintyExplanation: e.target.value })} placeholder="Perché questo livello di incertezza?" />
-          <div className="space-y-1.5">
-            <span className="text-xs text-gray-500">Confidenza alla decisione (1–5)</span>
-            <div className="flex gap-1">
-              {([1, 2, 3, 4, 5] as const).map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => updateRecord({ confidence: n })}
-                  className={`min-w-[2.25rem] px-2 py-1.5 rounded-md text-xs ${
-                    record.confidence === n
-                      ? 'bg-gray-900 text-white font-medium'
-                      : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  {n}
-                </button>
-              ))}
+          <div className="grid sm:grid-cols-2 gap-3">
+            <label className="space-y-1 block">
+              <span className="text-xs font-semibold text-gray-700">Livello di incertezza</span>
+              <select className={inputClass} value={record.uncertaintyLevel} onChange={(e) => updateRecord({ uncertaintyLevel: e.target.value as ReasoningRecord['uncertaintyLevel'] })}>
+                <option value="basso">Basso</option>
+                <option value="medio">Medio</option>
+                <option value="alto">Alto</option>
+              </select>
+            </label>
+            <div className="space-y-1.5">
+              <span className="text-xs font-semibold text-gray-700">Confidenza alla decisione (1–5)</span>
+              <div className="flex gap-1">
+                {([1, 2, 3, 4, 5] as const).map((n) => (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => updateRecord({ confidence: n })}
+                    className={`min-w-[2.25rem] px-2 py-1.5 rounded-md text-xs ${
+                      record.confidence === n
+                        ? 'bg-gray-900 text-white font-medium'
+                        : 'border border-gray-200 text-gray-600 hover:bg-gray-50'
+                    }`}
+                  >
+                    {n}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
+          <textarea className={inputClass} rows={2} value={record.uncertaintyExplanation} onChange={(e) => updateRecord({ uncertaintyExplanation: e.target.value })} placeholder="Perché questo livello di incertezza?" />
         </section>
 
         <section className="space-y-3 pt-2 border-t border-gray-100">

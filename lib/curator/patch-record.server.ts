@@ -4,6 +4,18 @@ import { updateCuratorStore } from '@/lib/curator/store.server';
 import { CuratorStore } from '@/lib/curator/types';
 import { ReasoningRecord } from '@/types';
 
+/** Campi sovrascrivibili su un record seed (tutto tranne identità e snapshot nested). */
+function toRecordOverride(record: ReasoningRecord): Partial<ReasoningRecord> {
+  const {
+    id: _id,
+    publicAct: _publicAct,
+    compiler: _compiler,
+    createdAt: _createdAt,
+    ...rest
+  } = record;
+  return rest;
+}
+
 /** Applica un updater immutabile al record (custom o override seed). */
 export async function patchRecordInStore(
   id: string,
@@ -44,9 +56,7 @@ export async function patchRecordInStore(
       ...store.recordOverrides,
       [id]: {
         ...(store.recordOverrides[id] ?? {}),
-        insights: nextRecord.insights,
-        consultationRequests: nextRecord.consultationRequests,
-        updatedAt: nextRecord.updatedAt,
+        ...toRecordOverride(nextRecord),
       },
     };
 

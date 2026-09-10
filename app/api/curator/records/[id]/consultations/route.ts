@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
+import { auth } from '@/auth';
 import { getCuratorBootstrap } from '@/lib/curator/bootstrap.server';
 import { requirePermission } from '@/lib/curator/auth.server';
 import { patchRecordInStore } from '@/lib/curator/patch-record.server';
+import { newEntityId } from '@/lib/curator/ids';
 import { canReplyToConsultationKind } from '@/lib/org/permissions';
+import { isVisibleOnPublicFeed } from '@/lib/records';
 import {
   ConsultationKind,
   ConsultationRequest,
@@ -12,15 +15,15 @@ import {
 
 type Params = { params: Promise<{ id: string }> };
 
-function newId(prefix: string): string {
-  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
 export async function GET(_request: Request, { params }: Params) {
   const { id } = await params;
+  const session = await auth();
   const { records } = await getCuratorBootstrap();
   const record = records.find((r) => r.id === id);
   if (!record) {
+    return NextResponse.json({ error: 'Record non trovato' }, { status: 404 });
+  }
+  if (!session?.user?.id && !isVisibleOnPublicFeed(record)) {
     return NextResponse.json({ error: 'Record non trovato' }, { status: 404 });
   }
   return NextResponse.json({
@@ -58,7 +61,7 @@ export async function POST(request: Request, { params }: Params) {
   }
 
   const entry: ConsultationRequest = {
-    id: newId('consult'),
+    id: newEntityId('consult'),
     kind,
     status: 'aperta',
     question,
@@ -133,7 +136,7 @@ export async function PATCH(request: Request, { params }: Params) {
     );
   }
 
-  const insightId = newId('insight');
+  const insightId = newEntityId('insight');
   const authorName = gate.session.user!.name ?? 'Consulente';
   const insight: DecisionInsight = {
     id: insightId,

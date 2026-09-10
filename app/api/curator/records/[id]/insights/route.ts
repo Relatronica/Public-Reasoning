@@ -2,13 +2,10 @@ import { NextResponse } from 'next/server';
 import { getCuratorBootstrap } from '@/lib/curator/bootstrap.server';
 import { requirePermission } from '@/lib/curator/auth.server';
 import { patchRecordInStore } from '@/lib/curator/patch-record.server';
+import { newEntityId } from '@/lib/curator/ids';
 import { DecisionInsight, DecisionInsightKind, ReasoningRecord } from '@/types';
 
 type Params = { params: Promise<{ id: string }> };
-
-function newId(prefix: string): string {
-  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-}
 
 const KINDS: DecisionInsightKind[] = ['spunto', 'alert', 'domanda', 'consulenza'];
 
@@ -54,7 +51,7 @@ export async function POST(request: Request, { params }: Params) {
         : 'Team';
 
   const insight: DecisionInsight = {
-    id: newId('insight'),
+    id: newEntityId('insight'),
     kind,
     title,
     body: text,

@@ -2,6 +2,7 @@ import { MarkerType, type Edge, type Node } from '@xyflow/react';
 import { ReasoningRecord } from '@/types';
 import { hasAiAssistance } from '@/lib/ai-assistance';
 import { hasOutcomeLoop, outcomeStatusLabel, primaryOutcome } from '@/lib/records/outcomes';
+import { discardedStepId } from '@/lib/records/decision-insights';
 
 export type DecisionGraphNodeKind =
   | 'question'
@@ -39,7 +40,7 @@ export function listDecisionSteps(record: ReasoningRecord): {
   ];
   (record.discardedOptions ?? []).forEach((opt, i) => {
     steps.push({
-      id: `discarded-${opt.id || i}`,
+      id: discardedStepId(opt, i),
       kind: 'discarded',
       label: record.discardedOptions.length > 1 ? `Scarto ${i + 1}` : 'Scarto',
     });
@@ -48,7 +49,7 @@ export function listDecisionSteps(record: ReasoningRecord): {
   if ((record.mindChangingConditions?.length ?? 0) > 0) {
     steps.push({ id: 'stop', kind: 'stop', label: 'Stop' });
   }
-  if (hasOutcomeLoop(record) || (record.outcomeReviews?.length ?? 0) > 0) {
+  if (hasOutcomeLoop(record)) {
     steps.push({ id: 'outcome', kind: 'outcome', label: 'Esito' });
   }
   if (
@@ -69,7 +70,7 @@ export function buildDecisionGraph(record: ReasoningRecord): {
   const edges: Edge[] = [];
   const discarded = record.discardedOptions ?? [];
   const hasStop = (record.mindChangingConditions?.length ?? 0) > 0;
-  const hasOutcome = hasOutcomeLoop(record) || (record.outcomeReviews?.length ?? 0) > 0;
+  const hasOutcome = hasOutcomeLoop(record);
   const hasSources =
     (record.verbatimQuotes?.length ?? 0) > 0 ||
     Boolean(record.interpretativeSummary?.trim()) ||
@@ -92,7 +93,7 @@ export function buildDecisionGraph(record: ReasoningRecord): {
   });
 
   discarded.forEach((opt, i) => {
-    const id = `discarded-${opt.id || i}`;
+    const id = discardedStepId(opt, i);
     nodes.push({
       id,
       type: 'decision',

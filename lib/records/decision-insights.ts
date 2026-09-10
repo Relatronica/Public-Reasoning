@@ -1,4 +1,4 @@
-import { DecisionInsight, ReasoningRecord } from '@/types';
+import { DecisionInsight, DiscardedOption, ReasoningRecord } from '@/types';
 
 const KIND_LABEL: Record<DecisionInsight['kind'], string> = {
   spunto: 'Spunto',
@@ -11,12 +11,20 @@ export function insightKindLabel(kind: DecisionInsight['kind']): string {
   return KIND_LABEL[kind];
 }
 
-/** Conta gli spunti collegati a uno step del grafo. */
-export function countInsightsForStep(
-  insights: DecisionInsight[],
+/** Id stabile del nodo/step scarto (allineato al grafo). */
+export function discardedStepId(
+  opt: Pick<DiscardedOption, 'id'> | { id?: string },
+  index: number
+): string {
+  return `discarded-${opt.id || index}`;
+}
+
+export function findDiscardedByStepId(
+  record: ReasoningRecord,
   stepId: string
-): number {
-  return insights.filter((i) => i.relatedStepId === stepId).length;
+): DiscardedOption | null {
+  const opts = record.discardedOptions ?? [];
+  return opts.find((opt, i) => discardedStepId(opt, i) === stepId) ?? null;
 }
 
 export function insightsByStepId(
@@ -51,14 +59,17 @@ export function consultationStatusLabel(
 }
 
 /**
- * Preferisce gli spunti curati (filosofi / consulenti); altrimenti deriva
- * spunti contestuali da incertezza, scarti e criteri di stop.
+ * Spunti curati (filosofi/consulenti) + spunti contestuali derivati.
+ * I curati restano in testa; i derivati non vengono cancellati dal primo contributo.
  */
 export function resolveDecisionInsights(record: ReasoningRecord): DecisionInsight[] {
-  if (record.insights && record.insights.length > 0) {
-    return record.insights;
-  }
-  return deriveContextualInsights(record);
+  const curated = record.insights ?? [];
+  const derived = deriveContextualInsights(record);
+  if (curated.length === 0) return derived;
+
+  const curatedIds = new Set(curated.map((i) => i.id));
+  const extra = derived.filter((d) => !curatedIds.has(d.id));
+  return [...curated, ...extra];
 }
 
 function deriveContextualInsights(record: ReasoningRecord): DecisionInsight[] {
@@ -83,7 +94,7 @@ function deriveContextualInsights(record: ReasoningRecord): DecisionInsight[] {
       body: `Rileggi perché è stata scartata «${truncate(first.title, 72)}». Se la ragione è debole o non verificabile, lo scarto può tornare in gioco.`,
       author: 'Desk risk',
       role: 'Consulente',
-      relatedStepId: `discarded-${first.id}`,
+      relatedStepId: discardedStepId(first, 0),
     });
   }
 
