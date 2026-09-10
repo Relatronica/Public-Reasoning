@@ -6,7 +6,16 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'lh3.googleusercontent.com',
-        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.public.blob.vercel-storage.com',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.blob.vercel-storage.com',
         pathname: '/**',
       },
     ],
@@ -14,4 +23,3 @@ const nextConfig = {
 }
 
 module.exports = nextConfig
-

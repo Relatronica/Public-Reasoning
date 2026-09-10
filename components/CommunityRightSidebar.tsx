@@ -9,12 +9,14 @@ import { useCuratorData } from '@/contexts/CuratorDataContext';
 
 function CommunityLogo({ logoUrl, initials }: { logoUrl?: string; initials: string }) {
   if (logoUrl) {
+    const remote = /^https?:\/\//i.test(logoUrl);
     return (
       <Image
         src={logoUrl}
         alt=""
         width={48}
         height={48}
+        unoptimized={remote}
         className="relative w-12 h-12 rounded-full border-4 border-white bg-white object-cover shadow-sm"
       />
     );
@@ -62,6 +64,7 @@ function CommunityRightSidebarInner() {
                 src={community.coverImageUrl}
                 alt=""
                 fill
+                unoptimized={/^https?:\/\//i.test(community.coverImageUrl)}
                 className="object-cover"
                 sizes="288px"
                 priority

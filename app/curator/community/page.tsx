@@ -259,7 +259,10 @@ function CommunityEditorInner() {
                 onChange={(e) => update('logoUrl', e.target.value)}
                 placeholder={`/communities/${slug}/logo.svg`}
               />
-              <p className="text-[10px] text-gray-400">Quadrato, consigliato 64×64 px o più. SVG, PNG, JPG, WebP (max 2 MB).</p>
+              <p className="text-[10px] text-gray-400">
+                Quadrato, consigliato 64×64 px o più. SVG, PNG, JPG, WebP (max 2 MB).
+                In produzione gli upload usano Vercel Blob.
+              </p>
             </div>
 
             <div className="space-y-2">

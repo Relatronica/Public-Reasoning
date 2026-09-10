@@ -83,8 +83,9 @@ Oppure configura il build command della piattaforma di conseguenza.
 - [ ] Secret Auth forti
 - [ ] `AUTH_URL` / `NEXTAUTH_URL` = HTTPS pubblico
 - [ ] Redirect Google di produzione
+- [ ] `BLOB_READ_WRITE_TOKEN` (Vercel Blob) per logo/banner persistenti
 - [ ] Nessun store/env con PII nel repository
-- [ ] Smoke test: login → Editor → salva community / aggiungi membro team → refresh → dati presenti
+- [ ] Smoke test: login → Editor → salva community / upload logo → refresh → dati presenti
 
 ---
 
@@ -98,7 +99,13 @@ Se in locale esiste ancora `data/curator-store.json`, al **primo** avvio con DB 
 
 1. Overlay JSON monolitico — ok per un tenant demo; multi-tenant vero richiederà tabelle relazionali.
 2. Corpus seed in `lib/` — le schede demo non sono ancora tutte su Prisma come entità di dominio.
-3. Upload logo/banner community scrive ancora in `public/communities/...` (su Vercel serve Blob o URL esterni a lungo termine).
+3. Logo/banner: con `BLOB_READ_WRITE_TOKEN` usano **Vercel Blob**; senza token (solo locale) restano in `public/communities/`.
+
+### Setup Vercel Blob
+
+1. Vercel Dashboard → progetto → **Storage** → **Blob** → Create
+2. Copia `BLOB_READ_WRITE_TOKEN` nelle env del progetto (e in `.env` locale se vuoi testare Blob anche in dev)
+3. Redeploy
 
 Roadmap dominio: [`DECISION_OS_PLAN.md`](DECISION_OS_PLAN.md).
 
@@ -109,5 +116,6 @@ Roadmap dominio: [`DECISION_OS_PLAN.md`](DECISION_OS_PLAN.md).
 | Servizio | Ruolo |
 | :--- | :--- |
 | Vercel Hobby | App Next.js |
-| Neon free | PostgreSQL |
+| Neon / Prisma Postgres | PostgreSQL |
+| Vercel Blob | Logo e banner community |
 | Google Cloud | OAuth |
