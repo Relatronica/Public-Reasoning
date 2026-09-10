@@ -5,8 +5,13 @@ import { CuratorStore } from '@/lib/curator/types';
 import { reviveAct, reviveRecord } from '@/lib/curator/serialize';
 
 function mergeCommunity(base: Community, override?: Partial<Community>): Community {
-  if (!override) return base;
-  return { ...base, ...override, id: base.id, slug: base.slug, type: override.type ?? base.type };
+  const merged = override
+    ? { ...base, ...override, id: base.id, slug: base.slug, type: override.type ?? base.type }
+    : base;
+  return {
+    ...merged,
+    isVisible: merged.isVisible !== false,
+  };
 }
 
 export function mergeCommunities(store: CuratorStore): Community[] {

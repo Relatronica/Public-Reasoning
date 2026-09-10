@@ -73,6 +73,7 @@ export function buildCommunityTemplate(input: {
       { label: 'Ambito', value: typeLabel },
       { label: 'Stato', value: 'Attivo' },
     ],
+    isVisible: true,
     ...defaultCommunityMedia(slug),
   };
 }

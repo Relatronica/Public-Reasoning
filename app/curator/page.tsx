@@ -4,7 +4,7 @@ import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Building2, FileText, Inbox, Pencil, Plus, Users } from 'lucide-react';
+import { ArrowLeft, Building2, FileText, Inbox, Pencil, Plus, Shield, Users } from 'lucide-react';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
 
@@ -12,7 +12,7 @@ function CuratorHubInner() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { community, href } = useActiveCommunity();
-  const { recordsForCommunity, canAdminOrg, canAdvise, inboxOpenCount } = useCuratorData();
+  const { recordsForCommunity, canAdminOrg, canAdvise, inboxOpenCount, isPlatformAdmin } = useCuratorData();
   const records = recordsForCommunity(community.id);
 
   if (status === 'unauthenticated') {
@@ -45,6 +45,20 @@ function CuratorHubInner() {
       </p>
 
       <div className="grid gap-3 sm:grid-cols-2">
+        {isPlatformAdmin && (
+          <Link
+            href="/admin"
+            className="reddit-card p-5 hover:border-slate-300 transition-colors group sm:col-span-2"
+          >
+            <div className="flex items-center gap-2 text-slate-800 mb-2">
+              <Shield className="w-5 h-5" />
+              <span className="text-sm font-bold">Console piattaforma</span>
+            </div>
+            <p className="text-xs text-gray-500 leading-relaxed">
+              Super-admin: utenti Auth, roster, visibilità community.
+            </p>
+          </Link>
+        )}
         {canAdminOrg && (
           <Link
             href={href('/curator/community/new')}

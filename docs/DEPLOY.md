@@ -47,7 +47,7 @@ BLOB_READ_WRITE_TOKEN="..."
 ```
 
 I **ruoli del team** (owner/admin/…) non stanno nella tabella `User`: vivono in `curator_store.organization.members`.  
-`ORG_ADMIN_EMAILS` ti rende owner di piattaforma e, al primo bootstrap autenticato, ti scrive anche nella roster su Postgres.
+`ORG_ADMIN_EMAILS` ti rende owner di piattaforma e, al primo bootstrap autenticato, ti scrive anche nella roster su Postgres. Sblocca anche **`/admin`** (console: utenti, roster, nascondi/mostra community).
 ---
 
 ## 3. Google OAuth

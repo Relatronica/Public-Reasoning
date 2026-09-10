@@ -21,6 +21,7 @@ interface CuratorDataContextValue {
   records: ReasoningRecord[];
   organization: Organization;
   myRole: OrganizationRole | null;
+  isPlatformAdmin: boolean;
   canCompile: boolean;
   canClose: boolean;
   canAdminOrg: boolean;
@@ -85,6 +86,7 @@ export function CuratorDataProvider({ children }: { children: React.ReactNode })
       records: bootstrap.records,
       organization: bootstrap.organization ?? defaultOrganization(),
       myRole: bootstrap.myRole ?? null,
+      isPlatformAdmin: Boolean(bootstrap.isPlatformAdmin),
       canCompile: canCompile(bootstrap.myRole),
       canClose: canClose(bootstrap.myRole),
       canAdminOrg: canAdminOrg(bootstrap.myRole),

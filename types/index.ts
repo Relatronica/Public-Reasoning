@@ -66,6 +66,11 @@ export interface Community {
   logoUrl?: string;
   /** Banner in cima alla sidebar destra (es. /communities/weltform/cover.svg). */
   coverImageUrl?: string;
+  /**
+   * Se false, la community è nascosta agli utenti normali (bozza / interna).
+   * Platform admin e owner/admin la vedono comunque. Default: true.
+   */
+  isVisible?: boolean;
   categories: CommunityCategory[];
   stats: CommunityStat[];
 }

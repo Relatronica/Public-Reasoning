@@ -17,6 +17,7 @@ import {
   Settings,
   Landmark,
   Users,
+  Shield,
   LogOut,
   LogIn,
   UserPlus,
@@ -27,6 +28,7 @@ import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
 import { ROLE_LABELS } from '@/lib/org/permissions';
 import { CommunityType } from '@/types';
+import { isCommunityVisible } from '@/lib/communities/visibility';
 import Logo from '@/components/Logo';
 
 function communityIcon(type: CommunityType, slug?: string) {
@@ -70,7 +72,7 @@ function NavbarInner() {
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const { community, href } = useActiveCommunity();
-  const { communities, canCompile, canAdminOrg, canAdvise, myRole, organization, inboxOpenCount } =
+  const { communities, canCompile, canAdminOrg, canAdvise, myRole, organization, inboxOpenCount, isPlatformAdmin } =
     useCuratorData();
   const Icon = communityIcon(community.type, community.slug);
 
@@ -138,7 +140,12 @@ function NavbarInner() {
                     <ItemIcon className={`w-4 h-4 mt-0.5 flex-shrink-0 ${active ? 'text-blue-600' : 'text-gray-400'}`} />
                     <div className="min-w-0">
                       <div className={`font-semibold ${active ? 'text-blue-800' : 'text-gray-900'}`}>{item.name}</div>
-                      <div className="text-[11px] text-gray-500 truncate">{item.typeLabel}</div>
+                      <div className="text-[11px] text-gray-500 truncate">
+                        {item.typeLabel}
+                        {!isCommunityVisible(item) && (
+                          <span className="ml-1 text-amber-700">· nascosta</span>
+                        )}
+                      </div>
                     </div>
                   </Link>
                 );
@@ -247,6 +254,12 @@ function NavbarInner() {
                         <Link href={href('/curator/org')} onClick={closeAccount} className={menuItem} role="menuitem">
                           <Users className="w-4 h-4 text-gray-400" />
                           Team
+                        </Link>
+                      )}
+                      {isPlatformAdmin && (
+                        <Link href="/admin" onClick={closeAccount} className={menuItem} role="menuitem">
+                          <Shield className="w-4 h-4 text-gray-400" />
+                          Console piattaforma
                         </Link>
                       )}
                       <Link href="/settings" onClick={closeAccount} className={menuItem} role="menuitem">

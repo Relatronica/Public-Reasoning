@@ -20,6 +20,8 @@ export interface CuratorBootstrap {
   records: ReasoningRecord[];
   organization: Organization;
   myRole: OrganizationRole | null;
+  /** True se l'email sessione è in ORG_ADMIN_EMAILS. */
+  isPlatformAdmin?: boolean;
 }
 
 export const EMPTY_CURATOR_STORE: CuratorStore = {
