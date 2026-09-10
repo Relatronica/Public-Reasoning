@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
-import { ROLE_LABELS } from '@/lib/org/permissions';
+import { ROLE_LABELS, ORGANIZATION_ROLES } from '@/lib/org/permissions';
 import { Community, Organization, OrganizationRole } from '@/types';
 import { isCommunityVisible } from '@/lib/communities/visibility';
 
@@ -31,6 +31,9 @@ type AdminUser = {
   avatar: string | null;
   image: string | null;
   createdAt: string;
+  recordsCount: number;
+  orgRole: OrganizationRole | null;
+  isPlatformAdmin: boolean;
 };
 
 type Overview = {
@@ -41,7 +44,7 @@ type Overview = {
 };
 
 function AdminInner() {
-  const { status } = useSession();
+  const { data: session, status } = useSession();
   const router = useRouter();
   const { href } = useActiveCommunity();
   const { isPlatformAdmin, refresh: refreshCurator } = useCuratorData();
@@ -49,6 +52,7 @@ function AdminInner() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [busySlug, setBusySlug] = useState<string | null>(null);
+  const [busyUserId, setBusyUserId] = useState<string | null>(null);
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<OrganizationRole>('compiler');
   const [savingMember, setSavingMember] = useState(false);
@@ -129,6 +133,57 @@ function AdminInner() {
     }
   };
 
+  const setUserRole = async (userId: string, nextRole: OrganizationRole | null) => {
+    setBusyUserId(userId);
+    setError('');
+    try {
+      const res = await fetch('/api/admin/users', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, role: nextRole }),
+      });
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        throw new Error(payload.error || 'Aggiornamento ruolo fallito');
+      }
+      await load();
+      await refreshCurator();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Errore');
+      await load();
+    } finally {
+      setBusyUserId(null);
+    }
+  };
+
+  const deleteUser = async (u: AdminUser) => {
+    const label = u.username || u.name || u.email || u.id;
+    if (
+      !window.confirm(
+        `Eliminare definitivamente l’account «${label}»?\nVerranno cancellati anche login Google e sessioni. L’operazione non è reversibile.`
+      )
+    ) {
+      return;
+    }
+    setBusyUserId(u.id);
+    setError('');
+    try {
+      const res = await fetch(`/api/admin/users?userId=${encodeURIComponent(u.id)}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) {
+        const payload = await res.json().catch(() => ({}));
+        throw new Error(payload.error || 'Eliminazione fallita');
+      }
+      await load();
+      await refreshCurator();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Errore');
+    } finally {
+      setBusyUserId(null);
+    }
+  };
+
   if (status === 'loading' || loading) {
     return <div className="reddit-card p-8 text-center text-sm text-gray-500">Caricamento…</div>;
   }
@@ -155,6 +210,8 @@ function AdminInner() {
 
   if (!data) return null;
 
+  const selfId = session?.user?.id;
+
   return (
     <div className="space-y-6 max-w-3xl">
       <div className="flex items-center gap-3">
@@ -167,7 +224,7 @@ function AdminInner() {
             Console piattaforma
           </h1>
           <p className="text-xs text-gray-500 mt-0.5">
-            Super-admin ({data.platformAdminEmail}). Community nascoste, utenti Auth, roster workspace.
+            Super-admin ({data.platformAdminEmail}). Community, utenti Auth (ruolo + elimina), roster.
           </p>
         </div>
       </div>
@@ -228,20 +285,73 @@ function AdminInner() {
           <Users className="w-3.5 h-3.5" />
           Utenti Auth ({data.users.length})
         </h2>
-        <ul className="divide-y divide-gray-50 max-h-72 overflow-y-auto">
-          {data.users.map((u) => (
-            <li key={u.id} className="py-2.5 text-xs flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="font-semibold text-gray-900 truncate">
-                  {u.username || u.name || u.email || u.id}
-                </p>
-                <p className="text-gray-500 truncate">{u.email}</p>
-              </div>
-              <p className="text-[10px] text-gray-400 flex-shrink-0">
-                {new Date(u.createdAt).toLocaleDateString('it-IT')}
-              </p>
-            </li>
-          ))}
+        <p className="text-[11px] text-gray-500 leading-relaxed">
+          Il ruolo è quello del workspace (roster). «Nessun ruolo» = fuori team. Super-admin resta owner via
+          env anche senza voce in roster.
+        </p>
+        <ul className="divide-y divide-gray-50 max-h-[28rem] overflow-y-auto">
+          {data.users.map((u) => {
+            const busy = busyUserId === u.id;
+            const isSelf = u.id === selfId;
+            return (
+              <li key={u.id} className="py-3 text-xs space-y-2">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="font-semibold text-gray-900 truncate">
+                      {u.username || u.name || u.email || u.id}
+                      {isSelf && (
+                        <span className="ml-1.5 text-[10px] font-normal text-slate-500">(tu)</span>
+                      )}
+                      {u.isPlatformAdmin && (
+                        <span className="ml-1.5 text-[10px] font-semibold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">
+                          super-admin
+                        </span>
+                      )}
+                    </p>
+                    <p className="text-gray-500 truncate">{u.email}</p>
+                    <p className="text-[10px] text-gray-400 mt-0.5">
+                      Iscritto {new Date(u.createdAt).toLocaleDateString('it-IT')}
+                      {u.recordsCount > 0 ? ` · ${u.recordsCount} schede` : ''}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    disabled={busy || isSelf || u.isPlatformAdmin}
+                    title={
+                      isSelf
+                        ? 'Non puoi eliminare te stesso'
+                        : u.isPlatformAdmin
+                          ? 'Rimuovi prima da ORG_ADMIN_EMAILS'
+                          : u.recordsCount > 0
+                            ? 'Ha schede collegate: potrebbe fallire'
+                            : 'Elimina account'
+                    }
+                    onClick={() => deleteUser(u)}
+                    className="flex items-center gap-1 text-red-600 hover:underline disabled:opacity-40 disabled:no-underline flex-shrink-0"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    Elimina
+                  </button>
+                </div>
+                <select
+                  className={inputClass}
+                  disabled={busy}
+                  value={u.orgRole ?? ''}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setUserRole(u.id, v === '' ? null : (v as OrganizationRole));
+                  }}
+                >
+                  <option value="">Nessun ruolo (fuori roster)</option>
+                  {ORGANIZATION_ROLES.map((r) => (
+                    <option key={r} value={r}>
+                      {ROLE_LABELS[r]}
+                    </option>
+                  ))}
+                </select>
+              </li>
+            );
+          })}
           {data.users.length === 0 && (
             <li className="py-4 text-xs text-gray-500 text-center">Nessun utente in Postgres.</li>
           )}
@@ -251,37 +361,14 @@ function AdminInner() {
       <section className="reddit-card p-5 space-y-4">
         <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
           <UserPlus className="w-3.5 h-3.5" />
-          Roster · {data.organization.name}
+          Invito rapido · {data.organization.name}
         </h2>
-        <ul className="space-y-2">
-          {data.organization.members.map((m) => (
-            <li
-              key={m.userId}
-              className="flex items-center justify-between gap-3 text-xs border-b border-gray-50 pb-2"
-            >
-              <div>
-                <p className="font-semibold text-gray-900">{m.email ?? m.userId}</p>
-                <p className="text-gray-500">{ROLE_LABELS[m.role]}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => patchOrg({ removeUserId: m.userId })}
-                className="text-red-600 hover:underline flex items-center gap-1"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                Rimuovi
-              </button>
-            </li>
-          ))}
-          {data.organization.members.length === 0 && (
-            <p className="text-xs text-amber-800 bg-amber-50 border border-amber-100 rounded-lg p-3">
-              Roster vuota: al primo invito il perimetro si chiude. Tu resti owner via ORG_ADMIN_EMAILS.
-            </p>
-          )}
-        </ul>
-
+        <p className="text-[11px] text-gray-500">
+          Aggiungi un’email alla roster anche se non ha ancora fatto login (userId = email finché non
+          coincide con un account).
+        </p>
         <form
-          className="space-y-3 pt-2 border-t border-gray-100"
+          className="space-y-3"
           onSubmit={(e) => {
             e.preventDefault();
             if (!email.trim()) return;
@@ -301,7 +388,7 @@ function AdminInner() {
             value={role}
             onChange={(e) => setRole(e.target.value as OrganizationRole)}
           >
-            {(Object.keys(ROLE_LABELS) as OrganizationRole[]).map((r) => (
+            {ORGANIZATION_ROLES.map((r) => (
               <option key={r} value={r}>
                 {ROLE_LABELS[r]}
               </option>
