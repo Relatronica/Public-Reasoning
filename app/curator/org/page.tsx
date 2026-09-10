@@ -59,7 +59,8 @@ function OrgInner() {
         <div>
           <h1 className="text-xl font-bold text-gray-900">{organization.name}</h1>
           <p className="text-xs text-gray-500">
-            Ruoli. Finché la roster è vuota, ogni utente loggato è owner (demo).
+            Ruoli del team. Finché la roster è vuota, ogni utente loggato è owner (demo).
+            Al primo invito resti proprietario e il perimetro si chiude.
             {myRole ? ` Il tuo ruolo: ${ROLE_LABELS[myRole]}.` : ''}
           </p>
         </div>

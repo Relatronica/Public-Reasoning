@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "communityOverrides": {
     "weltform": {
       "logoUrl": "/communities/weltform/logo.jpg",
@@ -252,7 +252,72 @@
       ],
       "mindChangingConditions": [
         "Se una delle tre linee non ha impegno di spesa entro settembre: i fondi residui vanno in riparto trasparente all’assemblea di ottobre."
-      ]
+      ],
+      "publicActId": "act-agora-budget-2026",
+      "version": 1,
+      "upvotes": 35,
+      "verbatimQuotes": [
+        {
+          "id": "quote-agora-budget-1",
+          "quote": "Un solo nastro da tagliare fa notizia. Tre interventi noiosi fanno città. Scegliamo la città.",
+          "pageOrParagraph": "Seduta Assemblea n. 2/2026",
+          "speaker": "Facilitatrice assemblea"
+        }
+      ],
+      "outcomeReviews": [
+        {
+          "id": "outcome-agora-budget-1",
+          "timeframe": "6_mesi",
+          "expectedOutcome": "Almeno due linee con cantiere avviato; eventuale riparto pubblicato.",
+          "status": "pending"
+        }
+      ],
+      "insights": [
+        {
+          "id": "insight-agora-budget-1",
+          "kind": "spunto",
+          "title": "La partecipazione non è un sondaggio di popolarità",
+          "body": "Se vince sempre chi porta più persone in sala, non state decidendo insieme: state misurando la capacità di mobilitazione. I criteri di riparto devono proteggere chi non ha tempo di assembrarsi.",
+          "author": "John Dewey",
+          "role": "Filosofo",
+          "relatedStepId": "question"
+        },
+        {
+          "id": "insight-agora-budget-2",
+          "kind": "alert",
+          "title": "Tre progetti senza owner = zero progetti",
+          "body": "Assegnate un responsabile nominato per ogni linea prima di votare il riparto, altrimenti il criterio di stop a settembre arriverà come una sorpresa.",
+          "author": "Desk risk",
+          "role": "Consulente",
+          "relatedStepId": "decision"
+        }
+      ],
+      "consultationRequests": [
+        {
+          "id": "consult-agora-budget-open",
+          "kind": "consulenza",
+          "status": "aperta",
+          "question": "Come rendiamo osservabile «cantiere avviato» senza litigare su interpretazioni a settembre?",
+          "requestedBy": {
+            "userId": "user-demo-quartiere",
+            "name": "Comitato Nord"
+          },
+          "createdAt": "2026-05-24T09:30:00.000Z"
+        },
+        {
+          "id": "consult-mtv83gr0-j64khv",
+          "kind": "filosofica",
+          "status": "aperta",
+          "question": "COme posso procedere?",
+          "requestedBy": {
+            "userId": "cmikmkaq6000059zjkrszz16e",
+            "name": "Giuseppe Aceto",
+            "email": "iam.giuseppeaceto@gmail.com"
+          },
+          "createdAt": "2026-09-10T07:45:47.916Z"
+        }
+      ],
+      "updatedAt": "2026-09-10T07:45:47.917Z"
     }
   },
   "actOverrides": {
@@ -279,6 +344,20 @@
       "pack-ai-governance",
       "community-personale"
     ],
-    "members": []
+    "members": [
+      {
+        "userId": "relatronica@gmail.com",
+        "email": "relatronica@gmail.com",
+        "role": "filosofo",
+        "addedAt": "2026-09-10T07:43:52.855Z"
+      },
+      {
+        "userId": "iam.giuseppeaceto@gmail.com",
+        "email": "iam.giuseppeaceto@gmail.com",
+        "name": "Giuseppe Aceto",
+        "role": "owner",
+        "addedAt": "2026-09-10T07:43:52.856Z"
+      }
+    ]
   }
 }

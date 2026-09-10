@@ -20,6 +20,16 @@ export const ROLE_LABELS: Record<OrganizationRole, string> = {
   consulente: 'Consulente',
 };
 
+export const ORGANIZATION_ROLES = Object.keys(ROLE_LABELS) as OrganizationRole[];
+
+export function isOrganizationRole(value: string): value is OrganizationRole {
+  return value in ROLE_LABELS;
+}
+
+export function rosterHasAdmin(members: OrganizationMember[]): boolean {
+  return members.some((m) => m.role === 'owner' || m.role === 'admin');
+}
+
 export function hasMinRole(role: OrganizationRole | null | undefined, min: OrganizationRole): boolean {
   if (!role) return false;
   return RANK[role] >= RANK[min];
@@ -68,12 +78,21 @@ export function resolveMemberRole(
   const id = user.id ?? '';
   const email = user.email?.toLowerCase();
   const byId = org.members.find((m) => m.userId === id);
-  if (byId) return byId.role;
+  if (byId) {
+    // Roster senza owner/admin: eleva per sbloccare la gestione (anti-lockout).
+    if (!rosterHasAdmin(org.members)) return 'owner';
+    return byId.role;
+  }
   if (email) {
     const byEmail = org.members.find((m) => m.email?.toLowerCase() === email);
-    if (byEmail) return byEmail.role;
+    if (byEmail) {
+      if (!rosterHasAdmin(org.members)) return 'owner';
+      return byEmail.role;
+    }
   }
   if (org.members.length === 0) return 'owner';
+  // Roster chiusa ma senza admin: break-glass demo (evita lockout totale).
+  if (!rosterHasAdmin(org.members)) return 'owner';
   return null;
 }
 
