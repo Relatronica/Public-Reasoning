@@ -30,11 +30,19 @@ yarn-error.log*
 .env*.local
 .env
 
+# Local curator persistence (runtime writes — do not commit PII)
+/data/curator-store.json
+
 # vercel
 .vercel
 
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# editor swap
+*.swp
+*.swo
+*~
 
 /lib/generated/prisma

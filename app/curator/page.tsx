@@ -39,8 +39,11 @@ function CuratorHubInner() {
       </div>
 
       <p className="text-xs text-gray-500 leading-relaxed">
-        Le modifiche vengono salvate in <code className="text-[11px] bg-gray-100 px-1 rounded">data/curator-store.json</code>{' '}
-        e compaiono subito nel feed. Accedi come {session?.user?.name ?? session?.user?.email}.
+        Le modifiche dell’Editor restano in locale in{' '}
+        <code className="text-[11px] bg-gray-100 px-1 rounded">data/curator-store.json</code>
+        {' '}(non versionato; seed da{' '}
+        <code className="text-[11px] bg-gray-100 px-1 rounded">curator-store.example.json</code>
+        ). Accedi come {session?.user?.name ?? session?.user?.email}.
       </p>
 
       <div className="grid gap-3 sm:grid-cols-2">

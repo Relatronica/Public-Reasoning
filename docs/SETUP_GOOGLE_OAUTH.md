@@ -62,25 +62,26 @@ Nella root del progetto, crea o modifica il file `.env`:
 
 ```bash
 # Database
-DATABASE_URL="file:./dev.db"
+DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/reason?schema=public"
 
-# NextAuth
+AUTH_URL="http://localhost:3000"
 NEXTAUTH_URL="http://localhost:3000"
+AUTH_SECRET="INCOLLA_QUI_IL_SECRET_GENERATO"
 NEXTAUTH_SECRET="INCOLLA_QUI_IL_SECRET_GENERATO"
 
-# Google OAuth (sostituisci con i tuoi valori)
+# Google OAuth
 GOOGLE_CLIENT_ID="INCOLLA_QUI_IL_TUO_CLIENT_ID"
 GOOGLE_CLIENT_SECRET="INCOLLA_QUI_IL_TUO_CLIENT_SECRET"
 ```
 
-### 2.2 Genera NEXTAUTH_SECRET
+### 2.2 Genera AUTH_SECRET / NEXTAUTH_SECRET
 Esegui questo comando nel terminale per generare un secret sicuro:
 
 ```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+openssl rand -base64 32
 ```
 
-Copia l'output e incollalo come valore di `NEXTAUTH_SECRET` nel file `.env`.
+Copia l'output in **entrambi** `AUTH_SECRET` e `NEXTAUTH_SECRET` nel file `.env`.
 
 ### 2.3 Inserisci le Credenziali Google
 Sostituisci:
@@ -103,8 +104,8 @@ cat .env | grep -E "^[A-Z_]+" | cut -d'=' -f1
 
 Dovresti vedere:
 - `DATABASE_URL`
-- `NEXTAUTH_URL`
-- `NEXTAUTH_SECRET`
+- `AUTH_URL` e/o `NEXTAUTH_URL`
+- `AUTH_SECRET` e/o `NEXTAUTH_SECRET`
 - `GOOGLE_CLIENT_ID`
 - `GOOGLE_CLIENT_SECRET`
 
@@ -164,12 +165,15 @@ Quando sei pronto per il deploy:
      https://tuodominio.com
      ```
 
-2. **Aggiorna `.env`** (o variabili d'ambiente del tuo hosting):
+2. **Aggiorna le variabili d’ambiente** (hosting):
    ```
+   AUTH_URL="https://tuodominio.com"
    NEXTAUTH_URL="https://tuodominio.com"
    ```
 
-3. **Database**: Cambia `DATABASE_URL` a PostgreSQL o MySQL per produzione
+3. **Database**: `DATABASE_URL` PostgreSQL di produzione + `npm run db:deploy`
+
+Vedi anche [`DEPLOY.md`](DEPLOY.md).
 
 ---
 
@@ -180,11 +184,13 @@ Quando sei pronto per il deploy:
 - [ ] OAuth Client ID creato
 - [ ] Redirect URI configurato: `http://localhost:3000/api/auth/callback/google`
 - [ ] File `.env` creato con tutte le variabili
-- [ ] `NEXTAUTH_SECRET` generato e inserito
+- [ ] `AUTH_SECRET` / `NEXTAUTH_SECRET` generati e inseriti
 - [ ] `GOOGLE_CLIENT_ID` inserito
 - [ ] `GOOGLE_CLIENT_SECRET` inserito
+- [ ] Postgres migrato (`npm run db:migrate` in locale)
 - [ ] Server avviato e testato
 - [ ] Registrazione completata con successo
+- [ ] Nessun `data/curator-store.json` con PII committato
 
 ---
 

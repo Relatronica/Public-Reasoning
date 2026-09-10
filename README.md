@@ -2,148 +2,106 @@
 
 > **"Le decisioni dicono *cosa* si è scelto. Reason conserva e verifica *perché*."**
 
-Reason è un feed in stile Reddit per le schede di giudizio **e**, in modalità enterprise, un **Decision Bank** privato. Una community è un luogo di decisione: un **comune**, un **ufficio**, un **progetto** o un **pack compliance**. Il dominio (civico o aziendale) è configurazione, non un secondo prodotto. Il metodo è fisso: domanda reale, opzioni scartate, incertezza, condizioni di cambio idea, verifica a posteriori, verbatim vs interpretazione.
+Reason è un feed di **schede di giudizio** (Reasoning Records) per community configurabili: comune, ufficio, progetto, pack compliance. Il metodo è fisso — domanda reale, opzioni scartate, incertezza, criterio di stop, esito, fonti — mentre etichette e argomenti sono pack della community.
 
-Due modalità sullo stesso kernel:
-
-| Lab pubblico (civic) | Decision Bank (default enterprise) |
+| Lab pubblico | Decision Bank |
 | :--- | :--- |
-| Record visibili, albo, Cormano | Cattura da transcript, bozza privata, chiusura da sponsor |
-| Feed tipo Reddit | Stesso schema a sei elementi, visibilità `private` |
+| Feed, fonti, community demo (Cormano, Agorà, …) | Bozze private, cattura, chiusura da sponsor |
+| Spunti e consultazioni (filosofo / consulente) | Stesso schema a sei elementi, visibilità `private` |
 
-Il mock attuale mostra più community nello stesso selettore, incluso **AI Governance** (`?c=ai-governance`).
-
-Flusso principale per una nuova decisione: **Cattura** (`/records/capture`) → bozza → chiusura. Il form a mano resta secondario. **Decision Bank** (`/bank`) è la vista tabella. Ruoli in Editor → Organization.
-
-Piano di evoluzione: [`docs/DECISION_OS_PLAN.md`](docs/DECISION_OS_PLAN.md). Pack compliance: [`docs/AI_GOVERNANCE_PACK.md`](docs/AI_GOVERNANCE_PACK.md).
+Piano di evoluzione: [`docs/DECISION_OS_PLAN.md`](docs/DECISION_OS_PLAN.md).
 
 ---
 
-## Documentazione del Progetto (`docs/`)
+## Documentazione
 
-La documentazione professionale completa è organizzata nella cartella [`docs/`](docs):
-
-- **[Architettura & System Design](docs/ARCHITECTURE.md)**: Architettura applicativa, community configurabili, stack e modello dati.
-- **[Piano Decision OS](docs/DECISION_OS_PLAN.md)**: Evoluzione Capture → Bank → API (Fase A in corso).
-- **[Pack AI Governance](docs/AI_GOVERNANCE_PACK.md)**: Template compliance EU AI Act.
-- **[Guida Operativa Curatori & Analisti](docs/CURATOR_GUIDE.md)**: Standard metodologico per estrarre domande reali, opzioni scartate e condizioni di falsificabilità da qualsiasi fonte (atto, verbale, deck).
-- **[Setup Google OAuth](docs/SETUP_GOOGLE_OAUTH.md)**: Guida dettagliata per la configurazione del provider Google su Google Cloud Console e NextAuth v5.
-- **[Note e Flow Autenticazione](docs/SETUP_AUTH.md)**: Flusso di registrazione integrata, configurazione `.env` e gestione del database Prisma.
-
----
-
-## Incongruenze tra Vecchio Progetto (Adverarial) e Stato Attuale
-
-Inizialmente il repository nasceva con il nome *Adverarial* per la gestione di board argumentative git-like su temi controversi generali. 
-
-Il progetto è stato riarchitettato in Reasoning Records:
-
-| Vecchio Progetto (Adverarial) | Nuovo Progetto (Reasoning Records) |
+| Documento | Contenuto |
 | :--- | :--- |
-| Focus su temi controversi arbitrari e posizioni git-like | Focus sul giudizio situato, in community configurabili |
-| Card per posizioni, voti e proposte di merge | Schede di Giudizio: Domanda Reale, Opzioni Scartate, Falsificabilità, Incertezza |
-| Layout scuro con board orizzontali | Reddit Feed Light Mode: filtri per incertezza e verifiche, selettore community |
-| Schema dati astratto | Community + fonte + Reasoning Record (verbatim, scarti, review) |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Architettura, stack, modello dati |
+| [`docs/DEPLOY.md`](docs/DEPLOY.md) | Checklist deploy (env, Postgres, OAuth, limiti) |
+| [`docs/SETUP_AUTH.md`](docs/SETUP_AUTH.md) | Auth locale + registrazione |
+| [`docs/SETUP_GOOGLE_OAUTH.md`](docs/SETUP_GOOGLE_OAUTH.md) | Google Cloud Console passo-passo |
+| [`docs/CURATOR_GUIDE.md`](docs/CURATOR_GUIDE.md) | Standard metodologico per compilare schede |
+| [`docs/AI_GOVERNANCE_PACK.md`](docs/AI_GOVERNANCE_PACK.md) | Pack compliance EU AI Act |
+| [`docs/DECISION_OS_PLAN.md`](docs/DECISION_OS_PLAN.md) | Roadmap Capture → Bank → API |
 
 ---
 
-## Il Problema & La Soluzione
+## Stack
 
-| Problema nella fonte (atto, verbale, deck) | Soluzione di Reasoning Records |
-| :--- | :--- |
-| Linguaggio opaco o di circostanza | **Domanda Reale**: il problema sostanziale a cui si rispondeva |
-| Motivazioni reali e opzioni scartate invisibili | **Opzioni Scartate**: alternative considerate e motivo dello scarto |
-| Falsa certezza e assunzioni implicite | **Livello di Incertezza**: rischio e premesse rese esplicite |
-| Impossibilità di ritrattare il giudizio | **Condizione di Falsificabilità**: *Cosa avrebbe fatto cambiare idea?* |
-| Nessun controllo sugli esiti | **Ciclo di Verifica a Posteriori**: 6-12-24 mesi |
-| Ambiguità tra fonte e lettura | **Separazione Rigida**: citazione verbatim vs interpretazione |
+- **Next.js 14** (App Router) · **TypeScript** · **Tailwind CSS**
+- **Prisma** + **PostgreSQL** (utenti / sessioni Auth.js)
+- **NextAuth.js v5 (Auth.js)** + Google OAuth
+- **@xyflow/react** — grafo decisionale
+- Persistenza editor/demo: `data/curator-store.json` (locale, non versionato; seed da `curator-store.example.json`)
 
 ---
 
-## Stack Tecnologico
+## Avvio locale
 
-- **Framework Web**: [Next.js 14](https://nextjs.org/) (App Router, Server Components & Client Hooks)
-- **Linguaggio**: [TypeScript](https://www.typescriptlang.org/)
-- **Styling & UI**: [Tailwind CSS](https://tailwindcss.com/) (Reddit-style light mode, card minimali, badge cromatici)
-- **Iconografia & Animazioni**: [Lucide React](https://lucide.dev/), [Framer Motion](https://www.framer.com/motion/)
-- **Database & ORM**: [Prisma ORM](https://www.prisma.io/) (Supporto SQLite per sviluppo locale `dev.db` e PostgreSQL per produzione)
-- **Autenticazione**: [NextAuth.js v5 (Auth.js)](https://authjs.dev/) con adattatore Prisma e provider Google OAuth
+### Prerequisiti
 
----
+- Node.js ≥ 18
+- PostgreSQL in esecuzione (locale o managed)
 
-## Architettura del Codice e Struttura della Directory
+### Installazione
 
-```
-├── app/                        # Next.js App Router
-│   ├── page.tsx                # Homepage Feed stile Reddit (Filtri per incertezza/verifiche)
-│   ├── acts/                   # Archivio fonti della community attiva
-│   ├── records/                # Pagine schede di giudizio (Reasoning Records)
-│   ├── auth/                   # Pagine autenticazione e registrazione utente
-│   ├── settings/               # Impostazioni profilo utente
-│   ├── layout.tsx              # Layout globale con Navbar e Sidebar
-│   └── globals.css             # Stili globali e utilità Reddit-style
-├── components/                 # Componenti UI React
-│   ├── Navbar.tsx              # Barra di navigazione, selettore community, ricerca
-│   ├── Sidebar.tsx              # Navigazione sinistra (feed, categorie della community)
-│   ├── CommunityRightSidebar.tsx# Sidebar destra: pack e stats della community attiva
-│   ├── ReasoningRecordCard.tsx # Card feed per il record del giudizio
-│   └── VerbatimVsInterpretationViewer.tsx # Matrice fonte vs interpretazione
-├── docs/                       # Documentazione tecnica e professionale del progetto
-│   ├── ARCHITECTURE.md         # System design, community, diagrammi ER
-│   ├── CURATOR_GUIDE.md        # Standard di analisi ed estrazione
-│   ├── SETUP_GOOGLE_OAUTH.md   # Guida passo-passo configurazione Google OAuth
-│   └── SETUP_AUTH.md           # Flussi di registrazione e configurazione NextAuth
-├── prisma/                     # Database e Schemi
-│   ├── schema.prisma           # Modello dati Prisma
-│   └── prisma.config.ts        # Configurazione Prisma Client
-├── lib/                        # Utilities e Mock Data
-│   ├── communities.ts          # Pack delle community (comune, ufficio, progetto)
-│   ├── data.ts                 # Fonti e record mock agganciati alle community
-│   └── prisma.ts               # Istanza Prisma Client singleton
-├── hooks/                      # Client hooks
-│   └── useActiveCommunity.ts   # Community attiva da query `?c=`
-├── types/                      # Definizioni dei Tipi TypeScript
-│   └── index.ts                # Interfacce dominio (Community, ReasoningRecord)
-├── auth.ts                     # Configurazione NextAuth.js v5
-├── middleware.ts               # Middleware di protezione rotte NextAuth
-└── README.md                   # README principale del repository
-```
-
----
-
-## Guida Rapida di Avvio Locale
-
-### 1. Prerequisiti
-- Node.js >= 18.x
-- npm / pnpm / yarn
-
-### 2. Installazione
 ```bash
-git clone https://github.com/giuseppeaceto/Adverarial.git
-cd Adverarial
+git clone https://github.com/Relatronica/Public-Reasoning.git
+cd Public-Reasoning
 npm install
-```
-
-### 3. Configurazione Ambiente (`.env`)
-Copia il file di esempio `.env.example` in `.env`:
-
-```bash
 cp .env.example .env
 ```
 
-Modifica `.env` inserendo il tuo secret casuale e le credenziali Google OAuth.
-
-### 4. Database Setup
-Genera il client Prisma e applica le migrazioni al database SQLite locale:
+Compila `.env` (vedi sotto), poi:
 
 ```bash
-npx prisma generate
-npx prisma migrate dev
-```
-
-### 5. Avvio Server di Sviluppo
-```bash
+npm run db:generate
+npm run db:migrate
 npm run dev
 ```
 
-Apri [http://localhost:3000](http://localhost:3000) per il feed. Il selettore in navbar passa da una community all’altra (`?c=cormano`, `?c=people-moretti`, `?c=capex-2027`, `?c=ai-governance`). **Cattura decisione** genera una bozza da transcript; le bozze private non appaiono nel feed pubblico.
+Apri [http://localhost:3000](http://localhost:3000). Community via `?c=` (es. `cormano`, `agora`, `ai-governance`).
+
+### Variabili d’ambiente
+
+| Variabile | Uso |
+| :--- | :--- |
+| `DATABASE_URL` | Connection string PostgreSQL |
+| `AUTH_URL` / `NEXTAUTH_URL` | Origine dell’app (`http://localhost:3000` in locale) |
+| `AUTH_SECRET` / `NEXTAUTH_SECRET` | Secret sessione (`openssl rand -base64 32`) |
+| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | OAuth Google |
+
+Dettagli: [`docs/SETUP_AUTH.md`](docs/SETUP_AUTH.md) e [`docs/SETUP_GOOGLE_OAUTH.md`](docs/SETUP_GOOGLE_OAUTH.md).
+
+### Persistenza curator
+
+Le modifiche da Editor (community, team, spunti, override schede) finiscono in `data/curator-store.json`, **ignorato da git** per evitare di committare dati personali. Al primo avvio viene creato da `data/curator-store.example.json`.
+
+---
+
+## Struttura (sintesi)
+
+```
+app/                 # Route App Router (feed, records, curator, auth, API)
+components/          # UI (Navbar, grafo, dock spunti, …)
+contexts/            # CuratorDataProvider
+lib/                 # Domain, communities, curator store, org RBAC
+data/                # curator-store.example.json (seed); store locale runtime
+docs/                # Documentazione
+prisma/              # Schema Auth + legacy records (migrazione in corso)
+```
+
+---
+
+## Deploy
+
+Vedi **[`docs/DEPLOY.md`](docs/DEPLOY.md)**.
+
+In breve: Postgres + env di produzione + redirect Google. L’editor su filesystem JSON è adatto a **VPS/container con disco**; su serverless le scritture non persistono — pianificare storage esterno o migrazione Prisma (roadmap).
+
+---
+
+## Licenza
+
+Vedi [`LICENSE`](LICENSE).

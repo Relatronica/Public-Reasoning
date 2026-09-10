@@ -1,66 +1,64 @@
 # Setup Autenticazione e Database
 
-## 1. Configurazione Variabili d'Ambiente
+## 1. Variabili d’ambiente
 
-Crea un file `.env` nella root del progetto partendo da `.env.example`:
-
-```env
-# Database
-DATABASE_URL="file:./dev.db"
-
-# NextAuth
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="genera-un-secret-random-qui"
-
-# Google OAuth
-GOOGLE_CLIENT_ID="il-tuo-client-id"
-GOOGLE_CLIENT_SECRET="il-tuo-client-secret"
+```bash
+cp .env.example .env
 ```
 
-## 2. Setup Google OAuth
+Valori tipici in locale:
 
-1. Vai su [Google Cloud Console](https://console.cloud.google.com/)
-2. Crea un nuovo progetto o seleziona uno esistente
-3. Vai a "APIs & Services" > "Credentials"
-4. Clicca "Create Credentials" > "OAuth client ID"
-5. Seleziona "Web application"
-6. Aggiungi:
-   - **Authorized JavaScript origins**: `http://localhost:3000`
-   - **Authorized redirect URIs**: `http://localhost:3000/api/auth/callback/google`
-7. Copia `Client ID` e `Client Secret` nel file `.env`
+```env
+DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/reason?schema=public"
 
-## 3. Genera NEXTAUTH_SECRET
+AUTH_URL="http://localhost:3000"
+NEXTAUTH_URL="http://localhost:3000"
+AUTH_SECRET="genera-con-openssl-rand-base64-32"
+NEXTAUTH_SECRET="stesso-valore-di-AUTH_SECRET"
 
-Puoi generare un secret random con:
+GOOGLE_CLIENT_ID="..."
+GOOGLE_CLIENT_SECRET="..."
+```
+
+Genera il secret:
 
 ```bash
 openssl rand -base64 32
 ```
 
-Oppure usa questo comando Node.js:
+## 2. Google OAuth
+
+1. [Google Cloud Console](https://console.cloud.google.com/) → Credentials → OAuth client ID (Web)
+2. Origins: `http://localhost:3000`
+3. Redirect: `http://localhost:3000/api/auth/callback/google`
+4. Copia Client ID e Secret in `.env`
+
+Guida estesa: [`SETUP_GOOGLE_OAUTH.md`](SETUP_GOOGLE_OAUTH.md).
+
+## 3. Database
+
+Lo schema Prisma usa **PostgreSQL**. Avvia Postgres, poi:
 
 ```bash
-node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+npm run db:generate
+npm run db:migrate
 ```
 
-## 4. Database
+In produzione usa `npm run db:deploy` (vedi [`DEPLOY.md`](DEPLOY.md)).
 
-Il database SQLite viene creato automaticamente quando esegui la prima migrazione:
+## 4. Flusso di registrazione
 
-```bash
-npx prisma migrate dev
-```
+1. `/auth/register` — username e avatar
+2. Continua con Google
+3. `/auth/register/complete` completa il profilo
 
-## 5. Flow di Registrazione
+## 5. Persistenza Editor (non Auth)
 
-1. L'utente va su `/auth/register`
-2. Inserisce username e seleziona un avatar
-3. Clicca "Continua con Google"
-4. Completa l'OAuth con Google
-5. Viene reindirizzato a `/auth/register/complete` che completa la registrazione
+Auth (utenti/sessioni) → Postgres.  
+Override community, team, spunti → `data/curator-store.json` (locale, gitignored). Seed: `data/curator-store.example.json`.
 
-## Note
+## Note produzione
 
-- Per produzione, cambia `DATABASE_URL` a PostgreSQL o MySQL
-- Aggiorna `NEXTAUTH_URL` con il tuo dominio di produzione
-- Aggiungi i redirect URI di produzione in Google Cloud Console
+- Aggiorna `AUTH_URL` / `NEXTAUTH_URL` al dominio HTTPS
+- Aggiungi i redirect OAuth di produzione
+- Non committare `.env` né `data/curator-store.json` con dati reali
