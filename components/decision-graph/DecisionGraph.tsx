@@ -255,9 +255,12 @@ function DecisionGraphInner({
     ? steps.find((s) => s.id === composeStepId)?.label
     : null;
 
+  const [showMap, setShowMap] = useState(false);
+
   return (
     <div className="space-y-3">
-      <div className="flex items-center gap-1 overflow-x-auto pb-0.5">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-1 overflow-x-auto pb-0.5 min-w-0 flex-1">
         {steps.map((step, i) => {
           const active = step.id === selectedId;
           const count = insightCounts[step.id] ?? 0;
@@ -294,12 +297,22 @@ function DecisionGraphInner({
             </React.Fragment>
           );
         })}
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowMap((v) => !v)}
+          className="sm:hidden flex-shrink-0 text-[11px] font-medium text-gray-600 hover:text-gray-900 px-2 py-1 rounded-md hover:bg-gray-100"
+        >
+          {showMap ? 'Nascondi mappa' : 'Mappa'}
+        </button>
       </div>
 
-      <div className="reddit-card overflow-hidden">
+      <div className="reddit-card reddit-card--static overflow-hidden">
         <div
           ref={flowRef}
-          className="decision-flow relative h-[280px] sm:h-[340px] lg:h-[380px] bg-gray-50/80 border-b border-gray-100"
+          className={`decision-flow relative bg-gray-50/80 border-b border-gray-100 ${
+            showMap ? 'block h-[280px]' : 'hidden'
+          } sm:block sm:h-[340px] lg:h-[380px]`}
           onContextMenu={(e) => e.preventDefault()}
         >
           <ReactFlow

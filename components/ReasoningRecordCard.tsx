@@ -27,7 +27,7 @@ export default function ReasoningRecordCard({ record }: Props) {
   return (
     <Link
       href={detailHref}
-      className="block reddit-card px-5 py-4 hover:border-gray-300 transition-colors"
+      className="block reddit-card reddit-card--interactive px-5 py-4"
     >
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-gray-400 mb-1.5">
         {record.category && <span>{record.category}</span>}

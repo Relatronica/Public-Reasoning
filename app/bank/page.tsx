@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
+import { FeedSkeleton } from '@/components/FeedSkeleton';
 import { displayStatusLabel, isClosedStatus } from '@/lib/records';
 
 function BankInner() {
@@ -66,7 +67,7 @@ function BankInner() {
           <Link
             key={record.id}
             href={href(`/records/${record.id}`)}
-            className="block reddit-card px-5 py-3.5 hover:border-gray-300 transition-colors"
+            className="block reddit-card reddit-card--interactive px-5 py-3.5"
           >
             <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-gray-400 mb-1">
               <span>{displayStatusLabel(record.status)}</span>
@@ -98,7 +99,7 @@ function BankInner() {
 
 export default function BankPage() {
   return (
-    <Suspense fallback={<div className="reddit-card p-8 text-center text-sm text-gray-500">Caricamento…</div>}>
+    <Suspense fallback={<FeedSkeleton count={4} />}>
       <BankInner />
     </Suspense>
   );

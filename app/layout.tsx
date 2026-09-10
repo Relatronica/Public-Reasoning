@@ -5,6 +5,7 @@ import './globals.css';
 import Navbar from '@/components/Navbar';
 import Sidebar from '@/components/Sidebar';
 import CommunityRightSidebar from '@/components/CommunityRightSidebar';
+import MobileBottomNav from '@/components/MobileBottomNav';
 import { Providers } from './providers';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -26,28 +27,23 @@ export default function RootLayout({
     <html lang="it" className="h-full">
       <body className={`${inter.className} h-full overflow-hidden bg-gray-50 text-gray-900 antialiased flex flex-col`}>
         <Providers>
-          {/* Header Superiore Fisso */}
           <Navbar />
 
-          {/* Contenitore Principale a 3 colonne - Altezza fissa viewport */}
           <div className="flex-1 w-full max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 overflow-hidden">
             <div className="flex gap-6 items-start h-full">
-              
-              {/* Sidebar Sinistra (Navigazione fissa) */}
               <Suspense fallback={null}>
                 <Sidebar />
               </Suspense>
 
-              {/* Area Contenuto Feed / Pagine (Unica colonna ad avere lo scroll) */}
-              <main className="flex-1 min-w-0 h-full overflow-y-auto py-6 pr-2">
+              <main className="flex-1 min-w-0 h-full overflow-y-auto py-6 pr-2 pb-20 md:pb-6">
                 {children}
               </main>
 
-              {/* Sidebar destra: pack della community attiva */}
               <CommunityRightSidebar />
-
             </div>
           </div>
+
+          <MobileBottomNav />
         </Providers>
       </body>
     </html>

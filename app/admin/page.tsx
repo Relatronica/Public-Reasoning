@@ -66,7 +66,7 @@ function AdminInner() {
         return;
       }
       if (res.status === 403) {
-        setError('Accesso riservato ai super-admin (ORG_ADMIN_EMAILS).');
+        setError('Accesso riservato agli amministratori di piattaforma.');
         setData(null);
         return;
       }
@@ -199,8 +199,8 @@ function AdminInner() {
           {error}
           {!isPlatformAdmin && (
             <p className="mt-2 text-xs text-red-600/80">
-              Imposta <code className="bg-white/80 px-1 rounded">ORG_ADMIN_EMAILS</code> su Vercel con la
-              tua email Google e rifai login.
+              Solo gli account autorizzati come amministratori di piattaforma possono aprire questa
+              console. Contatta chi gestisce il deploy se ti serve l’accesso.
             </p>
           )}
         </div>
@@ -224,7 +224,7 @@ function AdminInner() {
             Console piattaforma
           </h1>
           <p className="text-xs text-gray-500 mt-0.5">
-            Super-admin ({data.platformAdminEmail}). Community, utenti Auth (ruolo + elimina), roster.
+            Amministratore ({data.platformAdminEmail}). Community, utenti e team.
           </p>
         </div>
       </div>
@@ -286,8 +286,8 @@ function AdminInner() {
           Utenti Auth ({data.users.length})
         </h2>
         <p className="text-[11px] text-gray-500 leading-relaxed">
-          Il ruolo è quello del workspace (roster). «Nessun ruolo» = fuori team. Super-admin resta owner via
-          env anche senza voce in roster.
+          Il ruolo è quello del workspace. «Nessun ruolo» = fuori team. Gli amministratori di
+          piattaforma restano proprietari anche senza voce in roster.
         </p>
         <ul className="divide-y divide-gray-50 max-h-[28rem] overflow-y-auto">
           {data.users.map((u) => {
@@ -304,7 +304,7 @@ function AdminInner() {
                       )}
                       {u.isPlatformAdmin && (
                         <span className="ml-1.5 text-[10px] font-semibold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">
-                          super-admin
+                          admin piattaforma
                         </span>
                       )}
                     </p>
@@ -321,7 +321,7 @@ function AdminInner() {
                       isSelf
                         ? 'Non puoi eliminare te stesso'
                         : u.isPlatformAdmin
-                          ? 'Rimuovi prima da ORG_ADMIN_EMAILS'
+                          ? 'Rimuovi prima dagli admin di piattaforma'
                           : u.recordsCount > 0
                             ? 'Ha schede collegate: potrebbe fallire'
                             : 'Elimina account'
@@ -353,7 +353,7 @@ function AdminInner() {
             );
           })}
           {data.users.length === 0 && (
-            <li className="py-4 text-xs text-gray-500 text-center">Nessun utente in Postgres.</li>
+            <li className="py-4 text-xs text-gray-500 text-center">Nessun utente registrato.</li>
           )}
         </ul>
       </section>
@@ -364,8 +364,7 @@ function AdminInner() {
           Invito rapido · {data.organization.name}
         </h2>
         <p className="text-[11px] text-gray-500">
-          Aggiungi un’email alla roster anche se non ha ancora fatto login (userId = email finché non
-          coincide con un account).
+          Aggiungi un’email al team anche se la persona non ha ancora effettuato l’accesso.
         </p>
         <form
           className="space-y-3"

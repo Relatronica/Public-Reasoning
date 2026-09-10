@@ -57,8 +57,15 @@ function useDismissOnOutsideClick(
         onClose();
       }
     };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose();
+    };
     document.addEventListener('mousedown', onPointerDown);
-    return () => document.removeEventListener('mousedown', onPointerDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('keydown', onKey);
+    };
   }, [open, ref, onClose]);
 }
 
@@ -115,6 +122,9 @@ function NavbarInner() {
               setCommunityOpen((v) => !v);
               setAccountOpen(false);
             }}
+            aria-expanded={communityOpen}
+            aria-haspopup="menu"
+            aria-label={`Community: ${community.shortName}`}
             className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-gray-700 hover:bg-gray-100"
           >
             <Icon className="w-3.5 h-3.5 text-gray-500" />
@@ -123,7 +133,10 @@ function NavbarInner() {
           </button>
 
           {communityOpen && (
-            <div className="absolute top-full left-0 mt-2 w-72 bg-white border border-gray-200 rounded-xl shadow-sm z-50 overflow-hidden">
+            <div
+              role="menu"
+              className="absolute top-full left-0 mt-2 w-72 bg-white border border-gray-200 rounded-xl shadow-sm z-50 overflow-hidden"
+            >
               <div className="px-3 py-2 text-[10px] font-bold uppercase tracking-wider text-gray-400 border-b border-gray-100">
                 {organization?.name || 'Workspace'}
               </div>
@@ -164,11 +177,12 @@ function NavbarInner() {
           )}
         </div>
 
-        <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-md hidden sm:block">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+        <form onSubmit={handleSearchSubmit} className="relative flex-1 max-w-md hidden sm:block" role="search">
+          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" aria-hidden />
           <input
-            type="text"
+            type="search"
             placeholder="Cerca…"
+            aria-label="Cerca decisioni"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-3 py-1.5 text-sm bg-gray-50 border border-transparent rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-gray-800 placeholder-gray-400"
@@ -179,7 +193,7 @@ function NavbarInner() {
           {isAuthenticated && canCompile && (
             <Link
               href={href('/records/capture')}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-900 text-white rounded-lg text-xs font-medium hover:bg-gray-800"
+              className="btn-primary"
             >
               <Plus className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Nuova</span>
@@ -193,8 +207,9 @@ function NavbarInner() {
                 setAccountOpen((v) => !v);
                 setCommunityOpen(false);
               }}
-              title="Account"
+              aria-label={isAuthenticated ? 'Menu account' : 'Accedi o registrati'}
               aria-expanded={accountOpen}
+              aria-haspopup="menu"
               className="relative w-8 h-8 flex items-center justify-center hover:opacity-90"
             >
               <span className="absolute inset-0 rounded-full bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center text-gray-700 font-bold text-xs">
@@ -207,8 +222,10 @@ function NavbarInner() {
                     height={32}
                     className="w-full h-full object-cover"
                   />
+                ) : isAuthenticated ? (
+                  initials
                 ) : (
-                  isAuthenticated ? initials : '?'
+                  <LogIn className="w-3.5 h-3.5 text-gray-500" aria-hidden />
                 )}
               </span>
               {isAuthenticated && canAdvise && inboxOpenCount > 0 && (

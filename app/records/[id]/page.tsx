@@ -14,6 +14,7 @@ import {
   resolveVisibility,
 } from '@/lib/records';
 import { useSession } from 'next-auth/react';
+import { PageSkeleton } from '@/components/FeedSkeleton';
 
 function RecordDetailInner() {
   const params = useParams();
@@ -44,7 +45,7 @@ function RecordDetailInner() {
   }, [searchParams, id]);
 
   if (loading || authStatus === 'loading') {
-    return <div className="reddit-card p-8 text-center text-sm text-gray-500">Caricamento…</div>;
+    return <PageSkeleton label="Caricamento scheda" />;
   }
 
   if (!record) {
@@ -128,7 +129,7 @@ function RecordDetailInner() {
 
 export default function RecordDetailPage() {
   return (
-    <Suspense fallback={<div className="reddit-card p-8 text-center text-sm text-gray-500">Caricamento…</div>}>
+    <Suspense fallback={<PageSkeleton label="Caricamento scheda" />}>
       <RecordDetailInner />
     </Suspense>
   );

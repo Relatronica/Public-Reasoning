@@ -35,7 +35,7 @@ function RecordsListInner() {
         </div>
         <Link
           href={href('/records/capture')}
-          className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700"
+          className="btn-primary"
         >
           <Plus className="w-4 h-4" />
           Nuova
@@ -43,11 +43,21 @@ function RecordsListInner() {
       </div>
 
       <div className="space-y-2">
-        {records.map((record) => (
+        {records.length === 0 ? (
+          <div className="reddit-card reddit-card--static p-8 text-center space-y-3">
+            <p className="text-sm font-medium text-gray-900">Nessuna scheda in questa community</p>
+            <p className="text-xs text-gray-500">Documenta la prima decisione per {community.shortName}.</p>
+            <Link href={href('/records/capture')} className="btn-primary inline-flex">
+              <Plus className="w-3.5 h-3.5" />
+              Nuova scheda
+            </Link>
+          </div>
+        ) : (
+          records.map((record) => (
           <Link
             key={record.id}
             href={href(`/curator/records/${record.id}`)}
-            className="reddit-card p-4 flex items-start justify-between gap-3 hover:border-blue-200 transition-colors"
+            className="reddit-card reddit-card--interactive p-4 flex items-start justify-between gap-3"
           >
             <div className="min-w-0">
               {record.category && (
@@ -66,7 +76,8 @@ function RecordsListInner() {
             </div>
             <ChevronRight className="w-4 h-4 text-gray-300 flex-shrink-0 mt-1" />
           </Link>
-        ))}
+          ))
+        )}
       </div>
     </div>
   );

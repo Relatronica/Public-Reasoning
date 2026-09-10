@@ -31,38 +31,33 @@ function CuratorHubInner() {
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Editor</h1>
+          <h1 className="text-xl font-semibold text-gray-900">Editor</h1>
           <p className="text-xs text-gray-500 mt-0.5">
-            Modifica community e schede per <span className="font-semibold">{community.name}</span>
+            Community e schede di <span className="font-semibold">{community.name}</span>
+            {session?.user?.name ? ` · ${session.user.name}` : ''}
           </p>
         </div>
       </div>
-
-      <p className="text-xs text-gray-500 leading-relaxed">
-        Le modifiche dell’Editor (community, team, spunti) sono salvate su{' '}
-        <strong>PostgreSQL</strong> (tabella <code className="text-[11px] bg-gray-100 px-1 rounded">curator_store</code>
-        ). Accedi come {session?.user?.name ?? session?.user?.email}.
-      </p>
 
       <div className="grid gap-3 sm:grid-cols-2">
         {isPlatformAdmin && (
           <Link
             href="/admin"
-            className="reddit-card p-5 hover:border-slate-300 transition-colors group sm:col-span-2"
+            className="reddit-card reddit-card--interactive p-5 group sm:col-span-2"
           >
             <div className="flex items-center gap-2 text-slate-800 mb-2">
               <Shield className="w-5 h-5" />
               <span className="text-sm font-bold">Console piattaforma</span>
             </div>
             <p className="text-xs text-gray-500 leading-relaxed">
-              Super-admin: utenti Auth, roster, visibilità community.
+              Utenti, ruoli e visibilità delle community.
             </p>
           </Link>
         )}
         {canAdminOrg && (
           <Link
             href={href('/curator/community/new')}
-            className="reddit-card p-5 hover:border-blue-200 transition-colors group sm:col-span-2"
+            className="reddit-card reddit-card--interactive p-5 group sm:col-span-2"
           >
             <div className="flex items-center gap-2 text-blue-700 mb-2">
               <Plus className="w-5 h-5" />
@@ -75,19 +70,19 @@ function CuratorHubInner() {
         )}
         <Link
           href={href('/curator/org')}
-          className="reddit-card p-5 hover:border-blue-200 transition-colors group"
+          className="reddit-card reddit-card--interactive p-5 group"
         >
           <div className="flex items-center gap-2 text-violet-700 mb-2">
             <Users className="w-5 h-5" />
-            <span className="text-sm font-bold">Organization</span>
+            <span className="text-sm font-bold">Team</span>
           </div>
           <p className="text-xs text-gray-500 leading-relaxed">
-            Ruoli: owner, admin, compiler, sponsor, viewer.
+            Ruoli e membri del workspace.
           </p>
         </Link>
         <Link
           href={href('/curator/community')}
-          className="reddit-card p-5 hover:border-blue-200 transition-colors group"
+          className="reddit-card reddit-card--interactive p-5 group"
         >
           <div className="flex items-center gap-2 text-blue-700 mb-2">
             <Building2 className="w-5 h-5" />
@@ -100,7 +95,7 @@ function CuratorHubInner() {
 
         <Link
           href={href('/curator/records')}
-          className="reddit-card p-5 hover:border-blue-200 transition-colors group"
+          className="reddit-card reddit-card--interactive p-5 group"
         >
           <div className="flex items-center gap-2 text-emerald-700 mb-2">
             <FileText className="w-5 h-5" />
@@ -114,7 +109,7 @@ function CuratorHubInner() {
         {canAdvise && (
           <Link
             href={href('/curator/richieste')}
-            className="reddit-card p-5 hover:border-amber-200 transition-colors group"
+            className="reddit-card reddit-card--interactive p-5 group"
           >
             <div className="flex items-center gap-2 text-amber-800 mb-2">
               <Inbox className="w-5 h-5" />
@@ -130,7 +125,7 @@ function CuratorHubInner() {
 
         <Link
           href={href('/records/capture')}
-          className="reddit-card p-5 hover:border-gray-300 transition-colors sm:col-span-2"
+          className="reddit-card reddit-card--interactive p-5 sm:col-span-2"
         >
           <div className="flex items-center gap-2 text-gray-800 mb-2">
             <Plus className="w-5 h-5" />
@@ -142,7 +137,7 @@ function CuratorHubInner() {
         </Link>
       </div>
 
-      <div className="reddit-card p-4 bg-gray-50 border-dashed">
+      <div className="reddit-card reddit-card--static p-4 bg-gray-50 border-dashed">
         <p className="text-[11px] text-gray-500 leading-relaxed flex items-start gap-2">
           <Pencil className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
           <span>
@@ -150,7 +145,7 @@ function CuratorHubInner() {
             <Link href={href('/curator/community')} className="text-blue-600 hover:underline font-medium">
               Community
             </Link>
-            , poi «Carica logo» e «Carica banner» — con anteprima immediata.
+            , poi carica logo e banner.
           </span>
         </p>
       </div>

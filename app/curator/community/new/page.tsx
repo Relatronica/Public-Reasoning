@@ -79,12 +79,12 @@ function NewCommunityInner() {
           throw new Error(
             res.ok
               ? 'Risposta non valida dal server.'
-              : `Creazione fallita (HTTP ${res.status}). Controlla che Postgres sia attivo e che le migrazioni siano applicate (npm run db:deploy).`
+              : `Creazione non riuscita. Riprova tra poco o contatta un amministratore.`
           );
         }
       } else if (!res.ok) {
         throw new Error(
-          `Creazione fallita (HTTP ${res.status}). Controlla Postgres e le migrazioni (npm run db:deploy).`
+          `Creazione non riuscita. Riprova tra poco o contatta un amministratore.`
         );
       }
       if (!res.ok) throw new Error(data.error ?? 'Creazione fallita');
@@ -165,7 +165,7 @@ function NewCommunityInner() {
         <button
           type="submit"
           disabled={saving || name.trim().length < 2}
-          className="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-lg text-xs font-semibold hover:bg-blue-700 disabled:opacity-50"
+          className="flex items-center gap-2 px-5 py-2.5 bg-gray-900 text-white rounded-lg text-xs font-semibold hover:bg-gray-800 disabled:opacity-50"
         >
           <Plus className="w-4 h-4" />
           {saving ? 'Creazione…' : 'Crea community'}

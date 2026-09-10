@@ -42,6 +42,8 @@ function ComposeInner() {
   const [hint, setHint] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [fileName, setFileName] = useState<string | null>(null);
+  const showSample = process.env.NODE_ENV === 'development';
 
   useEffect(() => {
     if (status === 'unauthenticated') {
@@ -50,7 +52,7 @@ function ComposeInner() {
   }, [status, router, href]);
 
   if (status === 'loading' || status === 'unauthenticated') {
-    return <div className="reddit-card p-8 text-center text-sm text-gray-500">Caricamento…</div>;
+    return <div className="reddit-card reddit-card--static p-8 text-center text-sm text-gray-500">Caricamento…</div>;
   }
 
   if (!canCompile) {
@@ -93,8 +95,7 @@ function ComposeInner() {
     setPhase('review');
   };
 
-  const save = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const save = async (intent: 'draft' | 'publish') => {
     setSubmitting(true);
     setError('');
     try {
@@ -110,8 +111,9 @@ function ComposeInner() {
           },
           record: {
             category,
-            status: 'draft',
-            visibility: defaultVisibilityForCommunity(community),
+            status: intent === 'publish' ? 'closed' : 'draft',
+            visibility:
+              intent === 'publish' ? 'public' : defaultVisibilityForCommunity(community),
             realQuestion,
             decision,
             uncertaintyLevel: 'medio',
@@ -173,7 +175,7 @@ function ComposeInner() {
             <button
               type="button"
               onClick={startSource}
-              className="w-full text-left reddit-card px-5 py-4 hover:border-gray-300 transition-colors"
+              className="w-full text-left reddit-card reddit-card--interactive px-5 py-4"
             >
               <p className="text-sm font-semibold text-gray-900">Da un testo</p>
               <p className="text-xs text-gray-500 mt-1">
@@ -183,7 +185,7 @@ function ComposeInner() {
             <button
               type="button"
               onClick={startManual}
-              className="w-full text-left reddit-card px-5 py-4 hover:border-gray-300 transition-colors"
+              className="w-full text-left reddit-card reddit-card--interactive px-5 py-4"
             >
               <p className="text-sm font-semibold text-gray-900">A mano</p>
               <p className="text-xs text-gray-500 mt-1">
@@ -217,17 +219,25 @@ function ComposeInner() {
 
           <label className="block space-y-1.5">
             <span className="text-xs font-semibold text-gray-700">Oppure carica un file</span>
-            <input
-              type="file"
-              accept=".txt,.vtt,.md,.text,text/plain"
-              className="block text-xs text-gray-600"
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                setSourceText(await file.text());
-                if (!actTitle) setActTitle(file.name.replace(/\.[^.]+$/, ''));
-              }}
-            />
+            <div className="flex flex-wrap items-center gap-2">
+              <label className="btn-secondary cursor-pointer">
+                Scegli file
+                <input
+                  type="file"
+                  accept=".txt,.vtt,.md,.text,text/plain"
+                  className="sr-only"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    setSourceText(await file.text());
+                    setFileName(file.name);
+                    if (!actTitle) setActTitle(file.name.replace(/\.[^.]+$/, ''));
+                  }}
+                />
+              </label>
+              {fileName && <span className="text-xs text-gray-500 truncate max-w-[14rem]">{fileName}</span>}
+            </div>
+            <p className="text-[11px] text-gray-400">Formati: .txt, .md, .vtt</p>
           </label>
 
           <div className="grid sm:grid-cols-2 gap-3">
@@ -259,27 +269,36 @@ function ComposeInner() {
             <button
               type="submit"
               disabled={sourceText.trim().length < 40}
-              className="px-4 py-2 rounded-lg text-xs font-medium bg-gray-900 text-white disabled:opacity-40"
+              className="btn-primary disabled:opacity-40"
             >
               Continua
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                setSourceText(SAMPLE_AI_GOVERNANCE_TRANSCRIPT);
-                setActNumber('Verbale Rischio n. 4/2026');
-                setActTitle('Modelli linguistici in selezione');
-              }}
-              className="text-xs text-gray-500 hover:text-gray-800"
-            >
-              Usa un esempio
-            </button>
+            {showSample && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSourceText(SAMPLE_AI_GOVERNANCE_TRANSCRIPT);
+                  setActNumber('Verbale Rischio n. 4/2026');
+                  setActTitle('Modelli linguistici in selezione');
+                  setFileName(null);
+                }}
+                className="text-xs text-gray-500 hover:text-gray-800"
+              >
+                Usa un esempio (dev)
+              </button>
+            )}
           </div>
         </form>
       )}
 
       {phase === 'review' && (
-        <form onSubmit={save} className="reddit-card p-5 sm:p-6 space-y-5">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            save('draft');
+          }}
+          className="reddit-card reddit-card--static p-5 sm:p-6 space-y-5"
+        >
           <div className="flex items-center justify-between text-xs text-gray-500">
             <span>{mode === 'source' ? 'Passo 2 · Scheda' : 'Scheda'}</span>
             <button
@@ -416,15 +435,25 @@ function ComposeInner() {
 
           {error && <p className="text-xs text-rose-600">{error}</p>}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full py-2.5 rounded-lg text-sm font-medium bg-gray-900 text-white disabled:opacity-40"
-          >
-            {submitting ? 'Salvataggio…' : 'Salva bozza'}
-          </button>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="btn-secondary flex-1 py-2.5 disabled:opacity-40"
+            >
+              {submitting ? 'Salvataggio…' : 'Salva bozza'}
+            </button>
+            <button
+              type="button"
+              disabled={submitting || !realQuestion.trim() || !decision.trim()}
+              onClick={() => save('publish')}
+              className="btn-primary flex-1 py-2.5 disabled:opacity-40"
+            >
+              {submitting ? 'Pubblicazione…' : 'Pubblica'}
+            </button>
+          </div>
           <p className="text-[11px] text-gray-400 text-center">
-            Resta privata finché non la chiudi dall’editor. Oppure{' '}
+            Bozza: resta privata. Pubblica: visibile nel feed. Oppure{' '}
             <Link href={href('/')} className="hover:text-gray-700 underline-offset-2 hover:underline">
               torna alle decisioni
             </Link>

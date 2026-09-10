@@ -59,8 +59,8 @@ function OrgInner() {
         <div>
           <h1 className="text-xl font-bold text-gray-900">{organization.name}</h1>
           <p className="text-xs text-gray-500">
-            Ruoli del team. Finché la roster è vuota, ogni utente loggato è owner (demo).
-            Al primo invito resti proprietario e il perimetro si chiude.
+            Ruoli del team. Finché non inviti nessuno, gli utenti autenticati possono amministrare.
+            Al primo invito il perimetro si chiude e resti proprietario.
             {myRole ? ` Il tuo ruolo: ${ROLE_LABELS[myRole]}.` : ''}
           </p>
         </div>
@@ -69,7 +69,7 @@ function OrgInner() {
       <div className="reddit-card p-5 space-y-3">
         {organization.members.length === 0 && (
           <p className="text-xs text-amber-800 bg-amber-50 border border-amber-100 rounded-lg p-3">
-            Roster vuota: RBAC aperto. Aggiungi il primo membro per chiudere il perimetro.
+            Roster vuota: il team è ancora aperto. Aggiungi il primo membro per chiudere il perimetro.
           </p>
         )}
         {organization.members.map((m) => (
@@ -124,7 +124,7 @@ function OrgInner() {
           <button
             type="submit"
             disabled={saving}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg text-xs font-semibold disabled:opacity-50"
+            className="btn-primary disabled:opacity-50"
           >
             {saving ? 'Salvataggio…' : 'Aggiungi'}
           </button>
