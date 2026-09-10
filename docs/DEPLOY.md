@@ -41,8 +41,13 @@ AUTH_SECRET="<openssl rand -base64 32>"
 NEXTAUTH_SECRET="<stesso valore>"
 GOOGLE_CLIENT_ID="..."
 GOOGLE_CLIENT_SECRET="..."
+# Super-admin (owner sempre). Email Google di login, separate da virgola.
+ORG_ADMIN_EMAILS="tuo@email.com"
+BLOB_READ_WRITE_TOKEN="..."
 ```
 
+I **ruoli del team** (owner/admin/…) non stanno nella tabella `User`: vivono in `curator_store.organization.members`.  
+`ORG_ADMIN_EMAILS` ti rende owner di piattaforma e, al primo bootstrap autenticato, ti scrive anche nella roster su Postgres.
 ---
 
 ## 3. Google OAuth

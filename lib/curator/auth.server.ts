@@ -1,5 +1,6 @@
 import { auth } from '@/auth';
 import { defaultOrganization } from '@/lib/org/defaults';
+import { isPlatformAdmin } from '@/lib/org/platform-admins';
 import {
   canAdminOrg,
   canAdvise,
@@ -7,9 +8,12 @@ import {
   canCompile,
   canRequestConsultation,
   resolveMemberRole,
+  rosterHasAdmin,
+  upsertMember,
 } from '@/lib/org/permissions';
-import { getCuratorBootstrap } from '@/lib/curator/bootstrap.server';
-import { OrganizationRole } from '@/types';
+import { getCuratorBootstrap, mergeOrganization } from '@/lib/curator/bootstrap.server';
+import { updateCuratorStore } from '@/lib/curator/store.server';
+import { Organization, OrganizationRole } from '@/types';
 import { NextResponse } from 'next/server';
 
 export async function requireCuratorSession() {
@@ -20,18 +24,89 @@ export async function requireCuratorSession() {
   return { session, error: null };
 }
 
+/**
+ * Scrive l'owner in curator_store (Postgres) quando serve:
+ * - email in ORG_ADMIN_EMAILS
+ * - roster vuota o senza admin (primo claim / anti-lockout)
+ * Così i ruoli non restano solo calcolati in memoria.
+ */
+async function ensureOwnerMembership(params: {
+  organization: Organization;
+  userId: string;
+  email?: string | null;
+  name?: string | null;
+  role: OrganizationRole | null;
+}): Promise<Organization> {
+  const { organization, userId, email, name, role } = params;
+  if (role !== 'owner' && role !== 'admin') return organization;
+
+  const emailNorm = email?.trim().toLowerCase() || null;
+  const members = organization.members ?? [];
+  const existing = members.find(
+    (m) => m.userId === userId || (emailNorm && m.email?.toLowerCase() === emailNorm)
+  );
+
+  const alreadyOwnerHere =
+    existing &&
+    existing.userId === userId &&
+    (existing.role === 'owner' || existing.role === 'admin');
+  if (alreadyOwnerHere) return organization;
+
+  const claimEmptyOrBroken = members.length === 0 || !rosterHasAdmin(members);
+  const claimPlatform = isPlatformAdmin(emailNorm);
+  if (!claimEmptyOrBroken && !claimPlatform) return organization;
+
+  try {
+    const store = await updateCuratorStore((current) => {
+      const org = mergeOrganization(current.organization ?? defaultOrganization());
+      const nextMembers = upsertMember(org.members, {
+        userId,
+        email: emailNorm || existing?.email || `${userId}@users.local`,
+        name: name ?? existing?.name,
+        role: 'owner',
+        addedAt: existing?.addedAt || new Date().toISOString(),
+      });
+      return {
+        ...current,
+        version: 2,
+        organization: { ...org, members: nextMembers },
+      };
+    });
+    return mergeOrganization(store.organization);
+  } catch (err) {
+    console.warn('[org] impossibile persistere owner in curator_store', err);
+    return organization;
+  }
+}
+
 export async function getSessionOrgRole() {
   const session = await auth();
-  const { organization } = await getCuratorBootstrap();
-  const org = organization ?? defaultOrganization();
+  const { organization: bootOrg } = await getCuratorBootstrap();
+  let organization = bootOrg ?? defaultOrganization();
+
   if (!session?.user) {
-    return { session: null, organization: org, role: null as OrganizationRole | null };
+    return { session: null, organization, role: null as OrganizationRole | null };
   }
-  const role = resolveMemberRole(org, {
+
+  let role = resolveMemberRole(organization, {
     id: session.user.id,
     email: session.user.email,
   });
-  return { session, organization: org, role };
+
+  organization = await ensureOwnerMembership({
+    organization,
+    userId: session.user.id!,
+    email: session.user.email,
+    name: session.user.name,
+    role,
+  });
+
+  role = resolveMemberRole(organization, {
+    id: session.user.id,
+    email: session.user.email,
+  });
+
+  return { session, organization, role };
 }
 
 export async function requirePermission(

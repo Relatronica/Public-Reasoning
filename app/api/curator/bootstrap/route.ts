@@ -5,9 +5,9 @@ import { isVisibleOnPublicFeed } from '@/lib/records';
 
 export async function GET() {
   const bootstrap = await getCuratorBootstrap();
-  const { session, role } = await getSessionOrgRole();
+  const { session, role, organization } = await getSessionOrgRole();
   if (session?.user?.id) {
-    return NextResponse.json({ ...bootstrap, myRole: role });
+    return NextResponse.json({ ...bootstrap, organization, myRole: role });
   }
   return NextResponse.json({
     ...bootstrap,

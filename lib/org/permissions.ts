@@ -1,4 +1,5 @@
 import { Organization, OrganizationMember, OrganizationRole } from '@/types';
+import { isPlatformAdmin } from '@/lib/org/platform-admins';
 
 const RANK: Record<OrganizationRole, number> = {
   viewer: 0,
@@ -75,6 +76,9 @@ export function resolveMemberRole(
   org: Organization,
   user: { id?: string | null; email?: string | null }
 ): OrganizationRole | null {
+  // Super-admin di piattaforma (ORG_ADMIN_EMAILS): sempre owner.
+  if (isPlatformAdmin(user.email)) return 'owner';
+
   const id = user.id ?? '';
   const email = user.email?.toLowerCase();
   const byId = org.members.find((m) => m.userId === id);
