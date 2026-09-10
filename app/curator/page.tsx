@@ -79,7 +79,7 @@ function CuratorHubInner() {
             <span className="text-sm font-bold">Community</span>
           </div>
           <p className="text-xs text-gray-500 leading-relaxed">
-            Nome, tagline, categorie, logo, banner, etichette delle fonti.
+            Nome, tagline, fonti, argomenti, logo e banner.
           </p>
         </Link>
 

@@ -205,7 +205,7 @@ function RecordEditorInner() {
               </select>
             </label>
             <label className="space-y-1 block">
-              <span className="text-xs font-semibold text-gray-700">Categoria</span>
+              <span className="text-xs font-semibold text-gray-700">Argomento</span>
               <select
                 className={inputClass}
                 value={record.category ?? ''}

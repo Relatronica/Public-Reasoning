@@ -73,6 +73,18 @@ body {
   stroke-linecap: round;
 }
 
+.decision-flow .react-flow__node {
+  cursor: pointer;
+}
+
+.decision-flow .react-flow__node.selected {
+  z-index: 10;
+}
+
+.decision-flow .react-flow__node.selected .react-flow__resize-control {
+  display: none;
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

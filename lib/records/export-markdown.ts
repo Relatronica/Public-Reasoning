@@ -35,7 +35,7 @@ export function recordToMarkdown(record: ReasoningRecord): string {
 - Fonte: ${act?.actNumber ?? ''} ${act?.title ?? ''}
 - Stato: ${displayStatusLabel(record.status)}
 - Visibilità: ${resolveVisibility(record)}
-- Categoria: ${record.category ?? '—'}
+- Argomento: ${record.category ?? '—'}
 - Pack: ${record.compliancePack ?? '—'}
 - Incertezza: ${record.uncertaintyLevel}
 - Confidenza: ${confidenceLabel(record.confidence)}

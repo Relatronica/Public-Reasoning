@@ -127,8 +127,10 @@ export default function DecisionInsightsDock({
   }, [openToken, filterStepId, openTab]);
 
   useEffect(() => {
-    if (insights[0]) setActiveId(insights[0].id);
-    else setActiveId(null);
+    setActiveId((prev) => {
+      if (prev && insights.some((i) => i.id === prev)) return prev;
+      return insights[0]?.id ?? null;
+    });
   }, [insights, stepFilter]);
 
   useEffect(() => {
@@ -289,12 +291,15 @@ export default function DecisionInsightsDock({
               <RequestsPanel
                 recordId={record.id}
                 requests={requests}
+                insights={record.insights ?? []}
                 myRole={myRole}
                 canAdvise={canAdvise}
                 canRequest={canRequestConsultation && authStatus === 'authenticated'}
-                onChanged={async () => {
+                onChanged={async (insightId) => {
                   await refresh();
+                  setStepFilter(null);
                   setTab('spunti');
+                  if (insightId) setActiveId(insightId);
                 }}
                 onRequestCreated={async () => {
                   await refresh();
@@ -411,6 +416,7 @@ function InsightRow({
 function RequestsPanel({
   recordId,
   requests,
+  insights,
   myRole,
   canAdvise,
   canRequest,
@@ -419,10 +425,11 @@ function RequestsPanel({
 }: {
   recordId: string;
   requests: ConsultationRequest[];
+  insights: DecisionInsight[];
   myRole: OrganizationRole | null;
   canAdvise: boolean;
   canRequest: boolean;
-  onChanged: () => Promise<void>;
+  onChanged: (insightId?: string) => Promise<void>;
   onRequestCreated: () => Promise<void>;
 }) {
   const [kind, setKind] = useState<ConsultationKind>('consulenza');
@@ -440,6 +447,12 @@ function RequestsPanel({
       ),
     [requests]
   );
+
+  const insightsById = useMemo(() => {
+    const map = new Map<string, DecisionInsight>();
+    for (const insight of insights) map.set(insight.id, insight);
+    return map;
+  }, [insights]);
 
   async function submitRequest(e: React.FormEvent) {
     e.preventDefault();
@@ -481,7 +494,7 @@ function RequestsPanel({
       setReplyFor(null);
       setReplyTitle('');
       setReplyBody('');
-      await onChanged();
+      await onChanged(data.insight?.id as string | undefined);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Errore');
     } finally {
@@ -554,6 +567,9 @@ function RequestsPanel({
               canAdvise &&
               req.status !== 'chiusa' &&
               canReplyToConsultationKind(myRole, req.kind);
+            const response = req.responseInsightId
+              ? insightsById.get(req.responseInsightId)
+              : undefined;
             return (
               <li key={req.id} className="rounded-lg border border-gray-200 p-3 space-y-2">
                 <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] uppercase tracking-wider font-semibold text-gray-400">
@@ -577,6 +593,22 @@ function RequestsPanel({
                   {' · '}
                   {new Date(req.createdAt).toLocaleDateString('it-IT')}
                 </p>
+
+                {req.status === 'chiusa' && response && (
+                  <div className="rounded-md bg-gray-50 border border-gray-100 p-2.5 space-y-1">
+                    <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                      Risposta · {response.author || response.role || 'Advisor'}
+                    </p>
+                    <p className="text-sm font-medium text-gray-900 leading-snug">{response.title}</p>
+                    <p className="text-xs text-gray-600 leading-relaxed">{response.body}</p>
+                  </div>
+                )}
+
+                {req.status === 'chiusa' && req.responseInsightId && !response && (
+                  <p className="text-[11px] text-gray-500">
+                    Risposta pubblicata negli spunti della scheda.
+                  </p>
+                )}
 
                 {canReply && replyFor !== req.id && (
                   <button

@@ -56,6 +56,58 @@
     "personale": {
       "logoUrl": "/communities/personale/logo.jpg",
       "coverImageUrl": "/communities/personale/cover.jpg"
+    },
+    "agora": {
+      "name": "Agorà",
+      "shortName": "Agorà",
+      "subtitle": "Vetrina del giudizio pubblico",
+      "tagline": "Spazio dimostrativo: decisioni complete con grafo, fonti, filosofi, consulenti e richieste di consultazione.",
+      "feedTitle": "Registro del giudizio — Agorà",
+      "feedSubtitle": "Esplora schede piene: domanda reale, scarti, stop, spunti e consultazioni aperte.",
+      "feedBadge": "Vetrina",
+      "sourceLabel": "Atto",
+      "sourceLabelPlural": "Atti",
+      "archiveLabel": "Archivio laboratorio",
+      "archiveNavLabel": "Archivio",
+      "sourcePlaceholder": "es. Delibera Laboratorio n. 3/2026",
+      "newRecordTitle": "Documenta una decisione",
+      "newRecordHint": "Questa community è pensata per mostrare il potenziale di Reason: compilazione, grafo e consultazione.",
+      "searchPlaceholder": "Cerca piazza, URP, bilancio, spunti…",
+      "officialUrlLabel": "Manifesto Agorà",
+      "logoUrl": "/communities/agora/logo.svg",
+      "coverImageUrl": "/communities/agora/cover.svg",
+      "categories": [
+        {
+          "label": "Spazio pubblico",
+          "color": "bg-blue-500"
+        },
+        {
+          "label": "Servizi digitali",
+          "color": "bg-emerald-500"
+        },
+        {
+          "label": "Partecipazione",
+          "color": "bg-amber-500"
+        },
+        {
+          "label": "Etica pubblica",
+          "color": "bg-teal-500"
+        }
+      ],
+      "stats": [
+        {
+          "label": "Schede",
+          "value": "3 demo"
+        },
+        {
+          "label": "Ambito",
+          "value": "Vetrina"
+        },
+        {
+          "label": "Casa",
+          "value": "Due case"
+        }
+      ]
     }
   },
   "customCommunities": [

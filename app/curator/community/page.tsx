@@ -8,10 +8,19 @@ import { useSession } from 'next-auth/react';
 import { ArrowLeft, ImagePlus, Plus, Save, Trash2 } from 'lucide-react';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
+import {
+  CATEGORY_COLOR_PALETTE,
+  categoryColorHex,
+  resolveCategoryColor,
+} from '@/lib/communities/category-colors';
 import { Community, CommunityCategory, CommunityStat } from '@/types';
 
 const inputClass =
   'w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500';
+
+const labelClass = 'text-xs font-semibold text-gray-700';
+const hintClass = 'text-[11px] text-gray-500 leading-relaxed';
+const sectionTitleClass = 'text-xs font-bold uppercase tracking-wider text-gray-400';
 
 function CommunityEditorInner() {
   const { data: session, status } = useSession();
@@ -102,7 +111,10 @@ function CommunityEditorInner() {
           officialUrlLabel: form.officialUrlLabel,
           logoUrl: form.logoUrl,
           coverImageUrl: form.coverImageUrl,
-          categories: form.categories,
+          categories: form.categories.map((c) => ({
+            label: c.label.trim() || 'Argomento',
+            color: resolveCategoryColor(c.color),
+          })),
           stats: form.stats,
         }),
       });
@@ -144,42 +156,46 @@ function CommunityEditorInner() {
   };
 
   return (
-    <div className="space-y-5 max-w-2xl">
+    <div className="space-y-5 w-full max-w-3xl">
       <div className="flex items-center gap-3">
         <Link href={href('/curator')} className="text-gray-400 hover:text-gray-700">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
           <h1 className="text-xl font-bold text-gray-900">Modifica community</h1>
-          <p className="text-xs text-gray-500">{community.name}</p>
+          <p className="text-xs text-gray-500">
+            Identità, testi, fonti e argomenti di {community.name}.
+          </p>
         </div>
       </div>
 
       <form onSubmit={handleSave} className="reddit-card p-6 space-y-5">
         <section className="space-y-3">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400">Identità</h2>
+          <h2 className={sectionTitleClass}>Identità</h2>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="space-y-1">
-              <span className="text-xs font-semibold text-gray-700">Nome</span>
+              <span className={labelClass}>Nome</span>
               <input className={inputClass} value={form.name} onChange={(e) => update('name', e.target.value)} />
             </label>
             <label className="space-y-1">
-              <span className="text-xs font-semibold text-gray-700">Nome breve</span>
+              <span className={labelClass}>Nome breve</span>
               <input className={inputClass} value={form.shortName} onChange={(e) => update('shortName', e.target.value)} />
+              <p className={hintClass}>Compare nel selettore in alto.</p>
             </label>
           </div>
           <label className="space-y-1 block">
-            <span className="text-xs font-semibold text-gray-700">Sottotitolo</span>
+            <span className={labelClass}>Sottotitolo</span>
             <input className={inputClass} value={form.subtitle ?? ''} onChange={(e) => update('subtitle', e.target.value)} />
           </label>
           <label className="space-y-1 block">
-            <span className="text-xs font-semibold text-gray-700">Tagline (sidebar)</span>
+            <span className={labelClass}>Tagline</span>
             <textarea className={inputClass} rows={2} value={form.tagline} onChange={(e) => update('tagline', e.target.value)} />
+            <p className={hintClass}>Breve descrizione in sidebar destra.</p>
           </label>
         </section>
 
         <section className="space-y-4 pt-2 border-t border-gray-100">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400">Logo e banner (sidebar destra)</h2>
+          <h2 className={sectionTitleClass}>Logo e banner</h2>
 
           <div className="rounded-xl border border-gray-200 bg-white">
             <div className="relative h-20 overflow-hidden rounded-t-xl bg-gray-200">
@@ -215,13 +231,13 @@ function CommunityEditorInner() {
               </div>
               <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">{form.typeLabel}</p>
               <p className="text-sm font-bold text-gray-900 mt-0.5">{form.name}</p>
-              <p className="text-[11px] text-gray-500 mt-2">Anteprima come in sidebar</p>
+              <p className="text-[11px] text-gray-500 mt-2">Anteprima sidebar</p>
             </div>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-2">
-              <span className="text-xs font-semibold text-gray-700">Logo</span>
+              <span className={labelClass}>Logo</span>
               <label className="flex items-center justify-center gap-2 px-3 py-2.5 border border-dashed border-gray-300 rounded-lg text-xs font-semibold text-blue-700 hover:bg-blue-50 cursor-pointer">
                 <ImagePlus className="w-4 h-4" />
                 {uploading === 'logo' ? 'Caricamento…' : 'Carica logo'}
@@ -247,7 +263,7 @@ function CommunityEditorInner() {
             </div>
 
             <div className="space-y-2">
-              <span className="text-xs font-semibold text-gray-700">Banner header</span>
+              <span className={labelClass}>Banner</span>
               <label className="flex items-center justify-center gap-2 px-3 py-2.5 border border-dashed border-gray-300 rounded-lg text-xs font-semibold text-blue-700 hover:bg-blue-50 cursor-pointer">
                 <ImagePlus className="w-4 h-4" />
                 {uploading === 'cover' ? 'Caricamento…' : 'Carica banner'}
@@ -275,59 +291,189 @@ function CommunityEditorInner() {
         </section>
 
         <section className="space-y-3 pt-2 border-t border-gray-100">
-          <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400">Feed e fonti</h2>
+          <h2 className={sectionTitleClass}>Testi del feed</h2>
           <label className="space-y-1 block">
-            <span className="text-xs font-semibold text-gray-700">Etichetta fonte (singolare)</span>
-            <input className={inputClass} value={form.sourceLabel} onChange={(e) => update('sourceLabel', e.target.value)} />
+            <span className={labelClass}>Titolo feed</span>
+            <input className={inputClass} value={form.feedTitle} onChange={(e) => update('feedTitle', e.target.value)} />
           </label>
           <label className="space-y-1 block">
-            <span className="text-xs font-semibold text-gray-700">Archivio (label)</span>
-            <input className={inputClass} value={form.archiveNavLabel} onChange={(e) => update('archiveNavLabel', e.target.value)} />
+            <span className={labelClass}>Sottotitolo feed</span>
+            <textarea className={inputClass} rows={2} value={form.feedSubtitle} onChange={(e) => update('feedSubtitle', e.target.value)} />
           </label>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="space-y-1">
+              <span className={labelClass}>Badge</span>
+              <input className={inputClass} value={form.feedBadge} onChange={(e) => update('feedBadge', e.target.value)} />
+            </label>
+            <label className="space-y-1">
+              <span className={labelClass}>Placeholder ricerca</span>
+              <input className={inputClass} value={form.searchPlaceholder} onChange={(e) => update('searchPlaceholder', e.target.value)} />
+            </label>
+          </div>
+        </section>
+
+        <section className="space-y-3 pt-2 border-t border-gray-100">
+          <h2 className={sectionTitleClass}>Fonti</h2>
+          <p className={hintClass}>
+            Come chiami le fonti ufficiali in questa community (es. Atto, Verbale, Decision log).
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="space-y-1">
+              <span className={labelClass}>Fonte (singolare)</span>
+              <input className={inputClass} value={form.sourceLabel} onChange={(e) => update('sourceLabel', e.target.value)} />
+            </label>
+            <label className="space-y-1">
+              <span className={labelClass}>Fonte (plurale)</span>
+              <input className={inputClass} value={form.sourceLabelPlural} onChange={(e) => update('sourceLabelPlural', e.target.value)} />
+            </label>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="space-y-1">
+              <span className={labelClass}>Voce menu Fonti</span>
+              <input className={inputClass} value={form.archiveNavLabel} onChange={(e) => update('archiveNavLabel', e.target.value)} />
+            </label>
+            <label className="space-y-1">
+              <span className={labelClass}>Titolo archivio</span>
+              <input className={inputClass} value={form.archiveLabel} onChange={(e) => update('archiveLabel', e.target.value)} />
+            </label>
+          </div>
           <label className="space-y-1 block">
-            <span className="text-xs font-semibold text-gray-700">Placeholder ricerca</span>
-            <input className={inputClass} value={form.searchPlaceholder} onChange={(e) => update('searchPlaceholder', e.target.value)} />
+            <span className={labelClass}>Esempio riferimento</span>
+            <input className={inputClass} value={form.sourcePlaceholder} onChange={(e) => update('sourcePlaceholder', e.target.value)} />
+            <p className={hintClass}>Placeholder nei form di cattura (es. Delibera C.C. n. 45/2024).</p>
           </label>
         </section>
 
         <section className="space-y-3 pt-2 border-t border-gray-100">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400">Categorie</h2>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className={sectionTitleClass}>Argomenti</h2>
+              <p className={`${hintClass} mt-1`}>
+                Filtri nella sidebar. Nome e colore modificabili.
+              </p>
+            </div>
             <button
               type="button"
-              onClick={() => update('categories', [...form.categories, { label: 'Nuova', color: 'bg-gray-500' }])}
-              className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+              onClick={() =>
+                update('categories', [
+                  ...form.categories,
+                  { label: 'Nuovo argomento', color: 'bg-blue-500' },
+                ])
+              }
+              className="text-xs text-blue-600 hover:underline flex items-center gap-1 flex-shrink-0"
             >
               <Plus className="w-3 h-3" /> Aggiungi
             </button>
           </div>
-          {form.categories.map((cat, i) => (
-            <div key={i} className="flex gap-2 items-center">
-              <input className={`${inputClass} flex-1`} value={cat.label} onChange={(e) => updateCategory(i, { label: e.target.value })} />
-              <input className={`${inputClass} w-32`} value={cat.color} onChange={(e) => updateCategory(i, { color: e.target.value })} placeholder="bg-blue-500" />
-              <button type="button" onClick={() => update('categories', form.categories.filter((_, j) => j !== i))} className="text-gray-400 hover:text-red-600 p-1">
-                <Trash2 className="w-4 h-4" />
-              </button>
-            </div>
-          ))}
+
+          {form.categories.length === 0 && (
+            <p className={hintClass}>Nessun argomento. Aggiungine uno per filtrare le decisioni.</p>
+          )}
+
+          <ul className="grid sm:grid-cols-2 gap-2">
+            {form.categories.map((cat, i) => {
+              const color = resolveCategoryColor(cat.color);
+              return (
+                <li
+                  key={i}
+                  className="rounded-lg border border-gray-200 bg-white p-2.5 space-y-2"
+                >
+                  <div className="flex gap-1.5 items-center">
+                    <span
+                      className="w-2 h-2 rounded-full flex-shrink-0 ring-1 ring-black/10"
+                      style={{ backgroundColor: categoryColorHex(color) }}
+                      aria-hidden
+                    />
+                    <input
+                      className={`${inputClass} flex-1 py-1.5`}
+                      value={cat.label}
+                      onChange={(e) => updateCategory(i, { label: e.target.value })}
+                      placeholder="Nome argomento"
+                      aria-label={`Nome argomento ${i + 1}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() =>
+                        update(
+                          'categories',
+                          form.categories.filter((_, j) => j !== i)
+                        )
+                      }
+                      className="text-gray-400 hover:text-red-600 p-1 flex-shrink-0"
+                      aria-label={`Rimuovi argomento ${cat.label || i + 1}`}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+
+                  <div className="flex flex-wrap gap-1.5 pl-3.5">
+                    {CATEGORY_COLOR_PALETTE.map((swatch) => {
+                      const selected = color === swatch.className;
+                      return (
+                        <button
+                          key={swatch.className}
+                          type="button"
+                          title={swatch.label}
+                          aria-label={swatch.label}
+                          aria-pressed={selected}
+                          onClick={() => updateCategory(i, { color: swatch.className })}
+                          style={{ backgroundColor: swatch.hex }}
+                          className={`w-5 h-5 rounded-full border border-black/10 transition ${
+                            selected
+                              ? 'ring-2 ring-gray-900 ring-offset-1 scale-110'
+                              : 'hover:scale-105'
+                          }`}
+                        />
+                      );
+                    })}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+          <p className={hintClass}>
+            Rinominare un argomento non aggiorna le schede già salvate con il nome precedente.
+          </p>
         </section>
 
         <section className="space-y-3 pt-2 border-t border-gray-100">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xs font-bold uppercase tracking-wider text-gray-400">Stats sidebar</h2>
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className={sectionTitleClass}>Indicatori sidebar</h2>
+              <p className={`${hintClass} mt-1`}>Cifre o etichette sotto la community (es. abitanti, organico).</p>
+            </div>
             <button
               type="button"
-              onClick={() => update('stats', [...form.stats, { label: 'Nuova', value: '—' }])}
-              className="text-xs text-blue-600 hover:underline flex items-center gap-1"
+              onClick={() => update('stats', [...form.stats, { label: 'Nuovo', value: '—' }])}
+              className="text-xs text-blue-600 hover:underline flex items-center gap-1 flex-shrink-0"
             >
               <Plus className="w-3 h-3" /> Aggiungi
             </button>
           </div>
           {form.stats.map((stat, i) => (
-            <div key={i} className="flex gap-2 items-center">
-              <input className={`${inputClass} flex-1`} value={stat.label} onChange={(e) => updateStat(i, { label: e.target.value })} />
-              <input className={`${inputClass} flex-1`} value={stat.value} onChange={(e) => updateStat(i, { value: e.target.value })} />
-              <button type="button" onClick={() => update('stats', form.stats.filter((_, j) => j !== i))} className="text-gray-400 hover:text-red-600 p-1">
+            <div key={i} className="flex gap-2 items-end">
+              <label className="space-y-1 flex-1">
+                <span className={labelClass}>Etichetta</span>
+                <input
+                  className={inputClass}
+                  value={stat.label}
+                  onChange={(e) => updateStat(i, { label: e.target.value })}
+                />
+              </label>
+              <label className="space-y-1 flex-1">
+                <span className={labelClass}>Valore</span>
+                <input
+                  className={inputClass}
+                  value={stat.value}
+                  onChange={(e) => updateStat(i, { value: e.target.value })}
+                />
+              </label>
+              <button
+                type="button"
+                onClick={() => update('stats', form.stats.filter((_, j) => j !== i))}
+                className="text-gray-400 hover:text-red-600 p-1.5 mb-0.5"
+                aria-label="Rimuovi indicatore"
+              >
                 <Trash2 className="w-4 h-4" />
               </button>
             </div>

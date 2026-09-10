@@ -145,7 +145,7 @@ export async function PATCH(request: Request, { params }: Params) {
     body: text,
     author: authorName,
     role: target.kind === 'filosofica' ? 'Filosofo' : 'Consulente',
-    relatedStepId: body.relatedStepId,
+    relatedStepId: body.relatedStepId?.trim() || 'decision',
     consultationRequestId: requestId,
     authorUserId: gate.session.user!.id!,
     createdAt: new Date().toISOString(),
