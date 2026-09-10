@@ -70,8 +70,25 @@ function NewCommunityInner() {
           subtitle: subtitle.trim() || undefined,
         }),
       });
-      const data = await res.json();
+      const raw = await res.text();
+      let data: { error?: string; community?: { slug: string } } = {};
+      if (raw) {
+        try {
+          data = JSON.parse(raw) as typeof data;
+        } catch {
+          throw new Error(
+            res.ok
+              ? 'Risposta non valida dal server.'
+              : `Creazione fallita (HTTP ${res.status}). Controlla che Postgres sia attivo e che le migrazioni siano applicate (npm run db:deploy).`
+          );
+        }
+      } else if (!res.ok) {
+        throw new Error(
+          `Creazione fallita (HTTP ${res.status}). Controlla Postgres e le migrazioni (npm run db:deploy).`
+        );
+      }
       if (!res.ok) throw new Error(data.error ?? 'Creazione fallita');
+      if (!data.community?.slug) throw new Error('Community creata ma risposta incompleta.');
       await refresh();
       router.push(withCommunityQuery('/curator/community', data.community.slug));
     } catch (err) {

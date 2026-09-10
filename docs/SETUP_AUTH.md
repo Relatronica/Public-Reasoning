@@ -35,16 +35,16 @@ openssl rand -base64 32
 
 Guida estesa: [`SETUP_GOOGLE_OAUTH.md`](SETUP_GOOGLE_OAUTH.md).
 
-## 3. Database
+## Database
 
-Lo schema Prisma usa **PostgreSQL**. Avvia Postgres, poi:
+Lo schema Prisma usa **PostgreSQL**. Se vedi l’errore `P3019` (lock sqlite vs postgresql), la history delle migrazioni è stata ripartita per Postgres: usa `npm run db:deploy` o `npm run db:migrate` su un DB pulito / gestito.
 
 ```bash
 npm run db:generate
 npm run db:migrate
 ```
 
-In produzione usa `npm run db:deploy` (vedi [`DEPLOY.md`](DEPLOY.md)).
+In produzione: `npm run db:deploy` (vedi [`DEPLOY.md`](DEPLOY.md)).
 
 ## 4. Flusso di registrazione
 
