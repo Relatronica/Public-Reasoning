@@ -46,7 +46,7 @@ const initialBootstrap: CuratorBootstrap = {
 };
 
 export function CuratorDataProvider({ children }: { children: React.ReactNode }) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [bootstrap, setBootstrap] = useState<CuratorBootstrap>(initialBootstrap);
   const [loading, setLoading] = useState(true);
 
@@ -62,9 +62,12 @@ export function CuratorDataProvider({ children }: { children: React.ReactNode })
     }
   }, []);
 
+  // Ricarica i permessi quando cambia la sessione (login/logout),
+  // altrimenti myRole resta null e i CTA admin non compaiono.
   useEffect(() => {
+    if (status === 'loading') return;
     refresh();
-  }, [refresh]);
+  }, [refresh, status, session?.user?.id]);
 
   const consultationInbox = useMemo(
     () =>
