@@ -4,7 +4,7 @@ import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Building2, FileText, Pencil, Plus, Users } from 'lucide-react';
+import { ArrowLeft, Building2, FileText, Inbox, Pencil, Plus, Users } from 'lucide-react';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
 
@@ -12,7 +12,7 @@ function CuratorHubInner() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { community, href } = useActiveCommunity();
-  const { recordsForCommunity, canAdminOrg } = useCuratorData();
+  const { recordsForCommunity, canAdminOrg, canAdvise, inboxOpenCount } = useCuratorData();
   const records = recordsForCommunity(community.id);
 
   if (status === 'unauthenticated') {
@@ -95,6 +95,23 @@ function CuratorHubInner() {
             Modifica decisioni esistenti o apri una scheda dal feed.
           </p>
         </Link>
+
+        {canAdvise && (
+          <Link
+            href={href('/curator/richieste')}
+            className="reddit-card p-5 hover:border-amber-200 transition-colors group"
+          >
+            <div className="flex items-center gap-2 text-amber-800 mb-2">
+              <Inbox className="w-5 h-5" />
+              <span className="text-sm font-bold">
+                Richieste{inboxOpenCount > 0 ? ` (${inboxOpenCount})` : ''}
+              </span>
+            </div>
+            <p className="text-xs text-gray-500 leading-relaxed">
+              Coda di consultazioni aperte per filosofi e consulenti.
+            </p>
+          </Link>
+        )}
 
         <Link
           href={href('/records/capture')}

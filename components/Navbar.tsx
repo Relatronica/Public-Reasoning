@@ -20,6 +20,7 @@ import {
   LogOut,
   LogIn,
   UserPlus,
+  Inbox,
 } from 'lucide-react';
 import { withCommunityQuery } from '@/lib/communities';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
@@ -69,7 +70,8 @@ function NavbarInner() {
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const { community, href } = useActiveCommunity();
-  const { communities, canCompile, canAdminOrg, myRole, organization } = useCuratorData();
+  const { communities, canCompile, canAdminOrg, canAdvise, myRole, organization, inboxOpenCount } =
+    useCuratorData();
   const Icon = communityIcon(community.type, community.slug);
 
   const user = session?.user as
@@ -186,12 +188,19 @@ function NavbarInner() {
               }}
               title="Account"
               aria-expanded={accountOpen}
-              className="w-8 h-8 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center text-gray-700 font-bold text-xs overflow-hidden hover:border-gray-300"
+              className="relative w-8 h-8 flex items-center justify-center hover:opacity-90"
             >
-              {isAuthenticated && avatarUrl ? (
-                <Image src={avatarUrl} alt="" width={32} height={32} className="w-full h-full object-cover" />
-              ) : (
-                isAuthenticated ? initials : '?'
+              <span className="absolute inset-0 rounded-full bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center text-gray-700 font-bold text-xs">
+                {isAuthenticated && avatarUrl ? (
+                  <Image src={avatarUrl} alt="" width={32} height={32} className="w-full h-full object-cover" />
+                ) : (
+                  isAuthenticated ? initials : '?'
+                )}
+              </span>
+              {isAuthenticated && canAdvise && inboxOpenCount > 0 && (
+                <span className="absolute -top-1 -right-1 z-10 min-w-[1rem] h-4 px-1 rounded-full bg-amber-500 text-white text-[10px] font-bold leading-4 text-center ring-2 ring-white">
+                  {inboxOpenCount > 9 ? '9+' : inboxOpenCount}
+                </span>
               )}
             </button>
 
@@ -216,6 +225,17 @@ function NavbarInner() {
                         <Landmark className="w-4 h-4 text-gray-400" />
                         Registro
                       </Link>
+                      {canAdvise && (
+                        <Link href={href('/curator/richieste')} onClick={closeAccount} className={menuItem} role="menuitem">
+                          <Inbox className="w-4 h-4 text-gray-400" />
+                          <span className="flex-1">Richieste</span>
+                          {inboxOpenCount > 0 && (
+                            <span className="min-w-[1.25rem] px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold text-center">
+                              {inboxOpenCount}
+                            </span>
+                          )}
+                        </Link>
+                      )}
                       {canAdminOrg && (
                         <Link href={href('/curator/org')} onClick={closeAccount} className={menuItem} role="menuitem">
                           <Users className="w-4 h-4 text-gray-400" />

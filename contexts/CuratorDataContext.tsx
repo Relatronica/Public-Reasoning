@@ -9,6 +9,11 @@ import { isVisibleOnPublicFeed } from '@/lib/records';
 import { Community, Organization, OrganizationRole, PublicAct, ReasoningRecord } from '@/types';
 import { canAdminOrg, canAdvise, canClose, canCompile, canRequestConsultation } from '@/lib/org/permissions';
 import { defaultOrganization } from '@/lib/org/defaults';
+import {
+  collectAdvisorInbox,
+  type ConsultationInboxItem,
+} from '@/lib/records/consultations';
+import { useSession } from 'next-auth/react';
 
 interface CuratorDataContextValue {
   communities: Community[];
@@ -21,6 +26,9 @@ interface CuratorDataContextValue {
   canAdminOrg: boolean;
   canAdvise: boolean;
   canRequestConsultation: boolean;
+  /** Richieste aperte a cui posso rispondere (filosofo/consulente/admin). */
+  consultationInbox: ConsultationInboxItem[];
+  inboxOpenCount: number;
   loading: boolean;
   refresh: () => Promise<void>;
   recordsForCommunity: (communityId: string) => ReasoningRecord[];
@@ -38,6 +46,7 @@ const initialBootstrap: CuratorBootstrap = {
 };
 
 export function CuratorDataProvider({ children }: { children: React.ReactNode }) {
+  const { data: session } = useSession();
   const [bootstrap, setBootstrap] = useState<CuratorBootstrap>(initialBootstrap);
   const [loading, setLoading] = useState(true);
 
@@ -57,6 +66,15 @@ export function CuratorDataProvider({ children }: { children: React.ReactNode })
     refresh();
   }, [refresh]);
 
+  const consultationInbox = useMemo(
+    () =>
+      collectAdvisorInbox(bootstrap.records, bootstrap.myRole ?? null, {
+        id: session?.user?.id,
+        email: session?.user?.email,
+      }),
+    [bootstrap.records, bootstrap.myRole, session?.user?.id, session?.user?.email]
+  );
+
   const value = useMemo<CuratorDataContextValue>(
     () => ({
       communities: bootstrap.communities,
@@ -69,6 +87,8 @@ export function CuratorDataProvider({ children }: { children: React.ReactNode })
       canAdminOrg: canAdminOrg(bootstrap.myRole),
       canAdvise: canAdvise(bootstrap.myRole),
       canRequestConsultation: canRequestConsultation(bootstrap.myRole),
+      consultationInbox,
+      inboxOpenCount: consultationInbox.length,
       loading,
       refresh,
       recordsForCommunity: (communityId: string) =>
@@ -76,7 +96,7 @@ export function CuratorDataProvider({ children }: { children: React.ReactNode })
       actsForCommunity: (communityId: string) =>
         actsForCommunityId(bootstrap.acts, communityId),
     }),
-    [bootstrap, loading, refresh]
+    [bootstrap, consultationInbox, loading, refresh]
   );
 
   return (

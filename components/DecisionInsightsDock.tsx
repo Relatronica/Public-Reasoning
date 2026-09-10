@@ -37,21 +37,24 @@ const KIND_ICON = {
   consulenza: MessageSquare,
 } as const;
 
+type Tab = 'spunti' | 'richieste';
+
 interface Props {
   record: ReasoningRecord;
   onSelectRelatedStep?: (stepId: string) => void;
   /** Apre il dock filtrato su uno step (es. click badge). */
   filterStepId?: string | null;
   openToken?: number;
+  /** Tab da aprire quando openToken cambia. */
+  openTab?: Tab;
 }
-
-type Tab = 'spunti' | 'richieste';
 
 export default function DecisionInsightsDock({
   record,
   onSelectRelatedStep,
   filterStepId = null,
   openToken = 0,
+  openTab = 'spunti',
 }: Props) {
   const { status: authStatus } = useSession();
   const { myRole, canAdvise, canRequestConsultation, refresh } = useCuratorData();
@@ -117,11 +120,11 @@ export default function DecisionInsightsDock({
   useEffect(() => {
     if (!openToken) return;
     setStepFilter(filterStepId ?? null);
-    setTab('spunti');
+    setTab(openTab);
     setPinned(true);
     setOpen(true);
     setAdding(false);
-  }, [openToken, filterStepId]);
+  }, [openToken, filterStepId, openTab]);
 
   useEffect(() => {
     if (insights[0]) setActiveId(insights[0].id);

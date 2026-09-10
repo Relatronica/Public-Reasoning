@@ -1,8 +1,8 @@
 'use client';
 
-import React, { Suspense, useMemo, useState } from 'react';
+import React, { Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Pencil } from 'lucide-react';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
@@ -17,6 +17,7 @@ import { useSession } from 'next-auth/react';
 
 function RecordDetailInner() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const id = params.id as string;
   const { data: session, status: authStatus } = useSession();
   const { href } = useActiveCommunity();
@@ -26,6 +27,7 @@ function RecordDetailInner() {
   const [focusToken, setFocusToken] = useState(0);
   const [insightsFilterStep, setInsightsFilterStep] = useState<string | null>(null);
   const [insightsOpenToken, setInsightsOpenToken] = useState(0);
+  const [dockTab, setDockTab] = useState<'spunti' | 'richieste'>('spunti');
 
   const record = useMemo(() => {
     const found = records.find((r) => r.id === id);
@@ -33,6 +35,13 @@ function RecordDetailInner() {
     if (!isAuthed && !isVisibleOnPublicFeed(found)) return null;
     return found;
   }, [records, id, isAuthed]);
+
+  useEffect(() => {
+    if (searchParams.get('dock') !== 'richieste') return;
+    setDockTab('richieste');
+    setInsightsFilterStep(null);
+    setInsightsOpenToken((n) => n + 1);
+  }, [searchParams, id]);
 
   if (loading || authStatus === 'loading') {
     return <div className="reddit-card p-8 text-center text-sm text-gray-500">Caricamento…</div>;
@@ -97,6 +106,7 @@ function RecordDetailInner() {
         focusStepId={focusStepId}
         focusToken={focusToken}
         onOpenInsights={(stepId) => {
+          setDockTab('spunti');
           setInsightsFilterStep(stepId);
           setInsightsOpenToken((n) => n + 1);
         }}
@@ -106,6 +116,7 @@ function RecordDetailInner() {
         record={record}
         filterStepId={insightsFilterStep}
         openToken={insightsOpenToken}
+        openTab={dockTab}
         onSelectRelatedStep={(stepId) => {
           setFocusStepId(stepId);
           setFocusToken((n) => n + 1);

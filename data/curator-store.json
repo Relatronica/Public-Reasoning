@@ -290,6 +290,17 @@
           "author": "Desk risk",
           "role": "Consulente",
           "relatedStepId": "decision"
+        },
+        {
+          "id": "insight-mtv8tz0i-4jd5gd",
+          "kind": "spunto",
+          "title": "Spunto di lettura",
+          "body": "Puoi continuare nelle analisi",
+          "author": "Giuseppe Aceto",
+          "role": "Filosofo",
+          "consultationRequestId": "consult-mtv83gr0-j64khv",
+          "authorUserId": "cmikmkaq6000059zjkrszz16e",
+          "createdAt": "2026-09-10T08:06:24.642Z"
         }
       ],
       "consultationRequests": [
@@ -307,17 +318,19 @@
         {
           "id": "consult-mtv83gr0-j64khv",
           "kind": "filosofica",
-          "status": "aperta",
+          "status": "chiusa",
           "question": "COme posso procedere?",
           "requestedBy": {
             "userId": "cmikmkaq6000059zjkrszz16e",
             "name": "Giuseppe Aceto",
             "email": "iam.giuseppeaceto@gmail.com"
           },
-          "createdAt": "2026-09-10T07:45:47.916Z"
+          "createdAt": "2026-09-10T07:45:47.916Z",
+          "updatedAt": "2026-09-10T08:06:24.643Z",
+          "responseInsightId": "insight-mtv8tz0i-4jd5gd"
         }
       ],
-      "updatedAt": "2026-09-10T07:45:47.917Z"
+      "updatedAt": "2026-09-10T08:06:24.643Z"
     }
   },
   "actOverrides": {
