@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import { signIn } from 'next-auth/react';
 import Image from 'next/image';
 import { ArrowLeft, Check } from 'lucide-react';
@@ -50,7 +50,7 @@ function GoogleIcon() {
   );
 }
 
-export default function RegisterPage() {
+function RegisterPageInner() {
   const { href } = useActiveCommunity();
   const [step, setStep] = useState<'info' | 'oauth'>('info');
   const [username, setUsername] = useState('');
@@ -205,5 +205,13 @@ export default function RegisterPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="reddit-card p-8 text-center text-sm text-gray-500">Caricamento…</div>}>
+      <RegisterPageInner />
+    </Suspense>
   );
 }

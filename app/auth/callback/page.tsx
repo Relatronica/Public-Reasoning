@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { Loader2 } from 'lucide-react';
@@ -11,7 +11,7 @@ function safeDestination(raw: string | null): string {
   return raw;
 }
 
-export default function AuthCallbackPage() {
+function AuthCallbackPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
@@ -63,5 +63,20 @@ export default function AuthCallbackPage() {
       <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto" />
       <p className="text-sm text-gray-500">Verifica in corso…</p>
     </div>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="reddit-card p-8 text-center max-w-md space-y-3">
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto" />
+          <p className="text-sm text-gray-500">Verifica in corso…</p>
+        </div>
+      }
+    >
+      <AuthCallbackPageInner />
+    </Suspense>
   );
 }

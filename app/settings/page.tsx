@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { ArrowLeft, Save, Check, User, Image as ImageIcon, FileText } from 'lucide-react';
@@ -28,7 +28,7 @@ const availableAvatars = [
 const inputClass =
   'w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500';
 
-export default function SettingsPage() {
+function SettingsPageInner() {
   const router = useRouter();
   const { href } = useActiveCommunity();
   const { data: session, status, update } = useSession();
@@ -250,5 +250,13 @@ export default function SettingsPage() {
         </div>
       </form>
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={<div className="reddit-card p-8 text-center text-sm text-gray-500 max-w-lg">Caricamento…</div>}>
+      <SettingsPageInner />
+    </Suspense>
   );
 }

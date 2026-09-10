@@ -1,5 +1,6 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { ArrowLeft } from 'lucide-react';
@@ -29,7 +30,7 @@ function GoogleIcon() {
   );
 }
 
-export default function LoginPage() {
+function LoginPageInner() {
   const searchParams = useSearchParams();
   const { href } = useActiveCommunity();
   const callbackUrl = searchParams.get('callbackUrl') || href('/');
@@ -75,5 +76,13 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="reddit-card p-8 text-center text-sm text-gray-500">Caricamento…</div>}>
+      <LoginPageInner />
+    </Suspense>
   );
 }

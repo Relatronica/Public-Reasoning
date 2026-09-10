@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { CheckCircle, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 
-export default function RegisterCompletePage() {
+function RegisterCompletePageInner() {
   const router = useRouter();
   const { href } = useActiveCommunity();
   const searchParams = useSearchParams();
@@ -76,5 +76,20 @@ export default function RegisterCompletePage() {
         </Link>
       </div>
     </div>
+  );
+}
+
+export default function RegisterCompletePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="reddit-card p-8 text-center max-w-md space-y-3">
+          <Loader2 className="w-8 h-8 text-blue-600 animate-spin mx-auto" />
+          <p className="text-sm text-gray-500">Completamento registrazione…</p>
+        </div>
+      }
+    >
+      <RegisterCompletePageInner />
+    </Suspense>
   );
 }
