@@ -80,14 +80,17 @@ export async function POST(request: Request, { params }: Params) {
 
     const ext = EXT_BY_MIME[file.type] ?? 'png';
     const filename = kind === 'logo' ? `logo.${ext}` : `cover.${ext}`;
-    const useBlob = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+    // SDK: OIDC (BLOB_STORE_ID + VERCEL_OIDC_TOKEN) oppure fallback BLOB_READ_WRITE_TOKEN
+    const useBlob = Boolean(
+      process.env.BLOB_STORE_ID || process.env.BLOB_READ_WRITE_TOKEN
+    );
 
     // Su Vercel il filesystem è read-only: senza Blob gli upload falliscono sempre.
     if (!useBlob && process.env.VERCEL) {
       return NextResponse.json(
         {
           error:
-            'Upload non configurato: manca BLOB_READ_WRITE_TOKEN. Crea uno store Blob in Vercel → Storage e collega il token al progetto, poi ridistribuisci.',
+            'Upload non configurato: collega uno store Blob al progetto (Vercel → Storage). Servono BLOB_STORE_ID o BLOB_READ_WRITE_TOKEN, poi ridistribuisci.',
         },
         { status: 503 }
       );
@@ -130,7 +133,7 @@ export async function POST(request: Request, { params }: Params) {
         error:
           err instanceof Error
             ? err.message
-            : 'Upload fallito. Verifica BLOB_READ_WRITE_TOKEN in produzione.',
+            : 'Upload fallito. Verifica che lo store Blob sia collegato (BLOB_STORE_ID / BLOB_READ_WRITE_TOKEN).',
       },
       { status: 500 }
     );

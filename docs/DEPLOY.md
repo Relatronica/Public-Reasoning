@@ -43,8 +43,9 @@ GOOGLE_CLIENT_ID="..."
 GOOGLE_CLIENT_SECRET="..."
 # Super-admin (owner sempre). Email Google di login, separate da virgola.
 ORG_ADMIN_EMAILS="tuo@email.com"
-BLOB_READ_WRITE_TOKEN="..."
-```
+# Blob: di solito arriva da Storage → Connect (BLOB_STORE_ID). Token RW opzionale.
+BLOB_STORE_ID="..."
+BLOB_READ_WRITE_TOKEN="..." # opzionale
 
 I **ruoli del team** (owner/admin/…) non stanno nella tabella `User`: vivono in `curator_store.organization.members`.  
 `ORG_ADMIN_EMAILS` ti rende owner di piattaforma e, al primo bootstrap autenticato, ti scrive anche nella roster su Postgres. Sblocca anche **`/admin`** (console: utenti, roster, nascondi/mostra community).
@@ -88,7 +89,7 @@ Oppure configura il build command della piattaforma di conseguenza.
 - [ ] Secret Auth forti
 - [ ] `AUTH_URL` / `NEXTAUTH_URL` = HTTPS pubblico
 - [ ] Redirect Google di produzione
-- [ ] `BLOB_READ_WRITE_TOKEN` (Vercel Blob) per logo/banner persistenti
+- [ ] Store Blob collegato (`BLOB_STORE_ID`; opzionale `BLOB_READ_WRITE_TOKEN`) per logo/banner
 - [ ] Nessun store/env con PII nel repository
 - [ ] Smoke test: login → Editor → salva community / upload logo → refresh → dati presenti
 
@@ -104,13 +105,13 @@ Se in locale esiste ancora `data/curator-store.json`, al **primo** avvio con DB 
 
 1. Overlay JSON monolitico — ok per un tenant demo; multi-tenant vero richiederà tabelle relazionali.
 2. Corpus seed in `lib/` — le schede demo non sono ancora tutte su Prisma come entità di dominio.
-3. Logo/banner: con `BLOB_READ_WRITE_TOKEN` usano **Vercel Blob**; senza token (solo locale) restano in `public/communities/`.
+3. Logo/banner: con store Blob collegato (`BLOB_STORE_ID` + OIDC) usano **Vercel Blob**; senza (solo locale) restano in `public/communities/`.
 
 ### Setup Vercel Blob
 
-1. Vercel Dashboard → progetto → **Storage** → **Blob** → Create
-2. Copia `BLOB_READ_WRITE_TOKEN` nelle env del progetto (e in `.env` locale se vuoi testare Blob anche in dev)
-3. Redeploy
+1. Vercel Dashboard → progetto → **Storage** → **Blob** → Create / Connect
+2. Conferma le env `BLOB_STORE_ID` (e, se presente, `BLOB_READ_WRITE_TOKEN`) su Production + Preview
+3. Redeploy — su Vercel l’SDK usa OIDC (`VERCEL_OIDC_TOKEN`) in automatico
 
 Roadmap dominio: [`DECISION_OS_PLAN.md`](DECISION_OS_PLAN.md).
 
