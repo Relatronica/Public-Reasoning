@@ -60,7 +60,7 @@ function RichiesteInner() {
   }
 
   return (
-    <div className="space-y-5 w-full max-w-3xl">
+    <div className="space-y-5 w-full max-w-5xl">
       <div className="flex items-center gap-3">
         <Link href={href('/curator')} className="text-gray-400 hover:text-gray-700">
           <ArrowLeft className="w-5 h-5" />

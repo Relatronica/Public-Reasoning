@@ -9,14 +9,16 @@ import ReasoningRecordCard from '@/components/ReasoningRecordCard';
 import { FeedSkeleton } from '@/components/FeedSkeleton';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
+import { useFeedViewMode } from '@/hooks/useFeedViewMode';
 import { isVisibleOnPublicFeed } from '@/lib/records';
-import { LogIn, Plus, X } from 'lucide-react';
+import { LayoutGrid, List, LogIn, Plus, X } from 'lucide-react';
 
 function HomeContent() {
   const searchParams = useSearchParams();
   const { data: session, status } = useSession();
   const { community, href } = useActiveCommunity();
   const { recordsForCommunity, canCompile, loading } = useCuratorData();
+  const { mode, setMode } = useFeedViewMode();
   const categoryParam = searchParams.get('category');
   const searchQuery = searchParams.get('q');
   const packParam = searchParams.get('pack');
@@ -54,7 +56,7 @@ function HomeContent() {
   const trulyEmpty = communityRecords.length === 0;
 
   return (
-    <div className="space-y-5 w-full max-w-3xl">
+    <div className="space-y-5 w-full max-w-5xl">
       {/* Identità community (soprattutto mobile: pack destra assente) */}
       <div className="lg:hidden reddit-card reddit-card--static overflow-hidden">
         {community.coverImageUrl && (
@@ -95,7 +97,7 @@ function HomeContent() {
       </div>
 
       <header className="flex items-end justify-between gap-3">
-        <div className="space-y-1">
+        <div className="space-y-1 min-w-0">
           <h1 className="text-xl font-semibold text-gray-900">Decisioni</h1>
           <p className="text-sm text-gray-500">
             {categoryParam
@@ -105,24 +107,60 @@ function HomeContent() {
                 : `Domanda reale e scelta fatta · ${community.shortName}`}
           </p>
         </div>
-        {hasFilter && (
-          <Link
-            href={href('/')}
-            className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800 whitespace-nowrap"
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {hasFilter && (
+            <Link
+              href={href('/')}
+              className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800 whitespace-nowrap"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Mostra tutte</span>
+            </Link>
+          )}
+          <div
+            className="inline-flex rounded-lg border border-gray-200 bg-white p-0.5"
+            role="group"
+            aria-label="Vista elenco"
           >
-            <X className="w-3.5 h-3.5" />
-            Mostra tutte
-          </Link>
-        )}
+            <button
+              type="button"
+              onClick={() => setMode('card')}
+              aria-pressed={mode === 'card'}
+              title="Vista card"
+              className={`inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                mode === 'card'
+                  ? 'bg-gray-900 text-white'
+                  : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
+              }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Card</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('list')}
+              aria-pressed={mode === 'list'}
+              title="Vista elenco"
+              className={`inline-flex items-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                mode === 'list'
+                  ? 'bg-gray-900 text-white'
+                  : 'text-gray-500 hover:text-gray-800 hover:bg-gray-50'
+              }`}
+            >
+              <List className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Elenco</span>
+            </button>
+          </div>
+        </div>
       </header>
 
       {loading && status === 'loading' ? (
-        <FeedSkeleton />
+        <FeedSkeleton variant={mode} />
       ) : (
-        <div className="space-y-3">
+        <div className={mode === 'list' ? 'space-y-1.5' : 'space-y-2.5'}>
           {filteredRecords.length > 0 ? (
             filteredRecords.map((record) => (
-              <ReasoningRecordCard key={record.id} record={record} />
+              <ReasoningRecordCard key={record.id} record={record} variant={mode} />
             ))
           ) : (
             <div className="reddit-card reddit-card--static px-5 py-8 text-center space-y-3">

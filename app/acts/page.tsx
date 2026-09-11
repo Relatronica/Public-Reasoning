@@ -90,7 +90,7 @@ function PublicActsContent() {
   );
 
   return (
-    <div className="space-y-5 w-full max-w-3xl">
+    <div className="space-y-5 w-full max-w-5xl">
       <header className="space-y-1">
         <h1 className="text-xl font-semibold text-gray-900">{community.archiveLabel}</h1>
         <p className="text-sm text-gray-500">
