@@ -4,7 +4,6 @@ import { getCuratorBootstrap } from '@/lib/curator/bootstrap.server';
 import { requirePermission } from '@/lib/curator/auth.server';
 import { serializeAct, serializeRecord } from '@/lib/curator/serialize';
 import { updateCuratorStore } from '@/lib/curator/store.server';
-import { getCommunityBySlug } from '@/lib/communities';
 import { canClose } from '@/lib/org/permissions';
 import { defaultVisibilityForCommunity, isClosedStatus, isVisibleOnPublicFeed } from '@/lib/records';
 import { PublicAct, ReasoningRecord } from '@/types';
@@ -34,7 +33,22 @@ export async function POST(request: Request) {
   if (error || !session) return error;
 
   const body = (await request.json()) as CreateRecordBody;
-  const community = getCommunityBySlug(body.communitySlug);
+  const slug = body.communitySlug?.trim();
+  if (!slug) {
+    return NextResponse.json({ error: 'Community non specificata.' }, { status: 400 });
+  }
+
+  // Usa la lista mergeata (seed + custom), non solo le community statiche in codice —
+  // altrimenti una community creata in produzione finisce su Cormano (fallback).
+  const { communities } = await getCuratorBootstrap();
+  const community = communities.find((c) => c.slug === slug);
+  if (!community) {
+    return NextResponse.json(
+      { error: `Community «${slug}» non trovata.` },
+      { status: 404 }
+    );
+  }
+
   const now = new Date().toISOString();
   const actId = body.act.id ?? `act-custom-${Date.now()}`;
   const recordId = body.record.id ?? `record-custom-${Date.now()}`;
