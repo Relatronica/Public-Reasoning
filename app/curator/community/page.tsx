@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import { ArrowLeft, ImagePlus, Plus, Save, Trash2 } from 'lucide-react';
+import ImageCropDialog, { type CropKind } from '@/components/ImageCropDialog';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
 import {
@@ -14,6 +15,12 @@ import {
   resolveCategoryColor,
 } from '@/lib/communities/category-colors';
 import { Community, CommunityCategory, CommunityStat } from '@/types';
+
+type CropSession = {
+  kind: CropKind;
+  imageSrc: string;
+  fileName: string;
+};
 
 const inputClass =
   'w-full bg-gray-50 border border-gray-200 rounded-lg p-2.5 text-xs text-gray-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500';
@@ -32,12 +39,19 @@ function CommunityEditorInner() {
   const [saving, setSaving] = useState(false);
   const [closing, setClosing] = useState(false);
   const [uploading, setUploading] = useState<'logo' | 'cover' | null>(null);
+  const [cropSession, setCropSession] = useState<CropSession | null>(null);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
     setForm(community);
   }, [community]);
+
+  useEffect(() => {
+    return () => {
+      if (cropSession?.imageSrc) URL.revokeObjectURL(cropSession.imageSrc);
+    };
+  }, [cropSession]);
 
   if (status === 'unauthenticated') {
     router.push('/auth/login?callbackUrl=' + encodeURIComponent(href('/curator/community')));
@@ -59,7 +73,14 @@ function CommunityEditorInner() {
     update('stats', stats);
   };
 
-  const handleUpload = async (kind: 'logo' | 'cover', file: File) => {
+  const closeCrop = () => {
+    setCropSession((prev) => {
+      if (prev?.imageSrc) URL.revokeObjectURL(prev.imageSrc);
+      return null;
+    });
+  };
+
+  const handleUpload = async (kind: CropKind, file: File) => {
     setUploading(kind);
     setError('');
     try {
@@ -81,6 +102,30 @@ function CommunityEditorInner() {
     } finally {
       setUploading(null);
     }
+  };
+
+  const handlePickFile = (kind: CropKind, file: File) => {
+    setError('');
+    // SVG: niente crop (rasterizzazione inutile); upload diretto
+    if (file.type === 'image/svg+xml') {
+      void handleUpload(kind, file);
+      return;
+    }
+    setCropSession((prev) => {
+      if (prev?.imageSrc) URL.revokeObjectURL(prev.imageSrc);
+      return {
+        kind,
+        imageSrc: URL.createObjectURL(file),
+        fileName: file.name,
+      };
+    });
+  };
+
+  const handleCropConfirm = async (file: File) => {
+    const kind = cropSession?.kind;
+    closeCrop();
+    if (!kind) return;
+    await handleUpload(kind, file);
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -245,23 +290,16 @@ function CommunityEditorInner() {
                   type="file"
                   accept="image/svg+xml,image/png,image/jpeg,image/webp"
                   className="hidden"
-                  disabled={uploading !== null}
+                  disabled={uploading !== null || cropSession !== null}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
-                    if (file) handleUpload('logo', file);
+                    if (file) handlePickFile('logo', file);
                     e.target.value = '';
                   }}
                 />
               </label>
-              <input
-                className={inputClass}
-                value={form.logoUrl ?? ''}
-                onChange={(e) => update('logoUrl', e.target.value)}
-                placeholder={`/communities/${slug}/logo.svg`}
-              />
               <p className="text-[10px] text-gray-400">
-                Quadrato, consigliato 64×64 px o più. SVG, PNG, JPG, WebP (max 2 MB).
-                In produzione gli upload usano Vercel Blob.
+                Dopo il caricamento puoi ritagliare in quadrato (come in sidebar). PNG, JPG, WebP o SVG (max 2 MB).
               </p>
             </div>
 
@@ -274,21 +312,17 @@ function CommunityEditorInner() {
                   type="file"
                   accept="image/svg+xml,image/png,image/jpeg,image/webp"
                   className="hidden"
-                  disabled={uploading !== null}
+                  disabled={uploading !== null || cropSession !== null}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
-                    if (file) handleUpload('cover', file);
+                    if (file) handlePickFile('cover', file);
                     e.target.value = '';
                   }}
                 />
               </label>
-              <input
-                className={inputClass}
-                value={form.coverImageUrl ?? ''}
-                onChange={(e) => update('coverImageUrl', e.target.value)}
-                placeholder={`/communities/${slug}/cover.svg`}
-              />
-              <p className="text-[10px] text-gray-400">Orizzontale, ratio ~3:1 (es. 288×96). Stessi formati.</p>
+              <p className="text-[10px] text-gray-400">
+                Ritaglio orizzontale come la fascia in sidebar (~3,6:1). Stessi formati.
+              </p>
             </div>
           </div>
         </section>
@@ -516,6 +550,17 @@ function CommunityEditorInner() {
             {closing ? 'Chiusura…' : 'Chiudi questa community'}
           </button>
         </div>
+      )}
+
+      {cropSession && (
+        <ImageCropDialog
+          open
+          kind={cropSession.kind}
+          imageSrc={cropSession.imageSrc}
+          fileName={cropSession.fileName}
+          onCancel={closeCrop}
+          onConfirm={handleCropConfirm}
+        />
       )}
     </div>
   );
