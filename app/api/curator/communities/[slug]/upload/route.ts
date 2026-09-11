@@ -82,6 +82,17 @@ export async function POST(request: Request, { params }: Params) {
     const filename = kind === 'logo' ? `logo.${ext}` : `cover.${ext}`;
     const useBlob = Boolean(process.env.BLOB_READ_WRITE_TOKEN);
 
+    // Su Vercel il filesystem è read-only: senza Blob gli upload falliscono sempre.
+    if (!useBlob && process.env.VERCEL) {
+      return NextResponse.json(
+        {
+          error:
+            'Upload non configurato: manca BLOB_READ_WRITE_TOKEN. Crea uno store Blob in Vercel → Storage e collega il token al progetto, poi ridistribuisci.',
+        },
+        { status: 503 }
+      );
+    }
+
     let publicUrl: string;
     if (useBlob) {
       publicUrl = await saveToBlob(slug, kind, filename, file);
