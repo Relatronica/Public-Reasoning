@@ -18,7 +18,7 @@ function MobileBottomNavInner() {
   if (hideOnAuth) return null;
 
   const items = [
-    { href: href('/'), label: 'Decisioni', icon: List, active: pathname === '/' },
+    { href: href('/decisioni'), label: 'Decisioni', icon: List, active: pathname === '/decisioni' },
     { href: href('/bank'), label: 'Registro', icon: Landmark, active: pathname === '/bank' },
     { href: href('/acts'), label: 'Fonti', icon: FileText, active: pathname === '/acts' },
   ] as const;
@@ -26,7 +26,7 @@ function MobileBottomNavInner() {
   const submitSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setSearchOpen(false);
-    router.push(href('/', { q: q.trim() || undefined }));
+    router.push(href('/decisioni', { q: q.trim() || undefined }));
   };
 
   return (

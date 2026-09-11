@@ -144,7 +144,7 @@ function SettingsPageInner() {
   return (
     <div className="space-y-5 max-w-lg">
       <div className="flex items-center gap-3">
-        <Link href={href('/')} className="text-gray-400 hover:text-gray-700">
+        <Link href={href('/decisioni')} className="text-gray-400 hover:text-gray-700">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
@@ -237,7 +237,7 @@ function SettingsPageInner() {
         )}
 
         <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-100">
-          <Link href={href('/')} className="text-xs text-gray-500 hover:text-gray-800">
+          <Link href={href('/decisioni')} className="text-xs text-gray-500 hover:text-gray-800">
             Annulla
           </Link>
           <button

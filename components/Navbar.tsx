@@ -100,7 +100,7 @@ function NavbarInner() {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push(href('/', { q: searchQuery.trim() || undefined }));
+    router.push(href('/decisioni', { q: searchQuery.trim() || undefined }));
   };
 
   const closeAccount = () => setAccountOpen(false);
@@ -110,10 +110,18 @@ function NavbarInner() {
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
       <div className="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center gap-3 sm:gap-4">
-        <Link href={href('/')} className="flex items-center gap-2 text-gray-900 hover:text-blue-700 flex-shrink-0">
+        <Link href="/" className="flex items-center gap-2 text-gray-900 hover:text-blue-700 flex-shrink-0">
           <Logo className="w-6 h-6" />
           <span className="font-semibold text-base tracking-tight hidden xs:inline sm:inline">Reason</span>
         </Link>
+        {!isAuthenticated && status !== 'loading' && (
+          <Link
+            href="/"
+            className="hidden sm:inline text-xs font-medium text-gray-500 hover:text-gray-800 flex-shrink-0"
+          >
+            Cos&apos;è
+          </Link>
+        )}
 
         <div className="relative flex-shrink-0" ref={communityRef}>
           <button
@@ -291,7 +299,7 @@ function NavbarInner() {
                         onClick={async () => {
                           closeAccount();
                           await signOut({ redirect: false });
-                          window.location.assign(href('/'));
+                          window.location.assign(href('/decisioni'));
                         }}
                         className={`${menuItem} text-red-700 hover:bg-red-50`}
                       >
@@ -302,8 +310,12 @@ function NavbarInner() {
                   </>
                 ) : (
                   <div className="py-1">
+                    <Link href="/" onClick={closeAccount} className={menuItem} role="menuitem">
+                      <Sparkles className="w-4 h-4 text-gray-400" />
+                      Cos&apos;è Reason
+                    </Link>
                     <Link
-                      href={`/auth/login?callbackUrl=${encodeURIComponent(href('/'))}`}
+                      href={`/auth/login?callbackUrl=${encodeURIComponent(href('/decisioni'))}`}
                       onClick={closeAccount}
                       className={menuItem}
                       role="menuitem"

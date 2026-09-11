@@ -191,7 +191,7 @@ function AdminInner() {
   if (error && !data) {
     return (
       <div className="space-y-4 max-w-lg">
-        <Link href={href('/')} className="text-xs text-gray-500 hover:text-gray-800 inline-flex items-center gap-1">
+        <Link href={href('/decisioni')} className="text-xs text-gray-500 hover:text-gray-800 inline-flex items-center gap-1">
           <ArrowLeft className="w-3.5 h-3.5" />
           Torna al feed
         </Link>
@@ -215,7 +215,7 @@ function AdminInner() {
   return (
     <div className="space-y-6 max-w-3xl">
       <div className="flex items-center gap-3">
-        <Link href={href('/')} className="text-gray-400 hover:text-gray-700">
+        <Link href={href('/decisioni')} className="text-gray-400 hover:text-gray-700">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>

@@ -5,7 +5,6 @@ import { signIn } from 'next-auth/react';
 import Image from 'next/image';
 import { ArrowLeft, Check } from 'lucide-react';
 import Link from 'next/link';
-import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 
 const availableAvatars = [
   '/avatar/peep-14.png',
@@ -51,7 +50,6 @@ function GoogleIcon() {
 }
 
 function RegisterPageInner() {
-  const { href } = useActiveCommunity();
   const [step, setStep] = useState<'info' | 'oauth'>('info');
   const [username, setUsername] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState<string | null>(null);
@@ -92,7 +90,7 @@ function RegisterPageInner() {
   return (
     <div className="space-y-5 max-w-lg">
       <div className="flex items-center gap-3">
-        <Link href={href('/')} className="text-gray-400 hover:text-gray-700">
+        <Link href="/" className="text-gray-400 hover:text-gray-700">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>

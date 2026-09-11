@@ -33,7 +33,7 @@ function GoogleIcon() {
 function LoginPageInner() {
   const searchParams = useSearchParams();
   const { href } = useActiveCommunity();
-  const callbackUrl = searchParams.get('callbackUrl') || href('/');
+  const callbackUrl = searchParams.get('callbackUrl') || href('/decisioni');
 
   const handleGoogleSignIn = () => {
     // Dopo OAuth passa da /auth/callback per verificare username/avatar
@@ -45,7 +45,7 @@ function LoginPageInner() {
   return (
     <div className="space-y-5 max-w-md">
       <div className="flex items-center gap-3">
-        <Link href={href('/')} className="text-gray-400 hover:text-gray-700">
+        <Link href="/" className="text-gray-400 hover:text-gray-700">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>

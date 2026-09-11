@@ -110,12 +110,12 @@ function HomeContent() {
         <div className="flex items-center gap-2 flex-shrink-0">
           {hasFilter && (
             <Link
-              href={href('/')}
-              className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800 whitespace-nowrap"
-            >
-              <X className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Mostra tutte</span>
-            </Link>
+              href={href('/decisioni')}
+            className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-800 whitespace-nowrap"
+          >
+            <X className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Mostra tutte</span>
+          </Link>
           )}
           <div
             className="inline-flex rounded-lg border border-gray-200 bg-white p-0.5"
@@ -168,7 +168,7 @@ function HomeContent() {
                 <>
                   <p className="text-sm font-medium text-gray-900">Nessun risultato con questi filtri</p>
                   <p className="text-xs text-gray-500">Prova a togliere argomento o ricerca.</p>
-                  <Link href={href('/')} className="btn-secondary inline-flex">
+                  <Link href={href('/decisioni')} className="btn-secondary inline-flex">
                     Mostra tutte le decisioni
                   </Link>
                 </>
@@ -188,7 +188,7 @@ function HomeContent() {
                   <p className="text-sm font-medium text-gray-900">Nessuna decisione pubblica</p>
                   <p className="text-xs text-gray-500">Accedi per vedere di più o contribuire.</p>
                   <Link
-                    href={`/auth/login?callbackUrl=${encodeURIComponent(href('/'))}`}
+                    href={`/auth/login?callbackUrl=${encodeURIComponent(href('/decisioni'))}`}
                     className="btn-primary inline-flex"
                   >
                     <LogIn className="w-3.5 h-3.5" />
@@ -205,7 +205,7 @@ function HomeContent() {
               ) : (
                 <>
                   <p className="text-sm font-medium text-gray-900">Nessuna decisione qui</p>
-                  <Link href={href('/')} className="text-xs text-gray-600 hover:underline">
+                  <Link href={href('/decisioni')} className="text-xs text-gray-600 hover:underline">
                     Torna al feed
                   </Link>
                 </>

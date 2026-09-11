@@ -39,7 +39,7 @@ function RegisterCompletePageInner() {
             });
             setIsCompleting(false);
             setTimeout(() => {
-              router.push(href('/'));
+              router.push(href('/decisioni'));
             }, 2000);
           } else {
             console.error('Errore nel completamento registrazione');
@@ -73,7 +73,7 @@ function RegisterCompletePageInner() {
           </p>
         </div>
         <Link
-          href={href('/')}
+          href={href('/decisioni')}
           className="inline-flex px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-lg text-xs transition-colors"
         >
           Vai al feed

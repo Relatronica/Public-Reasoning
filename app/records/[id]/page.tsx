@@ -53,7 +53,7 @@ function RecordDetailInner() {
       <div className="reddit-card p-8 max-w-lg space-y-3">
         <h1 className="text-lg font-semibold text-gray-900">Scheda non trovata</h1>
         <p className="text-xs text-gray-500">Potrebbe essere privata o non più nel registro.</p>
-        <Link href={href('/')} className="text-xs text-blue-700 hover:underline">
+        <Link href={href('/decisioni')} className="text-xs text-blue-700 hover:underline">
           Torna al feed
         </Link>
       </div>
@@ -66,7 +66,7 @@ function RecordDetailInner() {
     <div className="space-y-5 w-full">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-start gap-3 min-w-0">
-          <Link href={href('/')} className="text-gray-400 hover:text-gray-700 mt-0.5 flex-shrink-0">
+          <Link href={href('/decisioni')} className="text-gray-400 hover:text-gray-700 mt-0.5 flex-shrink-0">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div className="min-w-0">

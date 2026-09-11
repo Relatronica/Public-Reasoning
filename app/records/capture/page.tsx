@@ -454,7 +454,7 @@ function ComposeInner() {
           </div>
           <p className="text-[11px] text-gray-400 text-center">
             Bozza: resta privata. Pubblica: visibile nel feed. Oppure{' '}
-            <Link href={href('/')} className="hover:text-gray-700 underline-offset-2 hover:underline">
+            <Link href={href('/decisioni')} className="hover:text-gray-700 underline-offset-2 hover:underline">
               torna alle decisioni
             </Link>
             .

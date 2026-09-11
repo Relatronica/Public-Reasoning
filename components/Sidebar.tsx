@@ -12,7 +12,7 @@ function SidebarInner() {
   const { community, href } = useActiveCommunity();
 
   const currentCategory = searchParams.get('category');
-  const isHome = pathname === '/';
+  const isHome = pathname === '/decisioni';
   const isAllRecords = isHome && !currentCategory && !searchParams.get('filter') && !searchParams.get('q');
 
   return (
@@ -20,7 +20,7 @@ function SidebarInner() {
       <div className="space-y-6">
         <nav className="space-y-0.5">
           <Link
-            href={href('/')}
+            href={href('/decisioni')}
             className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium ${
               isAllRecords || (isHome && currentCategory)
                 ? 'bg-gray-100 text-gray-900'
@@ -57,7 +57,7 @@ function SidebarInner() {
             </span>
             {currentCategory && (
               <Link
-                href={href('/')}
+                href={href('/decisioni')}
                 className="text-[10px] text-gray-500 hover:text-gray-800 flex items-center gap-0.5"
               >
                 <X className="w-3 h-3" />
@@ -71,7 +71,7 @@ function SidebarInner() {
               return (
                 <Link
                   key={cat.label}
-                  href={isSelected ? href('/') : href('/', { category: cat.label })}
+                  href={isSelected ? href('/decisioni') : href('/decisioni', { category: cat.label })}
                   className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs ${
                     isSelected
                       ? 'bg-gray-100 text-gray-900 font-medium'
