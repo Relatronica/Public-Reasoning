@@ -140,7 +140,7 @@ function ComposeInner() {
                 ? {
                     level: 'assistivo',
                     scopes: ['drafting'],
-                    tools: 'Reason capture',
+                    tools: 'Dubitor capture',
                     dataExposure: 'internal_only',
                     note: 'Bozza estratta dalla fonte; rivista in sessione.',
                   }
@@ -179,7 +179,7 @@ function ComposeInner() {
             >
               <p className="text-sm font-semibold text-gray-900">Da un testo</p>
               <p className="text-xs text-gray-500 mt-1">
-                Incolla verbale o appunti: Reason propone domanda, decisione, scarto e stop.
+                Incolla verbale o appunti: Dubitor propone domanda, decisione, scarto e stop.
               </p>
             </button>
             <button

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { FeedViewMode } from '@/components/ReasoningRecordCard';
 
-const STORAGE_KEY = 'reason.feedView';
+const STORAGE_KEY = 'dubitor.feedView';
 
 function readStored(): FeedViewMode {
   if (typeof window === 'undefined') return 'card';

@@ -1,8 +1,8 @@
-# Reason
+# Dubitor
 
-> **"Le decisioni dicono *cosa* si è scelto. Reason conserva e verifica *perché*."**
+> **"Le decisioni dicono *cosa* si è scelto. Dubitor conserva e verifica *perché*."**
 
-Reason è un feed di **schede di giudizio** (Reasoning Records) per community configurabili: comune, ufficio, progetto, pack compliance. Il metodo è fisso — domanda reale, opzioni scartate, incertezza, criterio di stop, esito, fonti — mentre etichette e argomenti sono pack della community.
+Dubitor è un feed di **schede di giudizio** (Reasoning Records) per community configurabili: comune, ufficio, progetto, pack compliance. Il metodo è fisso — domanda reale, opzioni scartate, incertezza, criterio di stop, esito, fonti — mentre etichette e argomenti sono pack della community.
 
 | Lab pubblico | Decision Bank |
 | :--- | :--- |

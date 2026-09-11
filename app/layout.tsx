@@ -8,7 +8,7 @@ import AppShell from '@/components/AppShell';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Reason',
+  title: 'Dubitor',
   description:
     'Esperti umani rivedono le tue decisioni sull’IA: rischi, limiti e punti ciechi — fuori dalla tua azienda.',
   icons: {

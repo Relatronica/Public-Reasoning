@@ -112,7 +112,7 @@ function NavbarInner() {
       <div className="max-w-[1700px] mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center gap-3 sm:gap-4">
         <Link href="/" className="flex items-center gap-2 text-gray-900 hover:text-blue-700 flex-shrink-0">
           <Logo className="w-6 h-6" />
-          <span className="font-semibold text-base tracking-tight hidden xs:inline sm:inline">Reason</span>
+          <span className="font-semibold text-base tracking-tight hidden xs:inline sm:inline">Dubitor</span>
         </Link>
         {!isAuthenticated && status !== 'loading' && (
           <Link
@@ -312,7 +312,7 @@ function NavbarInner() {
                   <div className="py-1">
                     <Link href="/" onClick={closeAccount} className={menuItem} role="menuitem">
                       <Sparkles className="w-4 h-4 text-gray-400" />
-                      Cos&apos;è Reason
+                      Cos&apos;è Dubitor
                     </Link>
                     <Link
                       href={`/auth/login?callbackUrl=${encodeURIComponent(href('/decisioni'))}`}

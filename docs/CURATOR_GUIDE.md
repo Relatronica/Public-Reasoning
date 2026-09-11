@@ -1,8 +1,8 @@
 # Guida operativa per chi compila le schede
 
-> **Reasoning Records** — Memoria del giudizio (community configurabile)
+> **Dubitor** — Memoria del giudizio (community configurabile)
 
-Questa guida definisce lo standard metodologico per chi compila e revisiona le schede di giudizio (**Reasoning Records**) a partire da una fonte: delibera, verbale, deck, nota di seduta. Il luogo (comune, ufficio, progetto) è configurazione. Il metodo no.
+Questa guida definisce lo standard metodologico per chi compila e revisiona le schede di giudizio (**Reasoning Records**) su Dubitor a partire da una fonte: delibera, verbale, deck, nota di seduta. Il luogo (comune, ufficio, progetto) è configurazione. Il metodo no.
 
 ---
 

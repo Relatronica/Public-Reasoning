@@ -230,7 +230,7 @@ export const communities: Community[] = [
     sourcePlaceholder: 'es. Delibera Laboratorio n. 3/2026',
     newRecordTitle: 'Documenta una decisione',
     newRecordHint:
-      'Questa community è pensata per mostrare il potenziale di Reason: compilazione, grafo e consultazione.',
+      'Questa community è pensata per mostrare il potenziale di Dubitor: compilazione, grafo e consultazione.',
     searchPlaceholder: 'Cerca piazza, URP, bilancio, spunti…',
     officialUrlLabel: 'Manifesto Agorà',
     categories: [

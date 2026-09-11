@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useRef } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, BadgeCheck, Shield, Users } from 'lucide-react';
 import Logo from '@/components/Logo';
@@ -20,8 +19,6 @@ const fadeUp = {
 };
 
 export default function WelcomePage() {
-  const heroRef = useRef<HTMLElement>(null);
-
   return (
     <div className="welcome-page min-h-full bg-[var(--w-bg)] text-[var(--w-ink)]">
       <style jsx global>{`
@@ -35,7 +32,6 @@ export default function WelcomePage() {
           --w-line: rgba(16, 32, 30, 0.12);
           font-family: var(--font-welcome-sans), system-ui, sans-serif;
         }
-
         .welcome-page .font-display {
           font-family: var(--font-welcome-display), Georgia, serif;
           font-weight: 400;
@@ -43,46 +39,31 @@ export default function WelcomePage() {
         }
       `}</style>
 
-      {/*
-        Layering anti-WebGL-over-HTML:
-        - BG: absolute, z-index 0, contain:paint (clippa il canvas GPU)
-        - FG: relative, z-index 2, isolation + translateZ (layer HTML sopra)
-        - Canvas monta dopo il primo paint del copy
-      */}
-      <section
-        ref={heroRef}
-        className="relative flex min-h-[100svh] flex-col overflow-hidden border-b border-[var(--w-line)]"
-      >
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            zIndex: 0,
-            overflow: 'hidden',
-            contain: 'paint',
-            transform: 'translate3d(0,0,0)',
-          }}
-          aria-hidden
-        >
-          <WelcomeHeroAtmosphere eventTargetRef={heroRef} />
-        </div>
+      <section className="relative flex min-h-[100svh] flex-col overflow-hidden border-b border-[var(--w-line)]">
+        <WelcomeHeroAtmosphere />
 
-        <div
-          className="relative flex flex-1 flex-col"
-          style={{
-            zIndex: 2,
-            isolation: 'isolate',
-            transform: 'translate3d(0,0,0)',
-          }}
-        >
+        <div className="relative z-10 flex flex-1 flex-col">
+          {/* Frost full-height: forte a sinistra, dissolve a destra */}
           <div
-            className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[#eef3f1]/92 via-[#eef3f1]/55 to-transparent to-[68%]"
+            className="pointer-events-none absolute inset-0"
             aria-hidden
+            style={{
+              background:
+                'linear-gradient(90deg, rgba(238,243,241,0.72) 0%, rgba(238,243,241,0.38) 36%, rgba(238,243,241,0.1) 58%, transparent 78%)',
+              backdropFilter: 'blur(22px)',
+              WebkitBackdropFilter: 'blur(22px)',
+              maskImage:
+                'linear-gradient(90deg, #000 0%, #000 36%, rgba(0,0,0,0.6) 58%, transparent 80%)',
+              WebkitMaskImage:
+                'linear-gradient(90deg, #000 0%, #000 36%, rgba(0,0,0,0.6) 58%, transparent 80%)',
+            }}
           />
 
           <div className="relative mx-auto flex w-full max-w-5xl flex-1 flex-col px-5 sm:px-8">
-            <div className="flex h-14 items-center justify-between">
-              <span className="sr-only">Reason</span>
-              <Logo className="h-5 w-5 text-[var(--w-ink)]" />
+            <header className="flex h-14 items-center justify-between">
+              <Link href="/" className="text-[var(--w-ink)]" aria-label="Dubitor">
+                <Logo className="h-5 w-5" />
+              </Link>
               <div className="flex items-center gap-4">
                 <Link
                   href={LOGIN_HREF}
@@ -97,7 +78,7 @@ export default function WelcomePage() {
                   Perché serve
                 </a>
               </div>
-            </div>
+            </header>
 
             <div className="flex flex-1 flex-col justify-center py-10 sm:py-14">
               <motion.p
@@ -107,7 +88,7 @@ export default function WelcomePage() {
                 animate="show"
                 variants={fadeUp}
               >
-                Reason
+                Dubitor
               </motion.p>
 
               <motion.h1
@@ -121,14 +102,21 @@ export default function WelcomePage() {
               </motion.h1>
 
               <motion.p
-                className="mt-5 max-w-lg text-[1.05rem] leading-relaxed text-[var(--w-muted)] sm:text-lg"
+                className="mt-5 max-w-lg text-[1.05rem] font-medium leading-relaxed text-[var(--w-ink)]/75 sm:text-lg"
                 custom={2}
                 initial="hidden"
                 animate="show"
                 variants={fadeUp}
               >
-                L’IA dà risposte sicure di sé. Qui filosofi, ethics e risk — persone reali, fuori
-                dalla tua azienda — ti dicono rischi, limiti e cosa non hai considerato.
+                L’IA dà risposte sicure di sé. Qui filosofi, ethics e risk —{' '}
+                <mark className="rounded-sm bg-[var(--w-accent-soft)] px-1 py-0.5 text-[var(--w-ink)] [box-decoration-break:clone]">
+                  persone reali
+                </mark>
+                , fuori dalla tua azienda — ti dicono{' '}
+                <mark className="rounded-sm bg-[var(--w-accent-soft)] px-1 py-0.5 text-[var(--w-ink)] [box-decoration-break:clone]">
+                  rischi e limiti
+                </mark>{' '}
+                e cosa non hai considerato.
               </motion.p>
 
               <motion.div
@@ -154,26 +142,20 @@ export default function WelcomePage() {
               </motion.div>
             </div>
           </div>
-
-          <motion.div
-            className="relative border-t border-[var(--w-line)] bg-[var(--w-ink)] text-[var(--w-bg)]"
-            custom={4}
-            initial="hidden"
-            animate="show"
-            variants={fadeUp}
-          >
-            <div className="mx-auto grid max-w-5xl gap-6 px-5 py-7 sm:grid-cols-[auto_1fr] sm:items-baseline sm:gap-10 sm:px-8 sm:py-8">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--w-accent-soft)]">
-                Un caso tipico
-              </p>
-              <p className="font-display text-xl leading-snug sm:text-2xl md:text-[1.65rem]">
-                Ranking automatico in hiring. L’IA dice «procedi, risparmi tempo». Un esperto
-                esterno chiede: «e a chi lo spieghi, quando lo escludi?»
-              </p>
-            </div>
-          </motion.div>
         </div>
       </section>
+
+      <div className="border-b border-[var(--w-line)] bg-[var(--w-ink)] text-[var(--w-bg)]">
+        <div className="mx-auto grid max-w-5xl gap-6 px-5 py-7 sm:grid-cols-[auto_1fr] sm:items-baseline sm:gap-10 sm:px-8 sm:py-8">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--w-accent-soft)]">
+            Un caso tipico
+          </p>
+          <p className="font-display text-xl leading-snug sm:text-2xl md:text-[1.65rem]">
+            Ranking automatico in hiring. L’IA dice «procedi, risparmi tempo». Un esperto esterno
+            chiede: «e a chi lo spieghi, quando lo escludi?»
+          </p>
+        </div>
+      </div>
 
       <section id="perche" className="scroll-mt-20 border-b border-[var(--w-line)] bg-[var(--w-panel)] py-16 sm:py-20">
         <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -320,7 +302,7 @@ export default function WelcomePage() {
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 text-xs text-[var(--w-muted)] sm:px-6">
           <span className="inline-flex items-center gap-1.5">
             <Logo className="h-4 w-4" />
-            Reason
+            Dubitor
           </span>
           <div className="flex gap-4">
             <Link href="/decisioni" className="hover:text-[var(--w-ink)]">

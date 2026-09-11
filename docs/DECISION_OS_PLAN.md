@@ -1,4 +1,4 @@
-# Piano di evoluzione — Reason → Decision OS
+# Piano di evoluzione — Dubitor → Decision OS
 
 > **North star:** da feed pubblico di schede di giudizio a **Decision Bank privata** con cattura da fonte (transcript/deck), approvazione rapida e pack compliance EU — mantenendo il kernel Reasoning Record a sei elementi.
 

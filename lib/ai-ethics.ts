@@ -12,7 +12,7 @@ export const aiEthicsCompiler: User = {
 };
 
 /**
- * Community demo enterprise: valore di Reason su decisioni di AI / digital ethics.
+ * Community demo enterprise: valore di Dubitor su decisioni di AI / digital ethics.
  * Quattro schede chiuse e pubbliche, con scarti, stop, spunti e consultazioni.
  */
 export const aiEthicsActs: PublicAct[] = [
@@ -139,7 +139,7 @@ export const aiEthicsRecords: ReasoningRecord[] = [
       },
     ],
     interpretativeSummary:
-      'La pressione HR era «velocità». La riformulazione è sul debito di spiegazione verso chi viene escluso. Reason rende visibile lo scarto del ricorso vuoto.',
+      'La pressione HR era «velocità». La riformulazione è sul debito di spiegazione verso chi viene escluso. Dubitor rende visibile lo scarto del ricorso vuoto.',
     outcomeReviews: [
       {
         id: 'outcome-ethics-hire-1',
@@ -268,7 +268,7 @@ export const aiEthicsRecords: ReasoningRecord[] = [
         kind: 'alert',
         title: 'Il pilota interno non lava l’etica',
         body: 'Se la pratica è inaccettabile sui clienti, non diventa accettabile perché gli agent sono dipendenti. Spostate il confine, non nascondetelo.',
-        author: 'Reason',
+        author: 'Dubitor',
         role: 'Sistema',
         relatedStepId: 'discarded-opt-ethics-emo-1',
       },
@@ -483,7 +483,7 @@ export const aiEthicsRecords: ReasoningRecord[] = [
         kind: 'alert',
         title: 'Checkbox ≠ giudizio',
         body: 'Se il tempo mediano di conferma è sotto i due secondi, avete un throughput machine, non un human-in-the-loop.',
-        author: 'Reason',
+        author: 'Dubitor',
         role: 'Sistema',
         relatedStepId: 'discarded-opt-ethics-hitl-1',
       },

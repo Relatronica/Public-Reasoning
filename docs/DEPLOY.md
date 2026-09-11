@@ -1,6 +1,6 @@
-# Deploy — Reason
+# Deploy — Dubitor
 
-Checklist per pubblicare Reason (Vercel + Neon, VPS, Railway, …).
+Checklist per pubblicare Dubitor (Vercel + Neon, VPS, Railway, …).
 
 ---
 

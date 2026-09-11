@@ -1,8 +1,8 @@
-# Architecture & System Design — Reasoning Records
+# Architecture & System Design — Dubitor
 
-> **"Le decisioni dicono *cosa* si è scelto. Reasoning Records conserva e verifica *perché*."**
+> **"Le decisioni dicono *cosa* si è scelto. Dubitor conserva e verifica *perché*."**
 
-Questo documento dettaglia l'architettura tecnica, le scelte di design dei dati e il flusso dei componenti della piattaforma **Reasoning Records**.
+Questo documento dettaglia l'architettura tecnica, le scelte di design dei dati e il flusso dei componenti della piattaforma **Dubitor**.
 
 ---
 

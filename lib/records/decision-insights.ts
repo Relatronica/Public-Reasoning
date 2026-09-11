@@ -106,7 +106,7 @@ function deriveContextualInsights(record: ReasoningRecord): DecisionInsight[] {
       body:
         record.uncertaintyExplanation?.trim() ||
         'Il livello di incertezza è elevato: conviene esplicitare cosa manca e chi può ridurlo prima di trattare la decisione come chiusa.',
-      author: 'Reason',
+      author: 'Dubitor',
       role: 'Sistema',
       relatedStepId: 'decision',
     });
@@ -129,7 +129,7 @@ function deriveContextualInsights(record: ReasoningRecord): DecisionInsight[] {
       kind: 'alert',
       title: 'Manca un criterio di stop',
       body: 'Senza condizioni che cambierebbero idea, la decisione rischia di diventare dogma. Aggiungi almeno un segnale osservabile di ripensamento.',
-      author: 'Reason',
+      author: 'Dubitor',
       role: 'Sistema',
       relatedStepId: 'decision',
     });

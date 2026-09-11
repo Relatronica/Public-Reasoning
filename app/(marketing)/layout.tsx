@@ -15,7 +15,7 @@ const instrument = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: 'Reason — Esperti umani rivedono le tue decisioni sull’IA',
+  title: 'Dubitor — Esperti umani rivedono le tue decisioni sull’IA',
   description:
     'L’IA dà risposte sicure di sé. Filosofi, ethics e risk esterni alla tua azienda ti dicono rischi, limiti e punti ciechi.',
 };

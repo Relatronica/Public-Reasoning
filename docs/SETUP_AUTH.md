@@ -9,7 +9,7 @@ cp .env.example .env
 Valori tipici in locale:
 
 ```env
-DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/reason?schema=public"
+DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/dubitor?schema=public"
 
 AUTH_URL="http://localhost:3000"
 NEXTAUTH_URL="http://localhost:3000"

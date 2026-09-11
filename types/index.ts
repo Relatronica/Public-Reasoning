@@ -1,4 +1,4 @@
-// Dominio Reasoning Records: feed di giudizio su community configurabili.
+// Dominio Dubitor (Reasoning Records): feed di giudizio su community configurabili.
 
 export interface User {
   id: string;

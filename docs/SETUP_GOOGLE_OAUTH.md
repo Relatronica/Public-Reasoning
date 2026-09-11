@@ -9,7 +9,7 @@
 ### 1.2 Crea o Seleziona un Progetto
 1. Clicca sul menu a tendina in alto (dove c'è il nome del progetto)
 2. Clicca su **"NEW PROJECT"** (o seleziona un progetto esistente)
-3. Inserisci un nome (es: "Reasoning Records")
+3. Inserisci un nome (es: "Dubitor")
 4. Clicca **"CREATE"**
 
 ### 1.3 Abilita Google+ API
@@ -27,7 +27,7 @@ Se è la prima volta, ti chiederà di configurare il Consent Screen:
 1. Seleziona **"External"** (per sviluppo/test)
 2. Clicca **"CREATE"**
 3. Compila i campi obbligatori:
-   - **App name**: "Reasoning Records" (o il nome che preferisci)
+   - **App name**: "Dubitor" (o il nome che preferisci)
    - **User support email**: la tua email
    - **Developer contact information**: la tua email
 4. Clicca **"SAVE AND CONTINUE"**
@@ -35,7 +35,7 @@ Se è la prima volta, ti chiederà di configurare il Consent Screen:
 
 ### 1.6 Crea OAuth Client ID
 1. **Application type**: Seleziona **"Web application"**
-2. **Name**: "Reasoning Records Web Client"
+2. **Name**: "Dubitor Web Client"
 3. **Authorized JavaScript origins**: Aggiungi:
    ```
    http://localhost:3000
@@ -62,7 +62,7 @@ Nella root del progetto, crea o modifica il file `.env`:
 
 ```bash
 # Database
-DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/reason?schema=public"
+DATABASE_URL="postgresql://USER:PASSWORD@localhost:5432/dubitor?schema=public"
 
 AUTH_URL="http://localhost:3000"
 NEXTAUTH_URL="http://localhost:3000"

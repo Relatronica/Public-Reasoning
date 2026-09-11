@@ -247,7 +247,7 @@ export const agoraRecords: ReasoningRecord[] = [
       },
     ],
     interpretativeSummary:
-      'La pressione politica era «abbattere le code». La riformulazione è sulla custodia dei dati. Lo scarto del disclaimer è la prova che Reason può rendere verificabile ciò che di solito resta retorica.',
+      'La pressione politica era «abbattere le code». La riformulazione è sulla custodia dei dati. Lo scarto del disclaimer è la prova che Dubitor può rendere verificabile ciò che di solito resta retorica.',
     outcomeReviews: [
       {
         id: 'outcome-agora-bot-1',
@@ -273,7 +273,7 @@ export const agoraRecords: ReasoningRecord[] = [
         kind: 'alert',
         title: 'Il disclaimer non è un controllo',
         body: 'Se la vostra unica difesa è «abbiamo scritto di non incollare dati», non avete una misura tecnica: avete una speranza.',
-        author: 'Reason',
+        author: 'Dubitor',
         role: 'Sistema',
         relatedStepId: 'discarded-opt-agora-bot-1',
       },
