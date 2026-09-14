@@ -1,4 +1,9 @@
-import { DecisionInsight, DiscardedOption, ReasoningRecord } from '@/types';
+import {
+  DecisionInsight,
+  DecisionInsightSource,
+  DiscardedOption,
+  ReasoningRecord,
+} from '@/types';
 
 const KIND_LABEL: Record<DecisionInsight['kind'], string> = {
   spunto: 'Spunto',
@@ -7,8 +12,90 @@ const KIND_LABEL: Record<DecisionInsight['kind'], string> = {
   consulenza: 'Consulenza',
 };
 
+const SOURCE_LABEL: Record<DecisionInsightSource, string> = {
+  community: 'Community',
+  classic: 'Tradizione',
+  system: 'Sistema',
+};
+
+const SOURCE_BLURB: Record<DecisionInsightSource, string> = {
+  community: 'Pareri di filosofi e consulenti sulla scheda',
+  classic: 'Prompt di metodo dalla tradizione (non advisor vivi)',
+  system: 'Check e alert automatici di Dubitor',
+};
+
+/** Ordine di visualizzazione nella colonna Consultazione. */
+export const INSIGHT_SOURCE_ORDER: DecisionInsightSource[] = [
+  'community',
+  'classic',
+  'system',
+];
+
+/** Autori storici usati come lente di lettura, non come peer della community. */
+const CLASSIC_AUTHORS = new Set(
+  [
+    'Hannah Arendt',
+    'Karl Popper',
+    'Max Weber',
+    'Iris Marion Young',
+    'Simone Weil',
+    'John Dewey',
+  ].map((n) => n.toLowerCase())
+);
+
 export function insightKindLabel(kind: DecisionInsight['kind']): string {
   return KIND_LABEL[kind];
+}
+
+export function insightSourceLabel(source: DecisionInsightSource): string {
+  return SOURCE_LABEL[source];
+}
+
+export function insightSourceBlurb(source: DecisionInsightSource): string {
+  return SOURCE_BLURB[source];
+}
+
+/**
+ * Inferisce la provenienza quando manca `source` (seed legacy / overlay).
+ * Preferire sempre `source` esplicito in scrittura.
+ */
+export function inferInsightSource(
+  insight: Pick<DecisionInsight, 'source' | 'author' | 'role' | 'authorUserId'>
+): DecisionInsightSource {
+  if (insight.source) return insight.source;
+
+  const author = insight.author?.trim() ?? '';
+  const role = insight.role?.trim() ?? '';
+
+  if (role === 'Sistema' || author === 'Dubitor' || author === 'Desk risk') {
+    return 'system';
+  }
+  if (author && CLASSIC_AUTHORS.has(author.toLowerCase())) {
+    return 'classic';
+  }
+  return 'community';
+}
+
+export function withInsightSource(insight: DecisionInsight): DecisionInsight {
+  if (insight.source) return insight;
+  return { ...insight, source: inferInsightSource(insight) };
+}
+
+export function groupInsightsBySource(
+  insights: DecisionInsight[]
+): { source: DecisionInsightSource; items: DecisionInsight[] }[] {
+  const buckets: Record<DecisionInsightSource, DecisionInsight[]> = {
+    community: [],
+    classic: [],
+    system: [],
+  };
+  for (const insight of insights) {
+    buckets[inferInsightSource(insight)].push(insight);
+  }
+  return INSIGHT_SOURCE_ORDER.filter((s) => buckets[s].length > 0).map((source) => ({
+    source,
+    items: buckets[source],
+  }));
 }
 
 /** Id stabile del nodo/step scarto (allineato al grafo). */
@@ -61,9 +148,10 @@ export function consultationStatusLabel(
 /**
  * Spunti curati (filosofi/consulenti) + spunti contestuali derivati.
  * I curati restano in testa; i derivati non vengono cancellati dal primo contributo.
+ * Ogni insight esce con `source` risolto.
  */
 export function resolveDecisionInsights(record: ReasoningRecord): DecisionInsight[] {
-  const curated = record.insights ?? [];
+  const curated = (record.insights ?? []).map(withInsightSource);
   const derived = deriveContextualInsights(record);
   if (curated.length === 0) return derived;
 
@@ -78,6 +166,7 @@ function deriveContextualInsights(record: ReasoningRecord): DecisionInsight[] {
   items.push({
     id: `${record.id}-spunto-domanda`,
     kind: 'spunto',
+    source: 'classic',
     title: 'La domanda è quella giusta?',
     body: 'Prima di valutare la decisione, chiediti se la domanda reale cattura il conflitto vero o solo la formulazione più comoda da chiudere.',
     author: 'Hannah Arendt',
@@ -90,10 +179,11 @@ function deriveContextualInsights(record: ReasoningRecord): DecisionInsight[] {
     items.push({
       id: `${record.id}-consulenza-scarto`,
       kind: 'consulenza',
+      source: 'system',
       title: 'Lo scarto più debole',
       body: `Rileggi perché è stata scartata «${truncate(first.title, 72)}». Se la ragione è debole o non verificabile, lo scarto può tornare in gioco.`,
       author: 'Desk risk',
-      role: 'Consulente',
+      role: 'Metodo',
       relatedStepId: discardedStepId(first, 0),
     });
   }
@@ -102,6 +192,7 @@ function deriveContextualInsights(record: ReasoningRecord): DecisionInsight[] {
     items.push({
       id: `${record.id}-alert-incertezza`,
       kind: 'alert',
+      source: 'system',
       title: `Incertezza ${record.uncertaintyLevel}`,
       body:
         record.uncertaintyExplanation?.trim() ||
@@ -117,6 +208,7 @@ function deriveContextualInsights(record: ReasoningRecord): DecisionInsight[] {
     items.push({
       id: `${record.id}-domanda-stop`,
       kind: 'domanda',
+      source: 'classic',
       title: 'Cosa ti farebbe cambiare idea?',
       body: `Un criterio di stop dichiarato: «${truncate(stop, 140)}». È osservabile? Chi lo monitora? Entro quando?`,
       author: 'Karl Popper',
@@ -127,6 +219,7 @@ function deriveContextualInsights(record: ReasoningRecord): DecisionInsight[] {
     items.push({
       id: `${record.id}-alert-falsificabilita`,
       kind: 'alert',
+      source: 'system',
       title: 'Manca un criterio di stop',
       body: 'Senza condizioni che cambierebbero idea, la decisione rischia di diventare dogma. Aggiungi almeno un segnale osservabile di ripensamento.',
       author: 'Dubitor',
@@ -138,6 +231,7 @@ function deriveContextualInsights(record: ReasoningRecord): DecisionInsight[] {
   items.push({
     id: `${record.id}-spunto-responsabilita`,
     kind: 'spunto',
+    source: 'classic',
     title: 'Chi risponde se va male?',
     body: 'Una decisione pubblica non è solo contenuto: è responsabilità. Se l’esito delude, chi ha l’obbligo di tornare sul quesito e aggiornare il registro?',
     author: 'Max Weber',

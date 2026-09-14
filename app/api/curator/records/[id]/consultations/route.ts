@@ -147,6 +147,7 @@ export async function PATCH(request: Request, { params }: Params) {
   const insight: DecisionInsight = {
     id: insightId,
     kind: target.kind === 'filosofica' ? 'spunto' : 'consulenza',
+    source: 'community',
     title,
     body: text,
     author: authorName,

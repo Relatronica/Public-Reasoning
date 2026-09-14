@@ -10,10 +10,10 @@ import ImageCropDialog, { type CropKind } from '@/components/ImageCropDialog';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
 import {
-  CATEGORY_COLOR_PALETTE,
-  categoryColorHex,
   resolveCategoryColor,
 } from '@/lib/communities/category-colors';
+import { inferCategoryIconId } from '@/lib/communities/category-icon';
+import CategoryAppearancePickers from '@/components/CategoryAppearancePickers';
 import { Community, CommunityCategory, CommunityStat } from '@/types';
 
 type CropSession = {
@@ -159,6 +159,7 @@ function CommunityEditorInner() {
           categories: form.categories.map((c) => ({
             label: c.label.trim() || 'Argomento',
             color: resolveCategoryColor(c.color),
+            icon: c.icon || inferCategoryIconId(c.label),
           })),
           stats: form.stats,
         }),
@@ -386,7 +387,7 @@ function CommunityEditorInner() {
             <div>
               <h2 className={sectionTitleClass}>Argomenti</h2>
               <p className={`${hintClass} mt-1`}>
-                Filtri nella sidebar. Nome e colore modificabili.
+                Filtri nella sidebar. Nome, icona e colore modificabili.
               </p>
             </div>
             <button
@@ -394,7 +395,11 @@ function CommunityEditorInner() {
               onClick={() =>
                 update('categories', [
                   ...form.categories,
-                  { label: 'Nuovo argomento', color: 'bg-blue-500' },
+                  {
+                    label: 'Nuovo argomento',
+                    color: 'bg-blue-500',
+                    icon: 'tag',
+                  },
                 ])
               }
               className="text-xs text-blue-600 hover:underline flex items-center gap-1 flex-shrink-0"
@@ -409,18 +414,12 @@ function CommunityEditorInner() {
 
           <ul className="grid sm:grid-cols-2 gap-2">
             {form.categories.map((cat, i) => {
-              const color = resolveCategoryColor(cat.color);
               return (
                 <li
                   key={i}
-                  className="rounded-lg border border-gray-200 bg-white p-2.5 space-y-2"
+                  className="relative rounded-lg border border-gray-200 bg-white p-2.5 space-y-2 overflow-visible"
                 >
                   <div className="flex gap-1.5 items-center">
-                    <span
-                      className="w-2 h-2 rounded-full flex-shrink-0 ring-1 ring-black/10"
-                      style={{ backgroundColor: categoryColorHex(color) }}
-                      aria-hidden
-                    />
                     <input
                       className={`${inputClass} flex-1 py-1.5`}
                       value={cat.label}
@@ -443,27 +442,12 @@ function CommunityEditorInner() {
                     </button>
                   </div>
 
-                  <div className="flex flex-wrap gap-1.5 pl-3.5">
-                    {CATEGORY_COLOR_PALETTE.map((swatch) => {
-                      const selected = color === swatch.className;
-                      return (
-                        <button
-                          key={swatch.className}
-                          type="button"
-                          title={swatch.label}
-                          aria-label={swatch.label}
-                          aria-pressed={selected}
-                          onClick={() => updateCategory(i, { color: swatch.className })}
-                          style={{ backgroundColor: swatch.hex }}
-                          className={`w-5 h-5 rounded-full border border-black/10 transition ${
-                            selected
-                              ? 'ring-2 ring-gray-900 ring-offset-1 scale-110'
-                              : 'hover:scale-105'
-                          }`}
-                        />
-                      );
-                    })}
-                  </div>
+                  <CategoryAppearancePickers
+                    label={cat.label}
+                    color={cat.color}
+                    icon={cat.icon}
+                    onChange={(patch) => updateCategory(i, patch)}
+                  />
                 </li>
               );
             })}

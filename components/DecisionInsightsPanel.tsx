@@ -1,20 +1,14 @@
 'use client';
 
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
-import {
-  AlertTriangle,
-  HelpCircle,
-  Lightbulb,
-  MessageSquare,
-  Plus,
-  Send,
-  X,
-} from 'lucide-react';
+import { ChevronDown, Lightbulb, Plus, Send, X } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import {
   consultationKindLabel,
   consultationStatusLabel,
+  inferInsightSource,
   insightKindLabel,
+  insightSourceLabel,
   resolveDecisionInsights,
   stepLabelForInsight,
 } from '@/lib/records/decision-insights';
@@ -37,14 +31,7 @@ import {
   ReasoningRecord,
 } from '@/types';
 
-const KIND_ICON = {
-  spunto: Lightbulb,
-  alert: AlertTriangle,
-  domanda: HelpCircle,
-  consulenza: MessageSquare,
-} as const;
-
-type Tab = 'spunti' | 'richieste';
+export type ConsultationPanelTab = 'spunti' | 'richieste';
 
 interface Props {
   record: ReasoningRecord;
@@ -52,8 +39,8 @@ interface Props {
   /** Filtra la colonna su uno step (es. click badge sul grafo). */
   filterStepId?: string | null;
   openToken?: number;
-  /** Tab da aprire quando openToken cambia. */
-  openTab?: Tab;
+  /** Vista da aprire quando openToken cambia. */
+  openTab?: ConsultationPanelTab;
 }
 
 /** Colonna destra spunti/richieste (desktop) + dock mobile. */
@@ -75,10 +62,11 @@ export default function DecisionInsightsPanel({
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobilePinned, setMobilePinned] = useState(false);
-  const [tab, setTab] = useState<Tab>('spunti');
+  const [view, setView] = useState<ConsultationPanelTab>('spunti');
   const [stepFilter, setStepFilter] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [showOthers, setShowOthers] = useState(false);
   const mobileRef = useRef<HTMLDivElement>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const panelId = useId();
@@ -89,11 +77,29 @@ export default function DecisionInsightsPanel({
     return allInsights.filter((i) => i.relatedStepId === stepFilter);
   }, [allInsights, stepFilter]);
 
+  const { primary, secondary } = useMemo(() => {
+    const community: DecisionInsight[] = [];
+    const other: DecisionInsight[] = [];
+    for (const insight of insights) {
+      if (inferInsightSource(insight) === 'community') community.push(insight);
+      else other.push(insight);
+    }
+    // Se non c’è community su questo filtro, gli altri sono la lista principale.
+    if (community.length === 0) return { primary: other, secondary: [] as DecisionInsight[] };
+    return { primary: community, secondary: other };
+  }, [insights]);
+
   const filterLabel = stepFilter
     ? stepLabelForInsight(steps, stepFilter) || stepFilter
     : null;
 
-  const active = insights.find((i) => i.id === activeId) ?? insights[0] ?? null;
+  const feedInsights = useMemo(
+    () => (showOthers ? [...primary, ...secondary] : primary),
+    [primary, secondary, showOthers]
+  );
+
+  const active =
+    feedInsights.find((i) => i.id === activeId) ?? feedInsights[0] ?? null;
 
   const clearCloseTimer = useCallback(() => {
     if (closeTimer.current) {
@@ -130,8 +136,9 @@ export default function DecisionInsightsPanel({
   useEffect(() => {
     if (!openToken) return;
     setStepFilter(filterStepId ?? null);
-    setTab(openTab);
+    setView(openTab);
     setAdding(false);
+    setShowOthers(false);
     const isMobile =
       typeof window !== 'undefined' &&
       window.matchMedia('(max-width: 1023px)').matches;
@@ -144,10 +151,10 @@ export default function DecisionInsightsPanel({
 
   useEffect(() => {
     setActiveId((prev) => {
-      if (prev && insights.some((i) => i.id === prev)) return prev;
-      return insights[0]?.id ?? null;
+      if (prev && feedInsights.some((i) => i.id === prev)) return prev;
+      return feedInsights[0]?.id ?? null;
     });
-  }, [insights, stepFilter]);
+  }, [feedInsights, stepFilter]);
 
   useEffect(() => {
     if (!mobileOpen) return;
@@ -179,53 +186,68 @@ export default function DecisionInsightsPanel({
 
   if (!showPanel) return null;
 
-  const panelBodyProps = {
-    tab,
-    setTab,
-    allInsightsCount: allInsights.length,
-    insights,
-    requests,
-    steps,
-    stepFilter,
-    setStepFilter,
-    active,
-    setActiveId,
-    adding,
-    setAdding,
-    record,
-    myRole,
-    canAdvise,
-    canRequest: canRequestConsultation && authStatus === 'authenticated',
-    refresh,
-    advisorReputations,
-    onSelectRelatedStep,
-  };
+  const headerMeta =
+    view === 'richieste'
+      ? requests.length === 0
+        ? 'Nessuna richiesta'
+        : `${requests.length} richiest${requests.length === 1 ? 'a' : 'e'}`
+      : filterLabel
+        ? `Su «${filterLabel}»`
+        : 'Pareri sulla scheda';
+
+  const panelBody = (
+    <PanelBody
+      view={view}
+      insights={insights}
+      primary={primary}
+      secondary={secondary}
+      showOthers={showOthers}
+      setShowOthers={setShowOthers}
+      steps={steps}
+      stepFilter={stepFilter}
+      setStepFilter={setStepFilter}
+      active={active}
+      setActiveId={setActiveId}
+      adding={adding}
+      setAdding={setAdding}
+      record={record}
+      myRole={myRole}
+      canAdvise={canAdvise}
+      canRequest={canRequestConsultation && authStatus === 'authenticated'}
+      refresh={refresh}
+      advisorReputations={advisorReputations}
+      onSelectRelatedStep={onSelectRelatedStep}
+      onBackToSpunti={() => setView('spunti')}
+      onInsightCreated={async () => {
+        setAdding(false);
+        setView('spunti');
+        await refresh();
+      }}
+      onRequestAnswered={async (insightId) => {
+        await refresh();
+        setStepFilter(null);
+        setShowOthers(false);
+        setView('spunti');
+        if (insightId) setActiveId(insightId);
+      }}
+    />
+  );
 
   return (
     <>
       <aside
         ref={columnRef}
         aria-label="Spunti e consultazioni"
-        className="hidden lg:flex w-full min-w-0 sticky top-6 self-start max-h-[calc(100vh-5rem)] flex-col rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm shadow-gray-900/[0.03]"
+        className="hidden lg:flex w-full min-w-0 sticky top-6 self-start max-h-[calc(100vh-5rem)] flex-col rounded-xl border border-gray-200 bg-white overflow-hidden"
       >
-        <div className="flex items-start justify-between gap-2 px-4 py-3 border-b border-gray-100 flex-shrink-0">
-          <div className="min-w-0">
-            <p className="text-sm font-semibold text-gray-900">Consultazione</p>
-            <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">
-              {filterLabel
-                ? `Spunti su «${filterLabel}»`
-                : 'Spunti, suggerimenti e richieste'}
-            </p>
-          </div>
-          {openCount > 0 && (
-            <span className="flex-shrink-0 inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800">
-              {openCount}
-            </span>
-          )}
-        </div>
-        <div className="flex-1 min-h-0 overflow-y-auto">
-          <PanelBody {...panelBodyProps} />
-        </div>
+        <PanelHeader
+          meta={headerMeta}
+          view={view}
+          setView={setView}
+          openCount={openCount}
+          requestCount={requests.length}
+        />
+        <div className="flex-1 min-h-0 overflow-y-auto">{panelBody}</div>
       </aside>
 
       <div
@@ -241,30 +263,19 @@ export default function DecisionInsightsPanel({
             aria-label="Spunti e consultazioni"
             className="w-[min(100vw-2.5rem,24rem)] max-h-[min(70vh,32rem)] rounded-xl border border-gray-200 bg-white shadow-lg shadow-gray-900/5 overflow-hidden flex flex-col"
           >
-            <div className="flex items-center justify-between gap-2 px-3.5 py-2.5 border-b border-gray-100 flex-shrink-0">
-              <div>
-                <p className="text-xs font-semibold text-gray-900">Consultazione</p>
-                <p className="text-[11px] text-gray-500">
-                  {filterLabel
-                    ? `Spunti su «${filterLabel}»`
-                    : 'Spunti, suggerimenti e richieste'}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setMobilePinned(false);
-                  setMobileOpen(false);
-                }}
-                className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100"
-                aria-label="Chiudi"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-            <div className="flex-1 min-h-0 overflow-y-auto">
-              <PanelBody {...panelBodyProps} />
-            </div>
+            <PanelHeader
+              meta={headerMeta}
+              view={view}
+              setView={setView}
+              openCount={openCount}
+              requestCount={requests.length}
+              onClose={() => {
+                setMobilePinned(false);
+                setMobileOpen(false);
+              }}
+              compact
+            />
+            <div className="flex-1 min-h-0 overflow-y-auto">{panelBody}</div>
           </div>
         )}
 
@@ -280,7 +291,7 @@ export default function DecisionInsightsPanel({
           }`}
         >
           <Lightbulb className={`w-3.5 h-3.5 ${mobileOpen ? 'text-amber-300' : 'text-gray-500'}`} />
-          Spunti
+          Consultazione
           <span className={`tabular-nums ${mobileOpen ? 'text-gray-300' : 'text-gray-400'}`}>
             · {allInsights.length}
           </span>
@@ -299,12 +310,79 @@ export default function DecisionInsightsPanel({
   );
 }
 
+function PanelHeader({
+  meta,
+  view,
+  setView,
+  openCount,
+  requestCount,
+  onClose,
+  compact = false,
+}: {
+  meta: string;
+  view: ConsultationPanelTab;
+  setView: (v: ConsultationPanelTab) => void;
+  openCount: number;
+  requestCount: number;
+  onClose?: () => void;
+  compact?: boolean;
+}) {
+  return (
+    <div
+      className={`flex items-start justify-between gap-2 border-b border-gray-100 flex-shrink-0 ${
+        compact ? 'px-3.5 py-2.5' : 'px-4 py-3'
+      }`}
+    >
+      <div className="min-w-0">
+        <p className={`font-semibold text-gray-900 ${compact ? 'text-xs' : 'text-sm'}`}>
+          Consultazione
+        </p>
+        <p className="text-[11px] text-gray-500 mt-0.5 leading-snug">{meta}</p>
+      </div>
+      <div className="flex items-center gap-1.5 flex-shrink-0">
+        {view === 'spunti' ? (
+          <button
+            type="button"
+            onClick={() => setView('richieste')}
+            className="text-[11px] font-medium text-gray-600 hover:text-gray-900 underline-offset-2 hover:underline"
+          >
+            {requestCount > 0
+              ? openCount > 0
+                ? `${openCount} aperte`
+                : `${requestCount} richieste`
+              : 'Richieste'}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setView('spunti')}
+            className="text-[11px] font-medium text-gray-600 hover:text-gray-900 underline-offset-2 hover:underline"
+          >
+            Spunti
+          </button>
+        )}
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100"
+            aria-label="Chiudi"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function PanelBody({
-  tab,
-  setTab,
-  allInsightsCount,
+  view,
   insights,
-  requests,
+  primary,
+  secondary,
+  showOthers,
+  setShowOthers,
   steps,
   stepFilter,
   setStepFilter,
@@ -319,12 +397,16 @@ function PanelBody({
   refresh,
   advisorReputations,
   onSelectRelatedStep,
+  onBackToSpunti,
+  onInsightCreated,
+  onRequestAnswered,
 }: {
-  tab: Tab;
-  setTab: (t: Tab) => void;
-  allInsightsCount: number;
+  view: ConsultationPanelTab;
   insights: DecisionInsight[];
-  requests: ConsultationRequest[];
+  primary: DecisionInsight[];
+  secondary: DecisionInsight[];
+  showOthers: boolean;
+  setShowOthers: (v: boolean) => void;
   steps: { id: string; label: string }[];
   stepFilter: string | null;
   setStepFilter: (id: string | null) => void;
@@ -339,121 +421,151 @@ function PanelBody({
   refresh: () => Promise<void>;
   advisorReputations: Map<string, AdvisorReputation>;
   onSelectRelatedStep?: (stepId: string) => void;
+  onBackToSpunti: () => void;
+  onInsightCreated: () => Promise<void>;
+  onRequestAnswered: (insightId?: string) => Promise<void>;
 }) {
-  return (
-    <>
-      <div className="flex gap-1 px-3.5 pt-3">
-        {(
-          [
-            ['spunti', `Spunti · ${stepFilter ? insights.length : allInsightsCount}`],
-            ['richieste', `Richieste · ${requests.length}`],
-          ] as const
-        ).map(([id, label]) => (
-          <button
-            key={id}
-            type="button"
-            onClick={() => setTab(id)}
-            className={`px-2.5 py-1 rounded-md text-xs transition-colors ${
-              tab === id
-                ? 'bg-gray-900 text-white font-medium'
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
+  if (view === 'richieste') {
+    return (
+      <RequestsPanel
+        recordId={record.id}
+        recordCategory={record.category}
+        requests={record.consultationRequests ?? []}
+        insights={record.insights ?? []}
+        myRole={myRole}
+        canAdvise={canAdvise}
+        canRequest={canRequest}
+        advisorReputations={advisorReputations}
+        onChanged={onRequestAnswered}
+        onRequestCreated={async () => {
+          await refresh();
+        }}
+        onBack={onBackToSpunti}
+      />
+    );
+  }
 
-      {tab === 'spunti' && stepFilter && (
-        <div className="px-3.5 pt-2">
+  const onlyMethodPrompts =
+    primary.length > 0 &&
+    primary.every((i) => inferInsightSource(i) !== 'community') &&
+    secondary.length === 0;
+
+  return (
+    <div className="pb-4">
+      {stepFilter && (
+        <div className="px-4 pt-3">
           <button
             type="button"
             onClick={() => setStepFilter(null)}
             className="text-[11px] text-gray-500 hover:text-gray-800"
           >
-            Mostra tutti gli spunti
+            Mostra tutti
           </button>
         </div>
       )}
 
-      {tab === 'spunti' ? (
-        <div className="pb-3">
-          {canAdvise && (
-            <div className="px-3.5 pt-3">
-              {!adding ? (
-                <button
-                  type="button"
-                  onClick={() => setAdding(true)}
-                  className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-700 hover:text-gray-900"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Aggiungi spunto
-                </button>
-              ) : (
-                <AddInsightForm
-                  recordId={record.id}
-                  steps={steps}
-                  defaultStepId={stepFilter ?? steps[0]?.id}
-                  myRole={myRole}
-                  onCancel={() => setAdding(false)}
-                  onCreated={async () => {
-                    setAdding(false);
-                    await refresh();
-                  }}
-                  className="space-y-2.5 rounded-lg border border-gray-200 p-3 bg-gray-50/60 mb-2"
+      {canAdvise && (
+        <div className="px-4 pt-3">
+          {!adding ? (
+            <button
+              type="button"
+              onClick={() => setAdding(true)}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-700 hover:text-gray-900"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Aggiungi spunto
+            </button>
+          ) : (
+            <AddInsightForm
+              recordId={record.id}
+              steps={steps}
+              defaultStepId={stepFilter ?? steps[0]?.id}
+              myRole={myRole}
+              onCancel={() => setAdding(false)}
+              onCreated={onInsightCreated}
+              className="space-y-2.5 py-1"
+            />
+          )}
+        </div>
+      )}
+
+      {insights.length === 0 ? (
+        <p className="px-4 py-5 text-xs text-gray-500 leading-relaxed">
+          {stepFilter
+            ? 'Nessuno spunto su questo step.'
+            : 'Nessuno spunto ancora. Un filosofo o consulente può aggiungerne uno, oppure apri una richiesta.'}
+        </p>
+      ) : (
+        <>
+          {onlyMethodPrompts && (
+            <p className="px-4 pt-3 text-[11px] text-gray-500">
+              Prompt di metodo (non consulenza umana)
+            </p>
+          )}
+
+          <ul className="mt-1">
+            {primary.map((insight) => (
+              <InsightRow
+                key={insight.id}
+                insight={insight}
+                reputation={getAdvisorReputation(advisorReputations, insight.authorUserId)}
+                stepLabel={stepLabelForInsight(steps, insight.relatedStepId)}
+                selected={insight.id === active?.id}
+                onSelect={() => setActiveId(insight.id)}
+                onOpenStep={
+                  insight.relatedStepId && onSelectRelatedStep
+                    ? () => onSelectRelatedStep(insight.relatedStepId!)
+                    : undefined
+                }
+              />
+            ))}
+          </ul>
+
+          {secondary.length > 0 && (
+            <div className="mt-1 border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => setShowOthers(!showOthers)}
+                aria-expanded={showOthers}
+                className="w-full flex items-center justify-between gap-2 px-4 py-2.5 text-left text-[12px] text-gray-600 hover:text-gray-900 hover:bg-gray-50/80"
+              >
+                <span>
+                  Altri spunti
+                  <span className="text-gray-400"> · {secondary.length}</span>
+                </span>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 text-gray-400 transition-transform ${
+                    showOthers ? 'rotate-180' : ''
+                  }`}
                 />
+              </button>
+              {showOthers && (
+                <ul>
+                  {secondary.map((insight) => (
+                    <InsightRow
+                      key={insight.id}
+                      insight={insight}
+                      reputation={getAdvisorReputation(
+                        advisorReputations,
+                        insight.authorUserId
+                      )}
+                      stepLabel={stepLabelForInsight(steps, insight.relatedStepId)}
+                      selected={insight.id === active?.id}
+                      onSelect={() => setActiveId(insight.id)}
+                      onOpenStep={
+                        insight.relatedStepId && onSelectRelatedStep
+                          ? () => onSelectRelatedStep(insight.relatedStepId!)
+                          : undefined
+                      }
+                    />
+                  ))}
+                </ul>
               )}
             </div>
           )}
-
-          {insights.length === 0 ? (
-            <p className="px-3.5 py-4 text-xs text-gray-500">
-              {stepFilter
-                ? 'Nessuno spunto su questo step.'
-                : 'Nessuno spunto ancora. Un filosofo o consulente può aggiungerne uno, oppure apri una richiesta.'}
-            </p>
-          ) : (
-            <ul className="divide-y divide-gray-100 mt-1">
-              {insights.map((insight) => (
-                <InsightRow
-                  key={insight.id}
-                  insight={insight}
-                  reputation={getAdvisorReputation(advisorReputations, insight.authorUserId)}
-                  stepLabel={stepLabelForInsight(steps, insight.relatedStepId)}
-                  selected={insight.id === active?.id}
-                  onSelect={() => setActiveId(insight.id)}
-                  onOpenStep={
-                    insight.relatedStepId && onSelectRelatedStep
-                      ? () => onSelectRelatedStep(insight.relatedStepId!)
-                      : undefined
-                  }
-                />
-              ))}
-            </ul>
-          )}
-        </div>
-      ) : (
-        <RequestsPanel
-          recordId={record.id}
-          recordCategory={record.category}
-          requests={requests}
-          insights={record.insights ?? []}
-          myRole={myRole}
-          canAdvise={canAdvise}
-          canRequest={canRequest}
-          advisorReputations={advisorReputations}
-          onChanged={async (insightId) => {
-            await refresh();
-            setStepFilter(null);
-            setTab('spunti');
-            if (insightId) setActiveId(insightId);
-          }}
-          onRequestCreated={async () => {
-            await refresh();
-          }}
-        />
+        </>
       )}
-    </>
+    </div>
   );
 }
 
@@ -472,59 +584,50 @@ function InsightRow({
   onSelect: () => void;
   onOpenStep?: () => void;
 }) {
-  const Icon = KIND_ICON[insight.kind];
   const expanded = selected;
+  const source = inferInsightSource(insight);
 
   return (
     <li className={expanded ? 'bg-gray-50' : ''}>
       <button
         type="button"
         onClick={onSelect}
-        className={`w-full text-left px-3.5 py-3 transition-colors ${
+        className={`w-full text-left px-4 py-3 transition-colors ${
           expanded ? '' : 'hover:bg-gray-50/80'
         }`}
       >
         <div className="flex items-start gap-2.5">
           <InsightAvatar insight={insight} size="md" />
-          <div className="min-w-0 flex-1 space-y-1">
-            <div className="space-y-1">
-              <div className="flex items-center gap-1.5 min-w-0">
-                <p className="text-[12px] font-medium text-gray-800 truncate">
-                  {insight.author || insight.role || 'Anonimo'}
-                </p>
-                {insight.role && insight.author && (
-                  <span className="text-[10px] text-gray-400 truncate flex-shrink-0">
-                    {insight.role}
-                  </span>
-                )}
-              </div>
-              {reputation && reputation.badges.length > 0 && (
-                <AdvisorBadges badges={reputation.badges} max={4} />
-              )}
-            </div>
-            <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
-              <span className="inline-flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                <Icon className="w-3 h-3" />
-                {insightKindLabel(insight.kind)}
-              </span>
-              {stepLabel && (
-                <>
-                  <span className="text-gray-300 text-[10px]">·</span>
-                  <span className="text-[10px] font-medium text-gray-600 bg-gray-100 px-1.5 py-0.5 rounded">
-                    {stepLabel}
-                  </span>
-                </>
-              )}
-            </div>
-            <p className="text-sm font-medium text-gray-900 leading-snug">{insight.title}</p>
+          <div className="min-w-0 flex-1">
+            <p className="text-[12px] font-medium text-gray-800 truncate">
+              {insight.author || insight.role || 'Anonimo'}
+            </p>
+            <p className="text-sm font-medium text-gray-900 leading-snug mt-0.5">
+              {insight.title}
+            </p>
             {expanded && (
-              <p className="text-xs text-gray-600 leading-relaxed pt-0.5">{insight.body}</p>
+              <div className="space-y-2 pt-2">
+                <p className="text-[11px] text-gray-500">
+                  {[
+                    source !== 'community' ? insightSourceLabel(source) : null,
+                    insight.role,
+                    insightKindLabel(insight.kind),
+                    stepLabel,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
+                </p>
+                {reputation && reputation.badges.length > 0 && (
+                  <AdvisorBadges badges={reputation.badges} max={4} />
+                )}
+                <p className="text-xs text-gray-600 leading-relaxed">{insight.body}</p>
+              </div>
             )}
           </div>
         </div>
       </button>
       {expanded && onOpenStep && (
-        <div className="px-3.5 pb-3 -mt-1 pl-[3.25rem]">
+        <div className="px-4 pb-3 -mt-1 pl-[3.5rem]">
           <button
             type="button"
             onClick={onOpenStep}
@@ -549,6 +652,7 @@ function RequestsPanel({
   advisorReputations,
   onChanged,
   onRequestCreated,
+  onBack,
 }: {
   recordId: string;
   recordCategory?: string;
@@ -560,6 +664,7 @@ function RequestsPanel({
   advisorReputations: Map<string, AdvisorReputation>;
   onChanged: (insightId?: string) => Promise<void>;
   onRequestCreated: () => Promise<void>;
+  onBack: () => void;
 }) {
   const [kind, setKind] = useState<ConsultationKind>('consulenza');
   const [question, setQuestion] = useState('');
@@ -568,6 +673,7 @@ function RequestsPanel({
   const [replyFor, setReplyFor] = useState<string | null>(null);
   const [replyTitle, setReplyTitle] = useState('');
   const [replyBody, setReplyBody] = useState('');
+  const [composing, setComposing] = useState(false);
 
   const sorted = useMemo(
     () =>
@@ -596,6 +702,7 @@ function RequestsPanel({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Errore');
       setQuestion('');
+      setComposing(false);
       await onRequestCreated();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Errore');
@@ -632,10 +739,37 @@ function RequestsPanel({
   }
 
   return (
-    <div className="px-3.5 py-3 space-y-4">
-      {canRequest && (
-        <form onSubmit={submitRequest} className="space-y-2.5 rounded-lg border border-gray-200 p-3 bg-gray-50/60">
-          <p className="text-xs font-semibold text-gray-800">Richiedi consultazione</p>
+    <div className="pb-4">
+      <div className="px-4 pt-3 flex items-center justify-between gap-2">
+        {canRequest ? (
+          !composing ? (
+            <button
+              type="button"
+              onClick={() => setComposing(true)}
+              className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-700 hover:text-gray-900"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Nuova richiesta
+            </button>
+          ) : (
+            <span className="text-xs font-medium text-gray-800">Nuova richiesta</span>
+          )
+        ) : (
+          <p className="text-xs text-gray-500">
+            Accedi al workspace per chiedere una consultazione.
+          </p>
+        )}
+        <button
+          type="button"
+          onClick={onBack}
+          className="text-[11px] text-gray-500 hover:text-gray-800 lg:hidden"
+        >
+          Indietro
+        </button>
+      </div>
+
+      {composing && canRequest && (
+        <form onSubmit={submitRequest} className="px-4 pt-3 space-y-2.5 border-b border-gray-100 pb-4">
           <div className="flex gap-1">
             {(
               [
@@ -647,10 +781,10 @@ function RequestsPanel({
                 key={id}
                 type="button"
                 onClick={() => setKind(id)}
-                className={`px-2.5 py-1 rounded-md text-xs transition-colors ${
+                className={`px-2 py-1 rounded-md text-xs transition-colors ${
                   kind === id
                     ? 'bg-gray-900 text-white font-medium'
-                    : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-100'
+                    : 'text-gray-600 hover:bg-gray-100'
                 }`}
               >
                 {label}
@@ -666,31 +800,37 @@ function RequestsPanel({
                 ? 'Cosa vuoi mettere in discussione sulla domanda o sugli scarti?'
                 : 'Su quale rischio, gap o alternativa chiedi un parere?'
             }
-            className="w-full text-sm rounded-md border border-gray-200 bg-white px-2.5 py-2 text-gray-800 placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-300"
+            className="w-full text-sm border-0 border-b border-gray-200 rounded-none px-0 py-1.5 text-gray-800 placeholder:text-gray-400 focus:outline-none focus:border-gray-400 bg-transparent"
           />
-          <button
-            type="submit"
-            disabled={busy || question.trim().length < 8}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium bg-gray-900 text-white disabled:opacity-40"
-          >
-            <Send className="w-3.5 h-3.5" />
-            Invia richiesta
-          </button>
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={busy || question.trim().length < 8}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium bg-gray-900 text-white disabled:opacity-40"
+            >
+              <Send className="w-3.5 h-3.5" />
+              Invia
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setComposing(false);
+                setQuestion('');
+              }}
+              className="px-2.5 py-1.5 rounded-md text-xs text-gray-600 hover:bg-gray-100"
+            >
+              Annulla
+            </button>
+          </div>
         </form>
       )}
 
-      {!canRequest && (
-        <p className="text-xs text-gray-500">
-          Accedi e fai parte del workspace per chiedere una consultazione.
-        </p>
-      )}
-
-      {error && <p className="text-xs text-rose-600">{error}</p>}
+      {error && <p className="px-4 pt-2 text-xs text-rose-600">{error}</p>}
 
       {sorted.length === 0 ? (
-        <p className="text-xs text-gray-500">Nessuna richiesta su questa scheda.</p>
+        <p className="px-4 py-5 text-xs text-gray-500">Nessuna richiesta su questa scheda.</p>
       ) : (
-        <ul className="space-y-3">
+        <ul className="divide-y divide-gray-100 mt-1">
           {sorted.map((req) => {
             const canReply =
               canAdvise &&
@@ -724,27 +864,17 @@ function RequestsPanel({
               role: 'Richiedente',
             };
             return (
-              <li key={req.id} className="rounded-lg border border-gray-200 p-3 space-y-2">
+              <li key={req.id} className="px-4 py-3 space-y-2">
                 <div className="flex items-start gap-2.5">
                   <InsightAvatar insight={requesterAsInsight} size="sm" />
                   <div className="min-w-0 flex-1 space-y-1">
-                    <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] uppercase tracking-wider font-semibold text-gray-400">
-                      <span>{consultationKindLabel(req.kind)}</span>
-                      <span className="text-gray-300">·</span>
-                      <span
-                        className={
-                          req.status === 'chiusa'
-                            ? 'text-gray-400'
-                            : req.status === 'in_corso'
-                              ? 'text-amber-700'
-                              : 'text-emerald-700'
-                        }
-                      >
-                        {consultationStatusLabel(req.status)}
-                      </span>
-                    </div>
+                    <p className="text-[11px] text-gray-500">
+                      {consultationKindLabel(req.kind)}
+                      {' · '}
+                      {consultationStatusLabel(req.status)}
+                    </p>
                     {req.status !== 'chiusa' && (
-                      <AdvisorBadges badges={openBadges} max={3} className="pt-0.5" />
+                      <AdvisorBadges badges={openBadges} max={3} />
                     )}
                     <p className="text-sm text-gray-900 leading-snug">{req.question}</p>
                     <p className="text-[11px] text-gray-500">
@@ -756,26 +886,26 @@ function RequestsPanel({
                 </div>
 
                 {req.status === 'chiusa' && response && (
-                  <div className="rounded-md bg-gray-50 border border-gray-100 p-2.5 space-y-2">
-                    <div className="flex items-start gap-2">
+                  <div className="pl-9 space-y-1.5">
+                    <div className="flex items-center gap-2">
                       <InsightAvatar insight={response} size="sm" />
-                      <div className="min-w-0 space-y-1">
-                        <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                          Risposta · {response.author || response.role || 'Advisor'}
-                        </p>
-                        {responseReputation && responseReputation.badges.length > 0 && (
-                          <AdvisorBadges badges={responseReputation.badges} max={4} />
-                        )}
-                      </div>
+                      <p className="text-[11px] text-gray-500">
+                        Risposta · {response.author || response.role || 'Advisor'}
+                      </p>
                     </div>
-                    <p className="text-sm font-medium text-gray-900 leading-snug">{response.title}</p>
+                    {responseReputation && responseReputation.badges.length > 0 && (
+                      <AdvisorBadges badges={responseReputation.badges} max={4} />
+                    )}
+                    <p className="text-sm font-medium text-gray-900 leading-snug">
+                      {response.title}
+                    </p>
                     <p className="text-xs text-gray-600 leading-relaxed">{response.body}</p>
                   </div>
                 )}
 
                 {req.status === 'chiusa' && req.responseInsightId && !response && (
-                  <p className="text-[11px] text-gray-500">
-                    Risposta pubblicata negli spunti della scheda.
+                  <p className="pl-9 text-[11px] text-gray-500">
+                    Risposta pubblicata negli spunti.
                   </p>
                 )}
 
@@ -789,7 +919,7 @@ function RequestsPanel({
                       );
                       setReplyBody('');
                     }}
-                    className="text-[11px] font-medium text-gray-700 hover:text-gray-900 underline-offset-2 hover:underline"
+                    className="pl-9 text-[11px] font-medium text-gray-700 hover:text-gray-900 underline-offset-2 hover:underline"
                   >
                     Rispondi
                   </button>
@@ -798,20 +928,20 @@ function RequestsPanel({
                 {replyFor === req.id && (
                   <form
                     onSubmit={(e) => submitReply(e, req.id)}
-                    className="space-y-2 pt-1 border-t border-gray-100"
+                    className="pl-9 space-y-2 pt-1"
                   >
                     <input
                       value={replyTitle}
                       onChange={(e) => setReplyTitle(e.target.value)}
                       placeholder="Titolo"
-                      className="w-full text-sm rounded-md border border-gray-200 px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-gray-300"
+                      className="w-full text-sm border-0 border-b border-gray-200 rounded-none px-0 py-1.5 focus:outline-none focus:border-gray-400 bg-transparent"
                     />
                     <textarea
                       value={replyBody}
                       onChange={(e) => setReplyBody(e.target.value)}
                       rows={3}
                       placeholder="La tua risposta…"
-                      className="w-full text-sm rounded-md border border-gray-200 px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-gray-300"
+                      className="w-full text-sm border-0 border-b border-gray-200 rounded-none px-0 py-1.5 focus:outline-none focus:border-gray-400 bg-transparent"
                     />
                     <div className="flex gap-2">
                       <button
@@ -819,7 +949,7 @@ function RequestsPanel({
                         disabled={busy}
                         className="px-2.5 py-1.5 rounded-md text-xs font-medium bg-gray-900 text-white disabled:opacity-40"
                       >
-                        Pubblica risposta
+                        Pubblica
                       </button>
                       <button
                         type="button"

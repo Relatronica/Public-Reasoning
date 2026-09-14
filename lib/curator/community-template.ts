@@ -65,9 +65,9 @@ export function buildCommunityTemplate(input: {
     searchPlaceholder: 'Cerca decisioni, domande, fonti…',
     officialUrlLabel: 'Registro interno',
     categories: [
-      { label: 'Generale', color: 'bg-blue-500' },
-      { label: 'Operativo', color: 'bg-emerald-500' },
-      { label: 'Rischio', color: 'bg-amber-500' },
+      { label: 'Generale', color: 'bg-blue-500', icon: 'tag' },
+      { label: 'Operativo', color: 'bg-emerald-500', icon: 'settings' },
+      { label: 'Rischio', color: 'bg-amber-500', icon: 'alert' },
     ],
     stats: [
       { label: 'Ambito', value: typeLabel },

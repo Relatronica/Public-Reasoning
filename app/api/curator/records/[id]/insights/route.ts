@@ -60,6 +60,7 @@ export async function POST(request: Request, { params }: Params) {
   const insight: DecisionInsight = {
     id: newEntityId('insight'),
     kind,
+    source: 'community',
     title,
     body: text,
     author: user.name ?? roleLabel,

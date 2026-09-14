@@ -24,6 +24,8 @@ export type EntityType = CommunityType;
 export interface CommunityCategory {
   label: string;
   color: string;
+  /** Id icona da CATEGORY_ICON_CATALOG; se assente si inferisce dal label. */
+  icon?: string;
 }
 
 export interface CommunityStat {
@@ -194,6 +196,14 @@ export type CompliancePack = 'ai_governance' | 'board' | 'capex';
 /** Spunti di lettura sulla scheda: filosofi, consulenti, alert, domande. */
 export type DecisionInsightKind = 'spunto' | 'alert' | 'domanda' | 'consulenza';
 
+/**
+ * Provenienza dello spunto (non confondere con `kind`, che è il tono del contenuto).
+ * - community: advisor umani (reali o demo)
+ * - classic: voci storiche / tradizione come prompt di metodo
+ * - system: check e alert di prodotto (Dubitor)
+ */
+export type DecisionInsightSource = 'community' | 'classic' | 'system';
+
 export interface DecisionInsight {
   id: string;
   kind: DecisionInsightKind;
@@ -201,6 +211,8 @@ export interface DecisionInsight {
   body: string;
   author?: string;
   role?: string;
+  /** Provenienza; se assente viene inferita in resolveDecisionInsights. */
+  source?: DecisionInsightSource;
   /** Avatar dell’autore (URL peep o OAuth); se assente si deriva da author/authorUserId. */
   avatar?: string;
   /** Collegamento opzionale a uno step del grafo (question, decision, stop, discarded-…). */

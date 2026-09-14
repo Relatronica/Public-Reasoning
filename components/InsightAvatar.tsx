@@ -10,7 +10,10 @@ import {
 import { DecisionInsight } from '@/types';
 
 interface Props {
-  insight: Pick<DecisionInsight, 'avatar' | 'author' | 'authorUserId' | 'role' | 'id'>;
+  insight: Pick<
+    DecisionInsight,
+    'avatar' | 'author' | 'authorUserId' | 'role' | 'id' | 'source'
+  >;
   size?: 'sm' | 'md';
   className?: string;
 }
@@ -19,7 +22,7 @@ interface Props {
 export default function InsightAvatar({ insight, size = 'md', className = '' }: Props) {
   const px = size === 'sm' ? 28 : 36;
   const url = resolveInsightAvatar(insight);
-  const isSystem = insight.role === 'Sistema';
+  const isSystem = insight.source === 'system' || insight.role === 'Sistema';
   const initials = insightAuthorInitials(insight.author, insight.role);
 
   const base =

@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { FileText, Landmark, List, X } from 'lucide-react';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
+import { categoryColorHex } from '@/lib/communities/category-colors';
+import { categoryIconForCategory } from '@/lib/communities/category-icon';
 
 function SidebarInner() {
   const pathname = usePathname();
@@ -13,7 +15,8 @@ function SidebarInner() {
 
   const currentCategory = searchParams.get('category');
   const isHome = pathname === '/decisioni';
-  const isAllRecords = isHome && !currentCategory && !searchParams.get('filter') && !searchParams.get('q');
+  const isAllRecords =
+    isHome && !currentCategory && !searchParams.get('filter') && !searchParams.get('q');
 
   return (
     <aside className="w-56 flex-shrink-0 hidden md:block py-6 h-full overflow-y-auto pr-2">
@@ -33,7 +36,9 @@ function SidebarInner() {
           <Link
             href={href('/bank')}
             className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium ${
-              pathname === '/bank' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              pathname === '/bank'
+                ? 'bg-gray-100 text-gray-900'
+                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
             }`}
           >
             <Landmark className="w-4 h-4 text-gray-400" />
@@ -42,7 +47,9 @@ function SidebarInner() {
           <Link
             href={href('/acts')}
             className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium ${
-              pathname === '/acts' ? 'bg-gray-100 text-gray-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              pathname === '/acts'
+                ? 'bg-gray-100 text-gray-900'
+                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
             }`}
           >
             <FileText className="w-4 h-4 text-gray-400" />
@@ -68,17 +75,27 @@ function SidebarInner() {
           <div className="space-y-0.5">
             {community.categories.map((cat) => {
               const isSelected = currentCategory === cat.label;
+              const Icon = categoryIconForCategory(cat);
+              const hex = categoryColorHex(cat.color);
               return (
                 <Link
                   key={cat.label}
-                  href={isSelected ? href('/decisioni') : href('/decisioni', { category: cat.label })}
+                  href={
+                    isSelected
+                      ? href('/decisioni')
+                      : href('/decisioni', { category: cat.label })
+                  }
                   className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs ${
                     isSelected
                       ? 'bg-gray-100 text-gray-900 font-medium'
                       : 'text-gray-600 hover:bg-gray-50'
                   }`}
                 >
-                  <span className={`w-1.5 h-1.5 rounded-full ${cat.color}`} />
+                  <Icon
+                    className="w-3.5 h-3.5 flex-shrink-0"
+                    style={{ color: hex }}
+                    strokeWidth={1.75}
+                  />
                   {cat.label}
                 </Link>
               );

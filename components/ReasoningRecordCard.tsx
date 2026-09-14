@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
+import CategoryMark from '@/components/CategoryMark';
 import { ReasoningRecord } from '@/types';
 import { displayStatusLabel, isClosedStatus, resolveVisibility } from '@/lib/records';
 import { categoryColorHex } from '@/lib/communities/category-colors';
@@ -53,11 +54,11 @@ export default function ReasoningRecordCard({ record, variant = 'card' }: Props)
         href={detailHref}
         className="group flex items-center gap-3 reddit-card reddit-card--interactive px-3.5 py-2.5 sm:px-4"
       >
-        <span
-          className="w-2 h-2 rounded-full flex-shrink-0 ring-1 ring-black/10"
-          style={{ backgroundColor: categoryHex }}
-          title={record.category || 'Senza argomento'}
-          aria-hidden
+        <CategoryMark
+          label={record.category}
+          icon={categoryDef?.icon}
+          hex={categoryHex}
+          size="sm"
         />
         <div className="min-w-0 flex-1 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-3">
           <p className="text-sm font-medium text-gray-900 leading-snug line-clamp-1 sm:flex-1 min-w-0">
@@ -92,57 +93,48 @@ export default function ReasoningRecordCard({ record, variant = 'card' }: Props)
       href={detailHref}
       className="group block reddit-card reddit-card--interactive overflow-hidden"
     >
-      <div className="flex">
-        <div
-          className="w-1 flex-shrink-0 self-stretch"
-          style={{ backgroundColor: categoryHex }}
-          aria-hidden
+      <div className="flex items-start gap-3 px-4 py-3 sm:px-5 sm:py-3.5">
+        <CategoryMark
+          label={record.category}
+          icon={categoryDef?.icon}
+          hex={categoryHex}
+          size="md"
         />
-        <div className="flex-1 min-w-0 px-4 py-3 sm:px-5 sm:py-3.5">
-          <div className="flex items-start gap-3">
-            <div className="min-w-0 flex-1 space-y-1">
-              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-gray-400">
-                {record.category && (
-                  <span className="inline-flex items-center gap-1.5 text-gray-600 font-medium">
-                    <span
-                      className="w-1.5 h-1.5 rounded-full"
-                      style={{ backgroundColor: categoryHex }}
-                      aria-hidden
-                    />
-                    {record.category}
-                  </span>
-                )}
-                {date && (
-                  <>
-                    {record.category && <span>·</span>}
-                    <span>{new Date(date).toLocaleDateString('it-IT')}</span>
-                  </>
-                )}
-                {actNumber && (
-                  <>
-                    <span>·</span>
-                    <span className="text-gray-500 font-medium">{actNumber}</span>
-                  </>
-                )}
+
+        <div className="min-w-0 flex-1 space-y-1">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-gray-400">
+            {record.category && (
+              <span className="text-gray-600 font-medium">{record.category}</span>
+            )}
+            {date && (
+              <>
+                {record.category && <span>·</span>}
+                <span>{new Date(date).toLocaleDateString('it-IT')}</span>
+              </>
+            )}
+            {actNumber && (
+              <>
                 <span>·</span>
-                <span className={`px-1.5 py-0.5 rounded ${statusTone(record.status)}`}>
-                  {statusText}
-                </span>
-              </div>
-
-              <h2 className="text-[15px] sm:text-base font-semibold text-gray-900 leading-snug line-clamp-2">
-                {record.realQuestion}
-              </h2>
-
-              <p className="text-sm text-gray-600 leading-snug line-clamp-1">
-                <span className="text-gray-400">Decisione · </span>
-                {truncate(record.decision, 160)}
-              </p>
-            </div>
-
-            <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 flex-shrink-0 mt-1 hidden sm:block" />
+                <span className="text-gray-500 font-medium">{actNumber}</span>
+              </>
+            )}
+            <span>·</span>
+            <span className={`px-1.5 py-0.5 rounded ${statusTone(record.status)}`}>
+              {statusText}
+            </span>
           </div>
+
+          <h2 className="text-[15px] sm:text-base font-semibold text-gray-900 leading-snug line-clamp-2">
+            {record.realQuestion}
+          </h2>
+
+          <p className="text-sm text-gray-600 leading-snug line-clamp-1">
+            <span className="text-gray-400">Decisione · </span>
+            {truncate(record.decision, 160)}
+          </p>
         </div>
+
+        <ChevronRight className="w-4 h-4 text-gray-300 group-hover:text-gray-500 flex-shrink-0 mt-2.5 hidden sm:block" />
       </div>
     </Link>
   );

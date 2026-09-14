@@ -271,6 +271,7 @@ export const aiEthicsRecords: ReasoningRecord[] = [
         body: 'Se la pratica è inaccettabile sui clienti, non diventa accettabile perché gli agent sono dipendenti. Spostate il confine, non nascondetelo.',
         author: 'Dubitor',
         role: 'Sistema',
+        source: 'system',
         relatedStepId: 'discarded-opt-ethics-emo-1',
       },
       {
@@ -280,6 +281,7 @@ export const aiEthicsRecords: ReasoningRecord[] = [
         body: 'Un +4% di soddisfazione ottenuto leggendo il volto non è un miglioramento del servizio: è un trasferimento di potere asimmetrico.',
         author: 'Marta Greco',
         role: 'Filosofa',
+        source: 'community',
         relatedStepId: 'question',
         createdAt: '2026-03-20T11:00:00.000Z',
       },
@@ -487,6 +489,7 @@ export const aiEthicsRecords: ReasoningRecord[] = [
         body: 'Se il tempo mediano di conferma è sotto i due secondi, avete un throughput machine, non un human-in-the-loop.',
         author: 'Dubitor',
         role: 'Sistema',
+        source: 'system',
         relatedStepId: 'discarded-opt-ethics-hitl-1',
       },
       {
