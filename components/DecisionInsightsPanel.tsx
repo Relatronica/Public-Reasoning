@@ -198,7 +198,7 @@ export default function DecisionInsightsPanel({
       <aside
         ref={columnRef}
         aria-label="Spunti e consultazioni"
-        className="hidden lg:flex w-[22rem] flex-shrink-0 sticky top-6 self-start max-h-[calc(100vh-5rem)] flex-col rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm shadow-gray-900/[0.03]"
+        className="hidden lg:flex w-full min-w-0 sticky top-6 self-start max-h-[calc(100vh-5rem)] flex-col rounded-xl border border-gray-200 bg-white overflow-hidden shadow-sm shadow-gray-900/[0.03]"
       >
         <div className="flex items-start justify-between gap-2 px-4 py-3 border-b border-gray-100 flex-shrink-0">
           <div className="min-w-0">

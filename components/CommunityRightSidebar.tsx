@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { ExternalLink } from 'lucide-react';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
+import { isFocusLayoutPath } from '@/lib/layout/focus-layout';
 
 function CommunityLogo({ logoUrl, initials }: { logoUrl?: string; initials: string }) {
   if (logoUrl) {
@@ -29,23 +30,12 @@ function CommunityLogo({ logoUrl, initials }: { logoUrl?: string; initials: stri
   );
 }
 
-/** Pagine di lettura/focus: la colonna destra lascia spazio. */
-function useFocusLayout(): boolean {
-  const pathname = usePathname();
-  if (!pathname) return false;
-  if (/^\/records\/[^/]+$/.test(pathname)) return true;
-  if (pathname.startsWith('/curator')) return true;
-  if (pathname.startsWith('/settings')) return true;
-  if (pathname.startsWith('/auth')) return true;
-  if (pathname === '/records/capture' || pathname === '/records/new') return true;
-  return false;
-}
-
 function CommunityRightSidebarInner() {
+  const pathname = usePathname();
   const { community } = useActiveCommunity();
   const { recordsForCommunity } = useCuratorData();
   const records = recordsForCommunity(community.id);
-  const focus = useFocusLayout();
+  const focus = isFocusLayoutPath(pathname);
 
   return (
     <aside

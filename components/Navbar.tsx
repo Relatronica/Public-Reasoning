@@ -220,7 +220,7 @@ function NavbarInner() {
               aria-haspopup="menu"
               className="relative w-8 h-8 flex items-center justify-center hover:opacity-90"
             >
-              <span className="absolute inset-0 rounded-full bg-gray-100 border border-gray-200 overflow-hidden flex items-center justify-center text-gray-700 font-bold text-xs">
+              <span className="absolute inset-0 rounded-full bg-white border border-gray-200 overflow-hidden flex items-center justify-center text-gray-700 font-bold text-xs">
                 {isAuthenticated && avatarUrl ? (
                   <Image
                     key={avatarUrl}
@@ -228,7 +228,11 @@ function NavbarInner() {
                     alt=""
                     width={32}
                     height={32}
-                    className="w-full h-full object-cover"
+                    className={
+                      avatarUrl.startsWith('/avatar/')
+                        ? 'w-[85%] h-[85%] object-contain object-center'
+                        : 'w-full h-full object-cover object-center'
+                    }
                   />
                 ) : isAuthenticated ? (
                   initials

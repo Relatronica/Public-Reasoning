@@ -144,11 +144,13 @@ function DecisionGraphInner({
   focusStepId,
   focusToken = 0,
   onOpenInsights,
+  wideLayout = false,
 }: {
   record: ReasoningRecord;
   focusStepId?: string | null;
   focusToken?: number;
   onOpenInsights?: (stepId: string) => void;
+  wideLayout?: boolean;
 }) {
   const { canAdvise, myRole, refresh } = useCuratorData();
   const built = useMemo(() => buildDecisionGraph(record), [record]);
@@ -376,7 +378,7 @@ function DecisionGraphInner({
           ref={flowRef}
           className={`decision-flow relative bg-gray-50/80 border-b border-gray-100 ${
             showMap ? 'block h-[280px]' : 'hidden'
-          } sm:block sm:h-[340px] lg:h-[380px]`}
+          } sm:block sm:h-[340px] lg:h-[380px] xl:h-[420px]`}
           onContextMenu={(e) => e.preventDefault()}
         >
           <ReactFlow
@@ -465,7 +467,7 @@ function DecisionGraphInner({
           {kindFromNodeId(selectedId) === 'sources' || kindFromNodeId(selectedId) === 'outcome' ? (
             <StepContent record={record} selectedId={selectedId} />
           ) : (
-            <div className="max-w-3xl">
+            <div className={wideLayout ? undefined : 'max-w-3xl'}>
               <StepContent record={record} selectedId={selectedId} />
             </div>
           )}
@@ -520,11 +522,13 @@ export default function DecisionGraph({
   focusStepId,
   focusToken,
   onOpenInsights,
+  wideLayout = false,
 }: {
   record: ReasoningRecord;
   focusStepId?: string | null;
   focusToken?: number;
   onOpenInsights?: (stepId: string) => void;
+  wideLayout?: boolean;
 }) {
   return (
     <ReactFlowProvider>
@@ -533,6 +537,7 @@ export default function DecisionGraph({
         focusStepId={focusStepId}
         focusToken={focusToken}
         onOpenInsights={onOpenInsights}
+        wideLayout={wideLayout}
       />
     </ReactFlowProvider>
   );

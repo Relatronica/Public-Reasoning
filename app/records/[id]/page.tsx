@@ -63,8 +63,8 @@ function RecordDetailInner() {
   const visibility = resolveVisibility(record);
 
   return (
-    <div className="flex flex-col lg:flex-row lg:items-start gap-6 w-full">
-      <div className="min-w-0 flex-1 space-y-5">
+    <div className="w-full lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(17rem,22rem)] xl:grid-cols-[minmax(0,1fr)_minmax(18rem,24rem)] 2xl:grid-cols-[minmax(0,1fr)_minmax(20rem,26rem)] gap-5 xl:gap-6 lg:items-start">
+      <div className="min-w-0 space-y-5">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 min-w-0">
             <Link
@@ -108,6 +108,7 @@ function RecordDetailInner() {
 
         <DecisionGraph
           record={record}
+          wideLayout
           focusStepId={focusStepId}
           focusToken={focusToken}
           onOpenInsights={(stepId) => {
