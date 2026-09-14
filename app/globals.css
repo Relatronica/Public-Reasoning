@@ -112,16 +112,25 @@ button.reddit-card:hover,
   display: none;
 }
 
+.decision-flow .react-flow__controls {
+  margin: 12px;
+}
+
 .decision-flow .react-flow__controls-button {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   border: none !important;
-  border-bottom: 1px solid #e5e7eb !important;
+  border-bottom: 1px solid #e2e8f0 !important;
   background: transparent;
+  transition: background 0.15s ease;
 }
 
 .decision-flow .react-flow__controls-button:hover {
-  background: #f3f4f6 !important;
+  background: #f1f5f9 !important;
+}
+
+.decision-flow .react-flow__controls-button:last-child {
+  border-bottom: none !important;
 }
 
 .decision-flow .react-flow__controls-button svg {
@@ -131,6 +140,18 @@ button.reddit-card:hover,
 
 .decision-flow .react-flow__edge-path {
   stroke-linecap: round;
+  transition: stroke 0.2s ease, stroke-width 0.2s ease, opacity 0.2s ease;
+}
+
+.decision-flow .react-flow__edge.animated path {
+  stroke-dasharray: 5;
+  animation: decision-edge-dash 0.9s linear infinite;
+}
+
+@keyframes decision-edge-dash {
+  to {
+    stroke-dashoffset: -10;
+  }
 }
 
 .decision-flow .react-flow__node {
@@ -143,6 +164,14 @@ button.reddit-card:hover,
 
 .decision-flow .react-flow__node.selected .react-flow__resize-control {
   display: none;
+}
+
+.decision-flow .react-flow__viewport {
+  transition: transform 0.05s linear;
+}
+
+.decision-graph-node {
+  will-change: transform, box-shadow, opacity;
 }
 
 @layer utilities {

@@ -26,8 +26,8 @@ function truncate(text: string, max = 72): string {
   return `${cleaned.slice(0, max).trim()}…`;
 }
 
-const EDGE_MUTED = '#cbd5e1';
-const EDGE_CHOSEN = '#94a3b8';
+const EDGE_MUTED = '#94a3b8';
+const EDGE_PATH = '#0f766e';
 const EDGE_DISCARD = '#d6d3d1';
 
 export function listDecisionSteps(record: ReasoningRecord): {
@@ -79,6 +79,11 @@ export function buildDecisionGraph(record: ReasoningRecord): {
   const yMain = 120;
   const x0 = 40;
   const gap = 260;
+  const discardGapY = 124;
+  const discardStartY = 12;
+  const decisionY = discarded.length
+    ? discardStartY + discarded.length * discardGapY + 20
+    : yMain;
 
   nodes.push({
     id: 'question',
@@ -97,7 +102,7 @@ export function buildDecisionGraph(record: ReasoningRecord): {
     nodes.push({
       id,
       type: 'decision',
-      position: { x: x0 + gap, y: 8 + i * 88 },
+      position: { x: x0 + gap, y: discardStartY + i * discardGapY },
       data: {
         kind: 'discarded',
         label: 'Scartata',
@@ -110,7 +115,8 @@ export function buildDecisionGraph(record: ReasoningRecord): {
       source: 'question',
       target: id,
       type: 'smoothstep',
-      style: { stroke: EDGE_DISCARD, strokeWidth: 1.25, strokeDasharray: '4 4' },
+      className: 'decision-edge decision-edge--discard',
+      style: { stroke: EDGE_DISCARD, strokeWidth: 1.5, strokeDasharray: '5 5' },
     });
   });
 
@@ -118,7 +124,7 @@ export function buildDecisionGraph(record: ReasoningRecord): {
   nodes.push({
     id: 'decision',
     type: 'decision',
-    position: { x: xDecision, y: discarded.length ? 200 : yMain },
+    position: { x: xDecision, y: decisionY },
     data: {
       kind: 'decision',
       label: 'Decisione',
@@ -132,13 +138,15 @@ export function buildDecisionGraph(record: ReasoningRecord): {
     source: 'question',
     target: 'decision',
     type: 'smoothstep',
-    style: { stroke: EDGE_CHOSEN, strokeWidth: 1.75 },
-    markerEnd: { type: MarkerType.ArrowClosed, color: EDGE_CHOSEN, width: 14, height: 14 },
+    animated: true,
+    className: 'decision-edge decision-edge--path',
+    style: { stroke: EDGE_PATH, strokeWidth: 2 },
+    markerEnd: { type: MarkerType.ArrowClosed, color: EDGE_PATH, width: 16, height: 16 },
   });
 
   let lastId = 'decision';
   let xCursor = xDecision + gap;
-  const yBranch = discarded.length ? 200 : yMain;
+  const yBranch = decisionY;
 
   if (hasStop) {
     nodes.push({
@@ -157,8 +165,10 @@ export function buildDecisionGraph(record: ReasoningRecord): {
       source: lastId,
       target: 'stop',
       type: 'smoothstep',
-      style: { stroke: EDGE_CHOSEN, strokeWidth: 1.75 },
-      markerEnd: { type: MarkerType.ArrowClosed, color: EDGE_CHOSEN, width: 14, height: 14 },
+      animated: true,
+      className: 'decision-edge decision-edge--path',
+      style: { stroke: EDGE_PATH, strokeWidth: 2 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: EDGE_PATH, width: 16, height: 16 },
     });
     lastId = 'stop';
     xCursor += gap;
@@ -187,8 +197,10 @@ export function buildDecisionGraph(record: ReasoningRecord): {
       source: lastId,
       target: 'outcome',
       type: 'smoothstep',
-      style: { stroke: EDGE_CHOSEN, strokeWidth: 1.75 },
-      markerEnd: { type: MarkerType.ArrowClosed, color: EDGE_CHOSEN, width: 14, height: 14 },
+      animated: true,
+      className: 'decision-edge decision-edge--path',
+      style: { stroke: EDGE_PATH, strokeWidth: 2 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: EDGE_PATH, width: 16, height: 16 },
     });
     lastId = 'outcome';
     xCursor += gap;
@@ -198,7 +210,7 @@ export function buildDecisionGraph(record: ReasoningRecord): {
     nodes.push({
       id: 'sources',
       type: 'decision',
-      position: { x: xCursor, y: discarded.length ? 320 : yMain + 140 },
+      position: { x: xCursor, y: decisionY + 140 },
       data: {
         kind: 'sources',
         label: 'Fonti',
@@ -211,8 +223,9 @@ export function buildDecisionGraph(record: ReasoningRecord): {
       source: lastId,
       target: 'sources',
       type: 'smoothstep',
-      style: { stroke: EDGE_MUTED, strokeWidth: 1.25 },
-      markerEnd: { type: MarkerType.ArrowClosed, color: EDGE_MUTED, width: 12, height: 12 },
+      className: 'decision-edge decision-edge--muted',
+      style: { stroke: EDGE_MUTED, strokeWidth: 1.5 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: EDGE_MUTED, width: 14, height: 14 },
     });
   }
 

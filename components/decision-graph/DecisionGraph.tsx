@@ -10,9 +10,11 @@ import {
   useEdgesState,
   useNodesState,
   useReactFlow,
+  type Edge,
   type Node,
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
+import { AnimatePresence, motion } from 'framer-motion';
 import { AlertTriangle, Eye, Lightbulb, X } from 'lucide-react';
 import { ReasoningRecord } from '@/types';
 import {
@@ -34,6 +36,15 @@ import {
 import { useCuratorData } from '@/contexts/CuratorDataContext';
 
 const nodeTypes = { decision: DecisionGraphNode };
+
+const STEP_DOT: Record<DecisionGraphNodeKind, string> = {
+  question: 'bg-blue-500',
+  discarded: 'bg-amber-500',
+  decision: 'bg-emerald-600',
+  stop: 'bg-rose-500',
+  outcome: 'bg-slate-500',
+  sources: 'bg-slate-400',
+};
 
 type ContextMenuState = {
   x: number;
@@ -63,20 +74,20 @@ function StepContent({
   if (kind === 'question') {
     return (
       <div className="space-y-2">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Domanda reale</h3>
-        <p className="text-sm text-gray-900 leading-relaxed">{record.realQuestion}</p>
+        <h3 className="text-[11px] font-semibold text-slate-500 tracking-wide">Domanda reale</h3>
+        <p className="text-sm text-slate-900 leading-relaxed">{record.realQuestion}</p>
       </div>
     );
   }
 
   if (kind === 'discarded') {
     const opt = findDiscardedByStepId(record, selectedId);
-    if (!opt) return <p className="text-xs text-gray-500">Nessuna opzione scartata.</p>;
+    if (!opt) return <p className="text-xs text-slate-500">Nessuna opzione scartata.</p>;
     return (
       <div className="space-y-2">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Opzione scartata</h3>
-        <p className="text-sm font-medium text-gray-900 leading-snug">{opt.title}</p>
-        <p className="text-sm text-gray-600 leading-relaxed">{opt.reasonDiscarded}</p>
+        <h3 className="text-[11px] font-semibold text-slate-500 tracking-wide">Opzione scartata</h3>
+        <p className="text-sm font-medium text-slate-900 leading-snug">{opt.title}</p>
+        <p className="text-sm text-slate-600 leading-relaxed">{opt.reasonDiscarded}</p>
       </div>
     );
   }
@@ -84,11 +95,11 @@ function StepContent({
   if (kind === 'decision') {
     return (
       <div className="space-y-2">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Decisione</h3>
-        <p className="text-sm text-gray-900 leading-relaxed">{record.decision}</p>
-        <p className="text-xs text-gray-500 pt-1">{confidenceLabel(record.confidence)}</p>
+        <h3 className="text-[11px] font-semibold text-slate-500 tracking-wide">Decisione</h3>
+        <p className="text-sm text-slate-900 leading-relaxed">{record.decision}</p>
+        <p className="text-xs text-slate-500 pt-1">{confidenceLabel(record.confidence)}</p>
         {record.uncertaintyExplanation && (
-          <p className="text-xs text-gray-500 leading-relaxed">
+          <p className="text-xs text-slate-500 leading-relaxed">
             Incertezza {record.uncertaintyLevel}: {record.uncertaintyExplanation}
           </p>
         )}
@@ -99,20 +110,20 @@ function StepContent({
   if (kind === 'stop') {
     return (
       <div className="space-y-3">
-        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+        <h3 className="text-[11px] font-semibold text-slate-500 tracking-wide">
           Cosa ti farebbe cambiare idea
         </h3>
         {(record.mindChangingConditions?.length ?? 0) > 0 ? (
           <ul className="space-y-2">
             {record.mindChangingConditions.map((cond, i) => (
-              <li key={i} className="flex gap-2 text-sm text-gray-800 leading-relaxed">
-                <AlertTriangle className="w-3.5 h-3.5 text-gray-400 mt-0.5 flex-shrink-0" />
+              <li key={i} className="flex gap-2 text-sm text-slate-800 leading-relaxed">
+                <AlertTriangle className="w-3.5 h-3.5 text-rose-400 mt-0.5 flex-shrink-0" />
                 <span>{cond}</span>
               </li>
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-gray-500">Nessun criterio di stop dichiarato.</p>
+          <p className="text-sm text-slate-500">Nessun criterio di stop dichiarato.</p>
         )}
       </div>
     );
@@ -137,6 +148,44 @@ function StepContent({
   }
 
   return null;
+}
+
+function styleEdgesForSelection(edges: Edge[], selectedId: string): Edge[] {
+  return edges.map((edge) => {
+    const related = edge.source === selectedId || edge.target === selectedId;
+    const isPath = edge.className?.includes('decision-edge--path');
+    const isDiscard = edge.className?.includes('decision-edge--discard');
+
+    if (related) {
+      return {
+        ...edge,
+        animated: isPath || edge.animated,
+        style: {
+          ...edge.style,
+          stroke: isDiscard ? '#b45309' : isPath ? '#0f766e' : '#475569',
+          strokeWidth: isPath ? 2.5 : 2,
+          opacity: 1,
+        },
+        markerEnd:
+          typeof edge.markerEnd === 'object' && edge.markerEnd
+            ? {
+                ...edge.markerEnd,
+                color: isDiscard ? '#b45309' : isPath ? '#0f766e' : '#475569',
+              }
+            : edge.markerEnd,
+      };
+    }
+
+    return {
+      ...edge,
+      animated: false,
+      style: {
+        ...edge.style,
+        opacity: 0.45,
+        strokeWidth: typeof edge.style?.strokeWidth === 'number' ? edge.style.strokeWidth : 1.5,
+      },
+    };
+  });
 }
 
 function DecisionGraphInner({
@@ -173,7 +222,7 @@ function DecisionGraphInner({
         fitView({
           nodes: [{ id }],
           padding: 0.42,
-          duration: 320,
+          duration: 380,
           maxZoom: 1.2,
           minZoom: 0.65,
         });
@@ -253,6 +302,11 @@ function DecisionGraphInner({
     [nodes, selectedId, insightCounts]
   );
 
+  const displayEdges = useMemo(
+    () => styleEdgesForSelection(edges, selectedId),
+    [edges, selectedId]
+  );
+
   const composeLabel = composeStepId
     ? steps.find((s) => s.id === composeStepId)?.label
     : null;
@@ -262,24 +316,25 @@ function DecisionGraphInner({
     0,
     steps.findIndex((s) => s.id === selectedId)
   );
+  const selectedKind = kindFromNodeId(selectedId);
 
   return (
     <div className="space-y-3">
-      {/* Mobile: lista verticale degli step (niente scroll orizzontale) */}
+      {/* Mobile: lista verticale degli step */}
       <nav className="sm:hidden space-y-2" aria-label="Passaggi della decisione">
         <div className="flex items-center justify-between gap-2 px-0.5">
-          <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">
             Passaggi · {selectedIndex + 1}/{steps.length}
           </p>
           <button
             type="button"
             onClick={() => setShowMap((v) => !v)}
-            className="text-[11px] font-medium text-gray-600 hover:text-gray-900 px-2 py-1 rounded-md hover:bg-gray-100"
+            className="text-[11px] font-medium text-slate-600 hover:text-slate-900 px-2 py-1 rounded-md hover:bg-slate-100"
           >
             {showMap ? 'Nascondi mappa' : 'Mostra mappa'}
           </button>
         </div>
-        <ol className="reddit-card reddit-card--static divide-y divide-gray-100 overflow-hidden">
+        <ol className="reddit-card reddit-card--static divide-y divide-slate-100 overflow-hidden">
           {steps.map((step, i) => {
             const active = step.id === selectedId;
             const count = insightCounts[step.id] ?? 0;
@@ -290,17 +345,26 @@ function DecisionGraphInner({
                   onClick={() => onStepClick(step.id)}
                   aria-current={active ? 'step' : undefined}
                   className={`min-w-0 flex-1 flex items-center gap-3 px-3.5 py-2.5 text-left transition-colors ${
-                    active ? 'bg-gray-900 text-white' : 'bg-white text-gray-800 hover:bg-gray-50'
+                    active ? 'bg-slate-900 text-white' : 'bg-white text-slate-800 hover:bg-slate-50'
                   }`}
                 >
                   <span
                     className={`flex-shrink-0 w-6 h-6 rounded-full text-[11px] font-semibold tabular-nums flex items-center justify-center ${
-                      active ? 'bg-white/15 text-white' : 'bg-gray-100 text-gray-500'
+                      active ? 'bg-white/15 text-white' : 'bg-slate-100 text-slate-500'
                     }`}
                   >
                     {i + 1}
                   </span>
-                  <span className={`flex-1 text-sm font-medium truncate ${active ? 'text-white' : 'text-gray-900'}`}>
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                      active ? 'bg-white/80' : STEP_DOT[step.kind]
+                    }`}
+                  />
+                  <span
+                    className={`flex-1 text-sm font-medium truncate ${
+                      active ? 'text-white' : 'text-slate-900'
+                    }`}
+                  >
                     {step.label}
                   </span>
                 </button>
@@ -314,13 +378,13 @@ function DecisionGraphInner({
                     }}
                     className={`flex-shrink-0 px-3 flex items-center border-l ${
                       active
-                        ? 'bg-gray-900 border-white/10 text-white'
-                        : 'bg-white border-gray-100 text-gray-700 hover:bg-gray-50'
+                        ? 'bg-slate-900 border-white/10 text-white'
+                        : 'bg-white border-slate-100 text-slate-700 hover:bg-slate-50'
                     }`}
                   >
                     <span
                       className={`inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1.5 rounded-full text-[10px] font-semibold tabular-nums ${
-                        active ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'
+                        active ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
                       }`}
                     >
                       {count}
@@ -334,23 +398,36 @@ function DecisionGraphInner({
       </nav>
 
       {/* Desktop: chip orizzontali */}
-      <div className="hidden sm:flex items-center gap-1 overflow-x-auto pb-0.5" aria-label="Passaggi della decisione">
+      <div
+        className="hidden sm:flex items-center gap-1.5 overflow-x-auto pb-0.5"
+        aria-label="Passaggi della decisione"
+      >
         {steps.map((step, i) => {
           const active = step.id === selectedId;
           const count = insightCounts[step.id] ?? 0;
           return (
             <React.Fragment key={step.id}>
-              {i > 0 && <span className="text-gray-300 text-xs px-0.5">·</span>}
-              <div className="inline-flex items-center gap-0.5">
+              {i > 0 && (
+                <span
+                  className="h-px w-3 flex-shrink-0 bg-slate-200"
+                  aria-hidden
+                />
+              )}
+              <div className="inline-flex items-center gap-1">
                 <button
                   type="button"
                   onClick={() => onStepClick(step.id)}
-                  className={`px-2.5 py-1 rounded-md text-xs whitespace-nowrap transition-colors ${
+                  className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all duration-150 ${
                     active
-                      ? 'bg-gray-900 text-white font-medium'
-                      : 'text-gray-600 hover:bg-gray-100'
+                      ? 'bg-slate-900 text-white font-medium shadow-sm'
+                      : 'text-slate-600 hover:bg-slate-100 border border-transparent hover:border-slate-200'
                   }`}
                 >
+                  <span
+                    className={`w-1.5 h-1.5 rounded-full ${
+                      active ? 'bg-white/80' : STEP_DOT[step.kind]
+                    }`}
+                  />
                   {step.label}
                 </button>
                 {count > 0 && (
@@ -358,10 +435,10 @@ function DecisionGraphInner({
                     type="button"
                     title={`${count} spunti — apri`}
                     onClick={() => onOpenInsights?.(step.id)}
-                    className={`inline-flex items-center justify-center min-w-[1.15rem] h-[1.15rem] px-1 rounded-full text-[10px] font-semibold tabular-nums ${
+                    className={`inline-flex items-center justify-center min-w-[1.15rem] h-[1.15rem] px-1 rounded-full text-[10px] font-semibold tabular-nums transition-colors ${
                       active
-                        ? 'bg-gray-800 text-white'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                        ? 'bg-slate-800 text-white'
+                        : 'bg-slate-200 text-slate-700 hover:bg-slate-300'
                     }`}
                   >
                     {count}
@@ -376,14 +453,18 @@ function DecisionGraphInner({
       <div className="reddit-card reddit-card--static overflow-hidden">
         <div
           ref={flowRef}
-          className={`decision-flow relative bg-gray-50/80 border-b border-gray-100 ${
-            showMap ? 'block h-[280px]' : 'hidden'
-          } sm:block sm:h-[340px] lg:h-[380px] xl:h-[420px]`}
+          className={`decision-flow relative border-b border-slate-100 ${
+            showMap ? 'block h-[300px]' : 'hidden'
+          } sm:block sm:h-[360px] lg:h-[400px] xl:h-[440px]`}
           onContextMenu={(e) => e.preventDefault()}
         >
+          <div
+            className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_20%_0%,rgba(15,118,110,0.07),transparent_55%),radial-gradient(ellipse_at_90%_80%,rgba(37,99,235,0.05),transparent_50%),linear-gradient(180deg,#f8fafc_0%,#f1f5f9_100%)]"
+            aria-hidden
+          />
           <ReactFlow
             nodes={displayNodes}
-            edges={edges}
+            edges={displayEdges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onNodeClick={onNodeClick}
@@ -391,7 +472,7 @@ function DecisionGraphInner({
             onPaneClick={() => setMenu(null)}
             nodeTypes={nodeTypes}
             fitView
-            fitViewOptions={{ padding: 0.22 }}
+            fitViewOptions={{ padding: 0.24 }}
             minZoom={0.5}
             maxZoom={1.35}
             panOnScroll
@@ -401,96 +482,119 @@ function DecisionGraphInner({
             nodesConnectable={false}
             elementsSelectable
             proOptions={{ hideAttribution: true }}
+            className="!bg-transparent"
           >
-            <Background variant={BackgroundVariant.Dots} gap={20} size={1} color="#e5e7eb" />
+            <Background
+              variant={BackgroundVariant.Lines}
+              gap={28}
+              size={1}
+              color="rgba(148,163,184,0.18)"
+              lineWidth={0.6}
+            />
             <Controls
               showInteractive={false}
               position="bottom-right"
-              className="!shadow-none !border-gray-200 !rounded-md !overflow-hidden !bg-white/90"
+              className="!shadow-sm !border-slate-200/80 !rounded-xl !overflow-hidden !bg-white/90 !backdrop-blur-sm"
             />
           </ReactFlow>
 
           {menu && (
-            <div
-              className="absolute z-20 min-w-[10.5rem] rounded-lg border border-gray-200 bg-white py-1 shadow-lg shadow-gray-900/10"
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 4 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.15 }}
+              className="absolute z-20 min-w-[10.5rem] rounded-xl border border-slate-200 bg-white/95 backdrop-blur-sm py-1 shadow-lg shadow-slate-900/10"
               style={{ left: menu.x, top: menu.y }}
               onMouseDown={(e) => e.stopPropagation()}
             >
               {(insightCounts[menu.nodeId] ?? 0) > 0 && (
                 <button
                   type="button"
-                  className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs text-gray-700 hover:bg-gray-50"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs text-slate-700 hover:bg-slate-50"
                   onClick={() => {
                     onOpenInsights?.(menu.nodeId);
                     setMenu(null);
                   }}
                 >
-                  <Eye className="w-3.5 h-3.5 text-gray-400" />
+                  <Eye className="w-3.5 h-3.5 text-slate-400" />
                   Vedi spunti ({insightCounts[menu.nodeId]})
                 </button>
               )}
               {canAdvise && (
                 <button
                   type="button"
-                  className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs text-gray-700 hover:bg-gray-50"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-left text-xs text-slate-700 hover:bg-slate-50"
                   onClick={() => {
                     setComposeStepId(menu.nodeId);
                     setMenu(null);
                   }}
                 >
-                  <Lightbulb className="w-3.5 h-3.5 text-gray-400" />
+                  <Lightbulb className="w-3.5 h-3.5 text-slate-400" />
                   Aggiungi spunto
                 </button>
               )}
               {!canAdvise && (insightCounts[menu.nodeId] ?? 0) === 0 && (
-                <p className="px-3 py-2 text-[11px] text-gray-400">Nessuna azione disponibile</p>
+                <p className="px-3 py-2 text-[11px] text-slate-400">Nessuna azione disponibile</p>
               )}
-            </div>
+            </motion.div>
           )}
         </div>
 
-        <div className="p-5 sm:p-6 lg:p-8">
+        <div className="relative p-5 sm:p-6 lg:p-8">
           {(insightCounts[selectedId] ?? 0) > 0 && onOpenInsights && (
             <div className="mb-4">
               <button
                 type="button"
                 onClick={() => onOpenInsights(selectedId)}
-                className="inline-flex items-center gap-1.5 text-xs font-medium text-gray-700 hover:text-gray-900"
+                className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-700 hover:text-slate-900 transition-colors"
               >
-                <span className="inline-flex items-center justify-center min-w-[1.15rem] h-[1.15rem] px-1 rounded-full bg-gray-900 text-white text-[10px] tabular-nums">
+                <span className="inline-flex items-center justify-center min-w-[1.15rem] h-[1.15rem] px-1 rounded-full bg-slate-900 text-white text-[10px] tabular-nums">
                   {insightCounts[selectedId]}
                 </span>
                 Vedi spunti su questo step
               </button>
             </div>
           )}
-          {kindFromNodeId(selectedId) === 'sources' || kindFromNodeId(selectedId) === 'outcome' ? (
-            <StepContent record={record} selectedId={selectedId} />
-          ) : (
-            <div className={wideLayout ? undefined : 'max-w-3xl'}>
-              <StepContent record={record} selectedId={selectedId} />
-            </div>
-          )}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={selectedId}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+            >
+              {selectedKind === 'sources' || selectedKind === 'outcome' ? (
+                <StepContent record={record} selectedId={selectedId} />
+              ) : (
+                <div className={wideLayout ? undefined : 'max-w-3xl'}>
+                  <StepContent record={record} selectedId={selectedId} />
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
 
       {composeStepId && canAdvise && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/20">
-          <div
-            className="w-full max-w-md rounded-xl border border-gray-200 bg-white shadow-xl p-4 space-y-3"
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97, y: 8 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.2 }}
+            className="w-full max-w-md rounded-xl border border-slate-200 bg-white shadow-xl p-4 space-y-3"
             onMouseDown={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-2">
               <div>
-                <p className="text-sm font-semibold text-gray-900">Aggiungi spunto</p>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-sm font-semibold text-slate-900">Aggiungi spunto</p>
+                <p className="text-xs text-slate-500 mt-0.5">
                   {composeLabel ? `Sul nodo «${composeLabel}»` : 'Sul nodo selezionato'}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setComposeStepId(null)}
-                className="p-1 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100"
+                className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100"
                 aria-label="Chiudi"
               >
                 <X className="w-4 h-4" />
@@ -510,7 +614,7 @@ function DecisionGraphInner({
                 await refresh();
               }}
             />
-          </div>
+          </motion.div>
         </div>
       )}
     </div>
