@@ -17,7 +17,7 @@ const instrument = Instrument_Serif({
 export const metadata: Metadata = {
   title: 'Dubitor — Esperti umani rivedono le tue decisioni sull’IA',
   description:
-    'L’IA dà risposte sicure di sé. Filosofi, ethics e risk esterni alla tua azienda ti dicono rischi, limiti e punti ciechi.',
+    'L’IA dà risposte sicure di sé. Qui professionisti reali, imparziali e verificati ti dicono rischi e limiti che non consideri.',
 };
 
 export default function WelcomeLayout({ children }: { children: React.ReactNode }) {

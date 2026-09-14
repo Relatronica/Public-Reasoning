@@ -108,15 +108,15 @@ export default function WelcomePage() {
                 animate="show"
                 variants={fadeUp}
               >
-                L’IA dà risposte sicure di sé. Qui filosofi, ethics e risk —{' '}
+                L’IA dà risposte sicure di sé. Qui professionisti{' '}
                 <mark className="rounded-sm bg-[var(--w-accent-soft)] px-1 py-0.5 text-[var(--w-ink)] [box-decoration-break:clone]">
-                  persone reali
+                  reali, imparziali e verificati
                 </mark>
-                , fuori dalla tua azienda — ti dicono{' '}
+                , ti dicono{' '}
                 <mark className="rounded-sm bg-[var(--w-accent-soft)] px-1 py-0.5 text-[var(--w-ink)] [box-decoration-break:clone]">
                   rischi e limiti
                 </mark>{' '}
-                e cosa non hai considerato.
+                che non consideri.
               </motion.p>
 
               <motion.div
@@ -163,7 +163,7 @@ export default function WelcomePage() {
             Il bisogno
           </p>
           <h2 className="mt-3 max-w-2xl font-display text-3xl leading-tight sm:text-4xl">
-            Fidarsi solo dell’IA (o solo del team interno) lascia buchi che nessuno vede.
+            Fidarsi solo dell’IA — o solo del team interno — lascia punti deboli scoperti.
           </h2>
           <p className="mt-4 max-w-2xl text-sm leading-relaxed text-[var(--w-muted)] sm:text-base">
             I modelli sono bravi a produrre risposte. Sono meno bravi a dire dove l’approccio è
@@ -175,7 +175,7 @@ export default function WelcomePage() {
               {
                 icon: Shield,
                 title: 'Limiti dell’IA',
-                body: 'Una risposta fluida non è una decisione giustificata. L’IA non sente il rischio residuo, il bias o ciò che non hai chiesto.',
+                body: 'Una risposta fluida non è una decisione giustificata. L’IA non calcola i rischi, non vede il bias e non sa cosa non hai chiesto.',
               },
               {
                 icon: Users,
@@ -206,7 +206,7 @@ export default function WelcomePage() {
             Come funziona
           </p>
           <h2 className="mt-3 max-w-xl font-display text-3xl leading-tight sm:text-4xl">
-            Metti la decisione in chiaro. Poi falla attaccare da chi sa dove guarda.
+            Metti la decisione in chiaro. Poi falla revisionare da esperti esterni.
           </h2>
           <ol className="mt-10 grid gap-6 sm:grid-cols-3">
             {[
