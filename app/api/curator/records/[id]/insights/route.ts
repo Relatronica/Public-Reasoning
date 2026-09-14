@@ -50,15 +50,23 @@ export async function POST(request: Request, { params }: Params) {
         ? 'Consulente'
         : 'Team';
 
+  const user = gate.session.user as {
+    id?: string;
+    name?: string | null;
+    avatar?: string | null;
+    image?: string | null;
+  };
+
   const insight: DecisionInsight = {
     id: newEntityId('insight'),
     kind,
     title,
     body: text,
-    author: gate.session.user!.name ?? roleLabel,
+    author: user.name ?? roleLabel,
     role: roleLabel,
+    avatar: user.avatar || user.image || undefined,
     relatedStepId: body.relatedStepId?.trim() || undefined,
-    authorUserId: gate.session.user!.id!,
+    authorUserId: user.id!,
     createdAt: new Date().toISOString(),
   };
 

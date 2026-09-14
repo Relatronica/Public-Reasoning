@@ -201,6 +201,8 @@ export interface DecisionInsight {
   body: string;
   author?: string;
   role?: string;
+  /** Avatar dell’autore (URL peep o OAuth); se assente si deriva da author/authorUserId. */
+  avatar?: string;
   /** Collegamento opzionale a uno step del grafo (question, decision, stop, discarded-…). */
   relatedStepId?: string;
   /** Richiesta di consultazione a cui risponde (se presente). */

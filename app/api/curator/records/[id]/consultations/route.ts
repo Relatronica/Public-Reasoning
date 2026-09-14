@@ -137,7 +137,13 @@ export async function PATCH(request: Request, { params }: Params) {
   }
 
   const insightId = newEntityId('insight');
-  const authorName = gate.session.user!.name ?? 'Consulente';
+  const user = gate.session.user as {
+    id?: string;
+    name?: string | null;
+    avatar?: string | null;
+    image?: string | null;
+  };
+  const authorName = user.name ?? 'Consulente';
   const insight: DecisionInsight = {
     id: insightId,
     kind: target.kind === 'filosofica' ? 'spunto' : 'consulenza',
@@ -145,9 +151,10 @@ export async function PATCH(request: Request, { params }: Params) {
     body: text,
     author: authorName,
     role: target.kind === 'filosofica' ? 'Filosofo' : 'Consulente',
+    avatar: user.avatar || user.image || undefined,
     relatedStepId: body.relatedStepId?.trim() || 'decision',
     consultationRequestId: requestId,
-    authorUserId: gate.session.user!.id!,
+    authorUserId: user.id!,
     createdAt: new Date().toISOString(),
   };
 

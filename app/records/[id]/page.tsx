@@ -7,7 +7,7 @@ import { ArrowLeft, Pencil } from 'lucide-react';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
 import DecisionGraph from '@/components/decision-graph/DecisionGraph';
-import DecisionInsightsDock from '@/components/DecisionInsightsDock';
+import DecisionInsightsPanel from '@/components/DecisionInsightsPanel';
 import {
   isClosedStatus,
   isVisibleOnPublicFeed,
@@ -63,57 +63,62 @@ function RecordDetailInner() {
   const visibility = resolveVisibility(record);
 
   return (
-    <div className="space-y-5 w-full">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-3 min-w-0">
-          <Link href={href('/decisioni')} className="text-gray-400 hover:text-gray-700 mt-0.5 flex-shrink-0">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-gray-400 mb-1">
-              {record.category && <span>{record.category}</span>}
-              {record.publicAct?.actNumber && (
-                <>
-                  {record.category && <span>·</span>}
-                  <span>{record.publicAct.actNumber}</span>
-                </>
-              )}
-              {!isClosedStatus(record.status) && (
-                <span className="text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">Bozza</span>
-              )}
-              {visibility === 'private' && (
-                <span className="text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">Privata</span>
-              )}
+    <div className="flex flex-col lg:flex-row lg:items-start gap-6 w-full">
+      <div className="min-w-0 flex-1 space-y-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3 min-w-0">
+            <Link
+              href={href('/decisioni')}
+              className="text-gray-400 hover:text-gray-700 mt-0.5 flex-shrink-0"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <div className="min-w-0">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-gray-400 mb-1">
+                {record.category && <span>{record.category}</span>}
+                {record.publicAct?.actNumber && (
+                  <>
+                    {record.category && <span>·</span>}
+                    <span>{record.publicAct.actNumber}</span>
+                  </>
+                )}
+                {!isClosedStatus(record.status) && (
+                  <span className="text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded">Bozza</span>
+                )}
+                {visibility === 'private' && (
+                  <span className="text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded">Privata</span>
+                )}
+              </div>
+              <h1 className="text-xl font-semibold text-gray-900 leading-snug">
+                {record.realQuestion}
+              </h1>
             </div>
-            <h1 className="text-xl font-semibold text-gray-900 leading-snug">
-              {record.realQuestion}
-            </h1>
           </div>
+
+          {canCompile && (
+            <Link
+              href={href(`/curator/records/${record.id}`)}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg flex-shrink-0"
+            >
+              <Pencil className="w-3.5 h-3.5" />
+              Modifica
+            </Link>
+          )}
         </div>
 
-        {canCompile && (
-          <Link
-            href={href(`/curator/records/${record.id}`)}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg flex-shrink-0"
-          >
-            <Pencil className="w-3.5 h-3.5" />
-            Modifica
-          </Link>
-        )}
+        <DecisionGraph
+          record={record}
+          focusStepId={focusStepId}
+          focusToken={focusToken}
+          onOpenInsights={(stepId) => {
+            setDockTab('spunti');
+            setInsightsFilterStep(stepId);
+            setInsightsOpenToken((n) => n + 1);
+          }}
+        />
       </div>
 
-      <DecisionGraph
-        record={record}
-        focusStepId={focusStepId}
-        focusToken={focusToken}
-        onOpenInsights={(stepId) => {
-          setDockTab('spunti');
-          setInsightsFilterStep(stepId);
-          setInsightsOpenToken((n) => n + 1);
-        }}
-      />
-
-      <DecisionInsightsDock
+      <DecisionInsightsPanel
         record={record}
         filterStepId={insightsFilterStep}
         openToken={insightsOpenToken}
