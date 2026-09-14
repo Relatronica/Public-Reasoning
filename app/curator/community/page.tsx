@@ -192,7 +192,7 @@ function CommunityEditorInner() {
       if (!res.ok) throw new Error(data.error ?? 'Chiusura fallita');
       await refresh();
       const nextSlug = data.fallbackSlug || 'cormano';
-      router.push(`/?c=${encodeURIComponent(nextSlug)}`);
+      router.push(`/decisioni?c=${encodeURIComponent(nextSlug)}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Errore');
     } finally {

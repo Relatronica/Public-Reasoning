@@ -154,7 +154,7 @@ function NavbarInner() {
                 return (
                   <Link
                     key={item.id}
-                    href={withCommunityQuery('/', item.slug)}
+                    href={withCommunityQuery('/decisioni', item.slug)}
                     onClick={() => setCommunityOpen(false)}
                     className={`flex items-start gap-2.5 px-3 py-2.5 text-xs hover:bg-gray-50 ${active ? 'bg-blue-50' : ''}`}
                   >
