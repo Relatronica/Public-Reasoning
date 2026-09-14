@@ -13,6 +13,11 @@ import {
   collectAdvisorInbox,
   type ConsultationInboxItem,
 } from '@/lib/records/consultations';
+import {
+  AdvisorReputation,
+  computeAdvisorReputations,
+  getAdvisorReputation,
+} from '@/lib/records/advisor-reputation';
 import { useSession } from 'next-auth/react';
 
 interface CuratorDataContextValue {
@@ -30,6 +35,9 @@ interface CuratorDataContextValue {
   /** Richieste aperte a cui posso rispondere (filosofo/consulente/admin). */
   consultationInbox: ConsultationInboxItem[];
   inboxOpenCount: number;
+  /** Reputazione advisor derivata dalle consultazioni chiuse. */
+  advisorReputations: Map<string, AdvisorReputation>;
+  myAdvisorReputation: AdvisorReputation | null;
   loading: boolean;
   refresh: () => Promise<void>;
   recordsForCommunity: (communityId: string) => ReasoningRecord[];
@@ -79,6 +87,16 @@ export function CuratorDataProvider({ children }: { children: React.ReactNode })
     [bootstrap.records, bootstrap.myRole, session?.user?.id, session?.user?.email]
   );
 
+  const advisorReputations = useMemo(
+    () => computeAdvisorReputations(bootstrap.records),
+    [bootstrap.records]
+  );
+
+  const myAdvisorReputation = useMemo(
+    () => getAdvisorReputation(advisorReputations, session?.user?.id),
+    [advisorReputations, session?.user?.id]
+  );
+
   const value = useMemo<CuratorDataContextValue>(
     () => ({
       communities: bootstrap.communities,
@@ -94,6 +112,8 @@ export function CuratorDataProvider({ children }: { children: React.ReactNode })
       canRequestConsultation: canRequestConsultation(bootstrap.myRole),
       consultationInbox,
       inboxOpenCount: consultationInbox.length,
+      advisorReputations,
+      myAdvisorReputation,
       loading,
       refresh,
       recordsForCommunity: (communityId: string) =>
@@ -101,7 +121,7 @@ export function CuratorDataProvider({ children }: { children: React.ReactNode })
       actsForCommunity: (communityId: string) =>
         actsForCommunityId(bootstrap.acts, communityId),
     }),
-    [bootstrap, consultationInbox, loading, refresh]
+    [bootstrap, consultationInbox, advisorReputations, myAdvisorReputation, loading, refresh]
   );
 
   return (

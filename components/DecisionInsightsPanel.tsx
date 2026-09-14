@@ -22,7 +22,13 @@ import { listDecisionSteps } from '@/lib/records/decision-graph';
 import { canReplyToConsultationKind } from '@/lib/org/permissions';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
 import AddInsightForm from '@/components/AddInsightForm';
+import AdvisorBadges from '@/components/AdvisorBadges';
 import InsightAvatar from '@/components/InsightAvatar';
+import {
+  AdvisorReputation,
+  expectedAdvisorBadge,
+  getAdvisorReputation,
+} from '@/lib/records/advisor-reputation';
 import {
   ConsultationKind,
   ConsultationRequest,
@@ -59,7 +65,8 @@ export default function DecisionInsightsPanel({
   openTab = 'spunti',
 }: Props) {
   const { status: authStatus } = useSession();
-  const { myRole, canAdvise, canRequestConsultation, refresh } = useCuratorData();
+  const { myRole, canAdvise, canRequestConsultation, refresh, advisorReputations } =
+    useCuratorData();
 
   const steps = useMemo(() => listDecisionSteps(record), [record]);
   const allInsights = useMemo(() => resolveDecisionInsights(record), [record]);
@@ -190,6 +197,7 @@ export default function DecisionInsightsPanel({
     canAdvise,
     canRequest: canRequestConsultation && authStatus === 'authenticated',
     refresh,
+    advisorReputations,
     onSelectRelatedStep,
   };
 
@@ -309,6 +317,7 @@ function PanelBody({
   canAdvise,
   canRequest,
   refresh,
+  advisorReputations,
   onSelectRelatedStep,
 }: {
   tab: Tab;
@@ -328,6 +337,7 @@ function PanelBody({
   canAdvise: boolean;
   canRequest: boolean;
   refresh: () => Promise<void>;
+  advisorReputations: Map<string, AdvisorReputation>;
   onSelectRelatedStep?: (stepId: string) => void;
 }) {
   return (
@@ -408,6 +418,7 @@ function PanelBody({
                 <InsightRow
                   key={insight.id}
                   insight={insight}
+                  reputation={getAdvisorReputation(advisorReputations, insight.authorUserId)}
                   stepLabel={stepLabelForInsight(steps, insight.relatedStepId)}
                   selected={insight.id === active?.id}
                   onSelect={() => setActiveId(insight.id)}
@@ -424,11 +435,13 @@ function PanelBody({
       ) : (
         <RequestsPanel
           recordId={record.id}
+          recordCategory={record.category}
           requests={requests}
           insights={record.insights ?? []}
           myRole={myRole}
           canAdvise={canAdvise}
           canRequest={canRequest}
+          advisorReputations={advisorReputations}
           onChanged={async (insightId) => {
             await refresh();
             setStepFilter(null);
@@ -446,12 +459,14 @@ function PanelBody({
 
 function InsightRow({
   insight,
+  reputation,
   stepLabel,
   selected,
   onSelect,
   onOpenStep,
 }: {
   insight: DecisionInsight;
+  reputation: AdvisorReputation | null;
   stepLabel: string | null;
   selected: boolean;
   onSelect: () => void;
@@ -472,14 +487,19 @@ function InsightRow({
         <div className="flex items-start gap-2.5">
           <InsightAvatar insight={insight} size="md" />
           <div className="min-w-0 flex-1 space-y-1">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <p className="text-[12px] font-medium text-gray-800 truncate">
-                {insight.author || insight.role || 'Anonimo'}
-              </p>
-              {insight.role && insight.author && (
-                <span className="text-[10px] text-gray-400 truncate flex-shrink-0">
-                  {insight.role}
-                </span>
+            <div className="space-y-1">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <p className="text-[12px] font-medium text-gray-800 truncate">
+                  {insight.author || insight.role || 'Anonimo'}
+                </p>
+                {insight.role && insight.author && (
+                  <span className="text-[10px] text-gray-400 truncate flex-shrink-0">
+                    {insight.role}
+                  </span>
+                )}
+              </div>
+              {reputation && reputation.badges.length > 0 && (
+                <AdvisorBadges badges={reputation.badges} max={4} />
               )}
             </div>
             <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5">
@@ -520,20 +540,24 @@ function InsightRow({
 
 function RequestsPanel({
   recordId,
+  recordCategory,
   requests,
   insights,
   myRole,
   canAdvise,
   canRequest,
+  advisorReputations,
   onChanged,
   onRequestCreated,
 }: {
   recordId: string;
+  recordCategory?: string;
   requests: ConsultationRequest[];
   insights: DecisionInsight[];
   myRole: OrganizationRole | null;
   canAdvise: boolean;
   canRequest: boolean;
+  advisorReputations: Map<string, AdvisorReputation>;
   onChanged: (insightId?: string) => Promise<void>;
   onRequestCreated: () => Promise<void>;
 }) {
@@ -675,6 +699,21 @@ function RequestsPanel({
             const response = req.responseInsightId
               ? insightsById.get(req.responseInsightId)
               : undefined;
+            const responseReputation = response
+              ? getAdvisorReputation(advisorReputations, response.authorUserId)
+              : null;
+            const openBadges = [
+              expectedAdvisorBadge(req.kind),
+              ...(recordCategory
+                ? [
+                    {
+                      id: `domain:${recordCategory}` as const,
+                      label: recordCategory,
+                      title: `Scheda in «${recordCategory}»`,
+                    },
+                  ]
+                : []),
+            ];
             const requesterAsInsight: Pick<
               DecisionInsight,
               'id' | 'author' | 'authorUserId' | 'role'
@@ -704,6 +743,9 @@ function RequestsPanel({
                         {consultationStatusLabel(req.status)}
                       </span>
                     </div>
+                    {req.status !== 'chiusa' && (
+                      <AdvisorBadges badges={openBadges} max={3} className="pt-0.5" />
+                    )}
                     <p className="text-sm text-gray-900 leading-snug">{req.question}</p>
                     <p className="text-[11px] text-gray-500">
                       {req.requestedBy.name || req.requestedBy.email || 'Utente'}
@@ -715,11 +757,16 @@ function RequestsPanel({
 
                 {req.status === 'chiusa' && response && (
                   <div className="rounded-md bg-gray-50 border border-gray-100 p-2.5 space-y-2">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-start gap-2">
                       <InsightAvatar insight={response} size="sm" />
-                      <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                        Risposta · {response.author || response.role || 'Advisor'}
-                      </p>
+                      <div className="min-w-0 space-y-1">
+                        <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                          Risposta · {response.author || response.role || 'Advisor'}
+                        </p>
+                        {responseReputation && responseReputation.badges.length > 0 && (
+                          <AdvisorBadges badges={responseReputation.badges} max={4} />
+                        )}
+                      </div>
                     </div>
                     <p className="text-sm font-medium text-gray-900 leading-snug">{response.title}</p>
                     <p className="text-xs text-gray-600 leading-relaxed">{response.body}</p>

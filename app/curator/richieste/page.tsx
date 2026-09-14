@@ -7,16 +7,20 @@ import { useSession } from 'next-auth/react';
 import { ArrowLeft, Inbox, Send } from 'lucide-react';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
+import AdvisorBadges from '@/components/AdvisorBadges';
+import AdvisorReputationCard from '@/components/AdvisorReputationCard';
 import {
   consultationKindLabel,
   consultationStatusLabel,
 } from '@/lib/records/decision-insights';
+import { expectedAdvisorBadge } from '@/lib/records/advisor-reputation';
 
 function RichiesteInner() {
   const { status } = useSession();
   const router = useRouter();
   const { href } = useActiveCommunity();
-  const { consultationInbox, canAdvise, refresh, loading } = useCuratorData();
+  const { consultationInbox, canAdvise, myAdvisorReputation, refresh, loading } =
+    useCuratorData();
   const [replyFor, setReplyFor] = useState<string | null>(null);
   const [replyTitle, setReplyTitle] = useState('');
   const [replyBody, setReplyBody] = useState('');
@@ -83,6 +87,8 @@ function RichiesteInner() {
         </div>
       )}
 
+      {canAdvise && <AdvisorReputationCard reputation={myAdvisorReputation} compact />}
+
       {canAdvise && consultationInbox.length === 0 && (
         <div className="reddit-card p-8 text-center space-y-2">
           <p className="text-sm font-medium text-gray-900">Nessuna richiesta aperta</p>
@@ -98,6 +104,18 @@ function RichiesteInner() {
         {consultationInbox.map((item) => {
           const key = `${item.recordId}:${item.request.id}`;
           const req = item.request;
+          const openBadges = [
+            expectedAdvisorBadge(req.kind),
+            ...(item.category
+              ? [
+                  {
+                    id: `domain:${item.category}` as const,
+                    label: item.category,
+                    title: `Scheda in «${item.category}»`,
+                  },
+                ]
+              : []),
+          ];
           return (
             <li key={key} className="reddit-card p-5 space-y-3">
               <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-[10px] uppercase tracking-wider font-semibold text-gray-400">
@@ -113,6 +131,8 @@ function RichiesteInner() {
                   </>
                 )}
               </div>
+
+              <AdvisorBadges badges={openBadges} max={3} />
 
               <p className="text-sm text-gray-900 leading-snug">{req.question}</p>
 

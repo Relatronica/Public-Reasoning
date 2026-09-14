@@ -7,7 +7,9 @@ import { useSession } from 'next-auth/react';
 import { ArrowLeft, Trash2, UserPlus } from 'lucide-react';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { useCuratorData } from '@/contexts/CuratorDataContext';
+import AdvisorBadges from '@/components/AdvisorBadges';
 import { ROLE_LABELS } from '@/lib/org/permissions';
+import { getAdvisorReputation } from '@/lib/records/advisor-reputation';
 import { OrganizationRole } from '@/types';
 
 const inputClass =
@@ -17,7 +19,7 @@ function OrgInner() {
   const { status } = useSession();
   const router = useRouter();
   const { href } = useActiveCommunity();
-  const { organization, canAdminOrg, refresh, myRole } = useCuratorData();
+  const { organization, canAdminOrg, refresh, myRole, advisorReputations } = useCuratorData();
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<OrganizationRole>('compiler');
   const [error, setError] = useState('');
@@ -72,11 +74,16 @@ function OrgInner() {
             Roster vuota: il team è ancora aperto. Aggiungi il primo membro per chiudere il perimetro.
           </p>
         )}
-        {organization.members.map((m) => (
+        {organization.members.map((m) => {
+          const reputation = getAdvisorReputation(advisorReputations, m.userId);
+          return (
           <div key={m.userId} className="flex items-center justify-between gap-3 text-xs border-b border-gray-50 pb-2">
-            <div>
+            <div className="space-y-1.5 min-w-0">
               <p className="font-semibold text-gray-900">{m.email ?? m.userId}</p>
               <p className="text-gray-500">{ROLE_LABELS[m.role]}</p>
+              {reputation && reputation.badges.length > 0 && (
+                <AdvisorBadges badges={reputation.badges} max={4} />
+              )}
             </div>
             {canAdminOrg && (
               <button
@@ -89,7 +96,8 @@ function OrgInner() {
               </button>
             )}
           </div>
-        ))}
+        );
+        })}
       </div>
 
       {canAdminOrg && (
