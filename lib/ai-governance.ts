@@ -91,6 +91,35 @@ export const aiGovernanceRecords: ReasoningRecord[] = [
     ],
     interpretativeSummary:
       'Le Risorse umane chiedevano velocità. Rischio ha riformulato la domanda: non «quale intelligenza artificiale», ma «dove restano i curriculum». Lo scarto dell’avviso generico è la parte che un revisore può verificare.',
+    machineConstraints: {
+      version: 1,
+      defaultEffect: 'escalate',
+      constraints: [
+        {
+          id: 'mc-hr-deny-public-llm-cv',
+          description:
+            'Vietato usare modelli destinati al pubblico sui curriculum dei candidati.',
+          match: [
+            { field: 'action', op: 'eq', value: 'llm.public.complete' },
+            { field: 'resource', op: 'eq', value: 'candidate.cv' },
+          ],
+          effect: 'deny',
+          priority: 100,
+        },
+        {
+          id: 'mc-hr-allow-tenant-llm-cv',
+          description:
+            'Consentito Azure OpenAI nell’ambiente dedicato per la selezione assistita.',
+          match: [
+            { field: 'action', op: 'eq', value: 'llm.tenant.complete' },
+            { field: 'resource', op: 'eq', value: 'candidate.cv' },
+            { field: 'context', key: 'tenant', op: 'eq', value: 'hr-dedicated' },
+          ],
+          effect: 'allow',
+          priority: 50,
+        },
+      ],
+    },
     outcomeReviews: [
       {
         id: 'outcome-ai-hr-1',
@@ -144,6 +173,36 @@ export const aiGovernanceRecords: ReasoningRecord[] = [
     ],
     interpretativeSummary:
       'La presentazione parlava di efficienza. La domanda reale riguarda la spiegabilità del diniego. Lo scarto del punteggio automatico sotto soglia è un criterio di stop del prodotto, non un ritardo informatico.',
+    machineConstraints: {
+      version: 1,
+      defaultEffect: 'escalate',
+      constraints: [
+        {
+          id: 'mc-credit-deny-auto-under-250k',
+          description:
+            'Nessun punteggio automatico in produzione sotto 250 k€ senza decisione umana.',
+          match: [
+            { field: 'action', op: 'eq', value: 'credit.auto_score' },
+            { field: 'resource', op: 'eq', value: 'pmi.loan_application' },
+            { field: 'context', key: 'amountEur', op: 'lt', value: 250_000 },
+          ],
+          effect: 'deny',
+          priority: 100,
+        },
+        {
+          id: 'mc-credit-allow-propose-with-human',
+          description:
+            'Il modello può proporre un punteggio se la decisione resta umana e registrata.',
+          match: [
+            { field: 'action', op: 'eq', value: 'credit.propose_score' },
+            { field: 'resource', op: 'eq', value: 'pmi.loan_application' },
+            { field: 'context', key: 'humanDecision', op: 'eq', value: true },
+          ],
+          effect: 'allow',
+          priority: 50,
+        },
+      ],
+    },
     outcomeReviews: [
       {
         id: 'outcome-ai-credit-1',

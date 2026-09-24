@@ -23,6 +23,7 @@ Piano di evoluzione: [`docs/DECISION_OS_PLAN.md`](docs/DECISION_OS_PLAN.md).
 | [`docs/SETUP_GOOGLE_OAUTH.md`](docs/SETUP_GOOGLE_OAUTH.md) | Google Cloud Console passo-passo |
 | [`docs/CURATOR_GUIDE.md`](docs/CURATOR_GUIDE.md) | Standard metodologico per compilare schede |
 | [`docs/AI_GOVERNANCE_PACK.md`](docs/AI_GOVERNANCE_PACK.md) | Pack compliance EU AI Act |
+| [`docs/GUARDIAN.md`](docs/GUARDIAN.md) | Limiti machine-readable, guardiano, ledger, demo |
 | [`docs/DECISION_OS_PLAN.md`](docs/DECISION_OS_PLAN.md) | Roadmap Capture → Bank → API |
 
 ---
@@ -87,11 +88,14 @@ Seed iniziale: `data/curator-store.example.json` (o import one-shot da un eventu
 app/                 # Route App Router (feed, records, curator, auth, API)
 components/          # UI (Navbar, grafo, dock spunti, …)
 contexts/            # CuratorDataProvider
-lib/                 # Domain, communities, curator store, org RBAC
+lib/                 # Domain, communities, curator store, org RBAC, guardian
 data/                # curator-store.example.json (seed); JSON locale solo per import
 docs/                # Documentazione
 prisma/              # Schema Auth + curator_store (+ modelli dominio legacy)
 ```
+
+Demo guardiano: `/guardian?c=ai-governance` o `/guardian?c=ai-ethics` (pack distinti).  
+Decision API: `POST /api/v1/guardian/check` con `GUARDIAN_API_KEY` e opzionale `"pack"` — vedi [`docs/GUARDIAN.md`](docs/GUARDIAN.md).
 
 ---
 

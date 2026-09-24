@@ -27,6 +27,16 @@ Senza il punto 4 la scheda non è un reasoning record.
 3. Salva **bozza privata** (workspace enterprise)
 4. Lo sponsor approva la chiusura dall’editor (`closed`)
 
+## Guardiano runtime (demo)
+
+Le schede seed includono una sezione **machineConstraints**: limiti in formato che un programma capisce. Il guardiano risponde sì / no / chiedi a una persona; ogni esito entra in un registro a catena di hash. Su escalate: notifica Slack/Teams (se configurati) o pulsanti in pagina.
+
+Stesso meccanismo sul pack **AI Ethics** (`?c=ai-ethics`): vincoli e scenari distinti (emotion AI, scrape forum, HITL), escalate verso l’Ethics Board.
+
+- Demo Governance: [`/guardian?c=ai-governance`](/guardian?c=ai-governance)
+- Demo Ethics: [`/guardian?c=ai-ethics`](/guardian?c=ai-ethics)
+- Specifica: [`docs/GUARDIAN.md`](./GUARDIAN.md)
+
 ## Destinatari
 
 Legal, Rischio, responsabile protezione dati — non «chi ha tempo per compilare un template».

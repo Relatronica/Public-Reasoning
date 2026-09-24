@@ -159,3 +159,40 @@ model CuratorStoreState {
 
   @@map("curator_store")
 }
+
+/** Registro a catena di hash del Guardiano (append-only). */
+model GuardianLedgerEntry {
+  id              String   @id @default(uuid())
+  seq             Int      @unique
+  prevHash        String
+  hash            String
+  /** ISO-8601 esatto usato nel calcolo hash (stringa, non DateTime). */
+  timestamp       String
+  action          Json
+  decision        Json
+  humanResolution String?
+  pendingId       String?
+  createdAt       DateTime @default(now())
+
+  @@index([createdAt])
+  @@map("guardian_ledger")
+}
+
+/** Escalate aperti / risolti (Slack, Teams, UI). */
+model GuardianPending {
+  id              String   @id @default(uuid())
+  status          String   @default("open")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  action          Json
+  decision        Json
+  escalateEntryId String?
+  resolvedAs      String?
+  resolvedBy      String?
+  resolveNote     String?
+  notified        Json
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("guardian_pending")
+}

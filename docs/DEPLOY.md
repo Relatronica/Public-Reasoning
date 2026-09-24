@@ -46,11 +46,14 @@ ORG_ADMIN_EMAILS="tuo@email.com"
 # Blob: di solito arriva da Storage → Connect (BLOB_STORE_ID). Token RW opzionale.
 BLOB_STORE_ID="..."
 BLOB_READ_WRITE_TOKEN="..." # opzionale
+# Guardiano escalate (opzionale) — docs/GUARDIAN.md
+# SLACK_* / TEAMS_WEBHOOK_URL / GUARDIAN_API_KEY
+```
 
 I **ruoli del team** (owner/admin/…) non stanno nella tabella `User`: vivono in `curator_store.organization.members`.  
 `ORG_ADMIN_EMAILS` ti rende owner di piattaforma e, al primo bootstrap autenticato, ti scrive anche nella roster su Postgres. Sblocca anche **`/admin`** (console: utenti, roster, nascondi/mostra community).
----
 
+---
 ## 3. Google OAuth
 
 - Origins: `https://tuodominio.com`

@@ -6,6 +6,7 @@ export function isFocusLayoutPath(pathname: string | null): boolean {
   if (pathname.startsWith('/settings')) return true;
   if (pathname.startsWith('/auth')) return true;
   if (pathname === '/records/capture' || pathname === '/records/new') return true;
+  if (pathname === '/guardian') return true;
   return false;
 }
 

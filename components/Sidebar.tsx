@@ -3,10 +3,11 @@
 import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { FileText, Landmark, List, X } from 'lucide-react';
+import { FileText, Landmark, List, Shield, X } from 'lucide-react';
 import { useActiveCommunity } from '@/hooks/useActiveCommunity';
 import { categoryColorHex } from '@/lib/communities/category-colors';
 import { categoryIconForCategory } from '@/lib/communities/category-icon';
+import { isGuardianPack } from '@/lib/guardian/pack';
 
 function SidebarInner() {
   const pathname = usePathname();
@@ -55,6 +56,19 @@ function SidebarInner() {
             <FileText className="w-4 h-4 text-gray-400" />
             Fonti
           </Link>
+          {isGuardianPack(community.slug) && (
+            <Link
+              href={href('/guardian')}
+              className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-medium ${
+                pathname === '/guardian'
+                  ? 'bg-gray-100 text-gray-900'
+                  : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+            >
+              <Shield className="w-4 h-4 text-gray-400" />
+              Guardiano
+            </Link>
+          )}
         </nav>
 
         <div>

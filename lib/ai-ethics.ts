@@ -140,6 +140,34 @@ export const aiEthicsRecords: ReasoningRecord[] = [
     ],
     interpretativeSummary:
       'La pressione HR era «velocità». La riformulazione è sul debito di spiegazione verso chi viene escluso. Dubitor rende visibile lo scarto del ricorso vuoto.',
+    machineConstraints: {
+      version: 1,
+      defaultEffect: 'escalate',
+      constraints: [
+        {
+          id: 'mc-ethics-hire-deny-opaque',
+          description:
+            'Ethics Board: esclusione da ranking senza motivazione sintetica sui criteri dichiarati — vietata.',
+          match: [
+            { field: 'action', op: 'eq', value: 'hiring.rank.exclude' },
+            { field: 'context', key: 'explanationProvided', op: 'eq', value: false },
+          ],
+          effect: 'deny',
+          priority: 100,
+        },
+        {
+          id: 'mc-ethics-hire-allow-explained',
+          description:
+            'Ethics Board: esclusione con motivazione sintetica e percorso di ricorso — consentita.',
+          match: [
+            { field: 'action', op: 'eq', value: 'hiring.rank.exclude' },
+            { field: 'context', key: 'explanationProvided', op: 'eq', value: true },
+          ],
+          effect: 'allow',
+          priority: 50,
+        },
+      ],
+    },
     outcomeReviews: [
       {
         id: 'outcome-ethics-hire-1',
@@ -252,6 +280,32 @@ export const aiEthicsRecords: ReasoningRecord[] = [
     ],
     interpretativeSummary:
       'Product spingeva sul CSAT. Il Board ha riformulato: non è A/B test, è dignità. Lo scarto del «pilota solo interno» evita la scappatoia tipica.',
+    machineConstraints: {
+      version: 1,
+      defaultEffect: 'escalate',
+      constraints: [
+        {
+          id: 'mc-ethics-emo-deny-biometric',
+          description:
+            'Ethics Board: divieto di emotion scoring biometrico (volto, voce, tono) nei canali di supporto, inclusi piloti.',
+          match: [
+            { field: 'action', op: 'eq', value: 'support.biometrics.emotion_score' },
+          ],
+          effect: 'deny',
+          priority: 100,
+        },
+        {
+          id: 'mc-ethics-emo-allow-explicit',
+          description:
+            'Ethics Board: consentiti solo feedback espliciti dichiarati come tali (es. valuta questa chat).',
+          match: [
+            { field: 'action', op: 'eq', value: 'support.feedback.explicit' },
+          ],
+          effect: 'allow',
+          priority: 50,
+        },
+      ],
+    },
     outcomeReviews: [
       {
         id: 'outcome-ethics-emo-1',
@@ -352,6 +406,34 @@ export const aiEthicsRecords: ReasoningRecord[] = [
     ],
     interpretativeSummary:
       'Engineering voleva velocità sul dominio. Il Board ha spostato la domanda dal «possiamo tecnicamente» al «possiamo giustificare».',
+    machineConstraints: {
+      version: 1,
+      defaultEffect: 'escalate',
+      constraints: [
+        {
+          id: 'mc-ethics-train-deny-scrape',
+          description:
+            'Ethics Board: vietato fine-tuning su corpus scraped da forum/social senza base giuridica e registro fonti.',
+          match: [
+            { field: 'action', op: 'eq', value: 'ml.train.scrape' },
+            { field: 'resource', op: 'contains', value: 'forum' },
+          ],
+          effect: 'deny',
+          priority: 100,
+        },
+        {
+          id: 'mc-ethics-train-allow-licensed',
+          description:
+            'Ethics Board: ammessi dataset con licenza, opt-in o accordi publisher documentati.',
+          match: [
+            { field: 'action', op: 'eq', value: 'ml.train.finetune' },
+            { field: 'context', key: 'licenseDocumented', op: 'eq', value: true },
+          ],
+          effect: 'allow',
+          priority: 50,
+        },
+      ],
+    },
     outcomeReviews: [
       {
         id: 'outcome-ethics-train-1',
@@ -462,6 +544,35 @@ export const aiEthicsRecords: ReasoningRecord[] = [
     ],
     interpretativeSummary:
       'Ops voleva efficienza. Il Board ha reso il HITL falsificabile: non «c’è un umano», ma «c’è un giudizio documentato».',
+    machineConstraints: {
+      version: 1,
+      defaultEffect: 'escalate',
+      constraints: [
+        {
+          id: 'mc-ethics-hitl-deny-clickthrough',
+          description:
+            'Ethics Board: HITL come checkbox senza motivazione non è giudizio — applicazione del suggerimento vietata.',
+          match: [
+            { field: 'action', op: 'eq', value: 'caseworker.copilot.apply' },
+            { field: 'context', key: 'motivationProvided', op: 'eq', value: false },
+          ],
+          effect: 'deny',
+          priority: 100,
+        },
+        {
+          id: 'mc-ethics-hitl-allow-documented',
+          description:
+            'Ethics Board: caseworker con motivazione breve (segue o discosta) — consentito.',
+          match: [
+            { field: 'action', op: 'eq', value: 'caseworker.copilot.apply' },
+            { field: 'context', key: 'motivationProvided', op: 'eq', value: true },
+            { field: 'context', key: 'humanDecision', op: 'eq', value: true },
+          ],
+          effect: 'allow',
+          priority: 50,
+        },
+      ],
+    },
     outcomeReviews: [
       {
         id: 'outcome-ethics-hitl-1',

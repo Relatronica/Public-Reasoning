@@ -7,6 +7,7 @@ import Logo from '@/components/Logo';
 import WelcomeHeroAtmosphere from '@/components/WelcomeHeroAtmosphere';
 
 const APP_HREF = '/decisioni?c=ai-ethics';
+const GUARDIAN_HREF = '/guardian?c=ai-ethics';
 const LOGIN_HREF = `/auth/login?callbackUrl=${encodeURIComponent(APP_HREF)}`;
 
 const fadeUp = {
@@ -152,7 +153,8 @@ export default function WelcomePage() {
           </p>
           <p className="font-display text-xl leading-snug sm:text-2xl md:text-[1.65rem]">
             Ranking automatico in hiring. L’IA dice «procedi, risparmi tempo». Un esperto esterno
-            chiede: «e a chi lo spieghi, quando lo escludi?»
+            chiede: «e a chi lo spieghi, quando lo escludi?» Quei limiti possono fermare un agente
+            nel momento in cui prova a escludere senza motivazione.
           </p>
         </div>
       </div>
@@ -208,7 +210,7 @@ export default function WelcomePage() {
           <h2 className="mt-3 max-w-xl font-display text-3xl leading-tight sm:text-4xl">
             Metti la decisione in chiaro. Poi falla revisionare da esperti esterni.
           </h2>
-          <ol className="mt-10 grid gap-6 sm:grid-cols-3">
+          <ol className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[
               {
                 n: '01',
@@ -225,6 +227,11 @@ export default function WelcomePage() {
                 title: 'Decidi con più luce',
                 body: 'Tieni, correggi o fermi: con un giudizio umano esterno, non solo con la confidenza del modello.',
               },
+              {
+                n: '04',
+                title: 'I limiti restano attivi',
+                body: 'Quando un agente prova a fare ciò che la scheda vieta, il guardiano risponde sì, no, o chiedi all’Ethics Board.',
+              },
             ].map((step) => (
               <li
                 key={step.n}
@@ -236,6 +243,16 @@ export default function WelcomePage() {
               </li>
             ))}
           </ol>
+          <p className="mt-8 text-sm text-[var(--w-muted)]">
+            Vuoi vedere il cancello in un minuto?{' '}
+            <Link
+              href={GUARDIAN_HREF}
+              className="font-semibold text-[var(--w-accent)] underline underline-offset-2 hover:brightness-90"
+            >
+              Apri la demo del guardiano
+            </Link>
+            .
+          </p>
         </div>
       </section>
 
@@ -285,16 +302,25 @@ export default function WelcomePage() {
             </h2>
             <p className="mt-3 text-sm leading-relaxed text-[var(--w-muted)] sm:text-base">
               Apri il registro demo AI Ethics: hiring, biometriche, training data, human-in-the-loop
-              — con spunti già firmati da esperti.
+              — con spunti già firmati da esperti. Oppure guarda un finto agente fermato dai limiti
+              della scheda.
             </p>
           </div>
-          <Link
-            href={APP_HREF}
-            className="inline-flex items-center gap-2 rounded-lg bg-[var(--w-accent)] px-5 py-3 text-sm font-semibold text-white transition hover:brightness-110"
-          >
-            Apri l’esempio
-            <ArrowRight className="h-4 w-4" />
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href={APP_HREF}
+              className="inline-flex items-center gap-2 rounded-lg bg-[var(--w-accent)] px-5 py-3 text-sm font-semibold text-white transition hover:brightness-110"
+            >
+              Apri l’esempio
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link
+              href={GUARDIAN_HREF}
+              className="inline-flex items-center gap-2 rounded-lg border border-[var(--w-line)] bg-white px-5 py-3 text-sm font-semibold text-[var(--w-ink)] transition hover:border-[var(--w-accent)]"
+            >
+              Vedi il guardiano
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -307,6 +333,9 @@ export default function WelcomePage() {
           <div className="flex gap-4">
             <Link href="/decisioni" className="hover:text-[var(--w-ink)]">
               Registro
+            </Link>
+            <Link href={GUARDIAN_HREF} className="hover:text-[var(--w-ink)]">
+              Guardiano
             </Link>
             <Link href={LOGIN_HREF} className="hover:text-[var(--w-ink)]">
               Accedi

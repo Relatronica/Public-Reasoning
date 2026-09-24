@@ -193,6 +193,44 @@ export type RecordVisibility = 'private' | 'public';
 
 export type CompliancePack = 'ai_governance' | 'board' | 'capex';
 
+/** Verdetto del guardiano runtime: sì, no, o chiedi a una persona. */
+export type GuardianVerdict = 'allow' | 'deny' | 'escalate';
+
+/**
+ * Condizione machine-readable su un'azione agente.
+ * Tutte le condizioni in `match` devono essere vere (AND).
+ */
+export type MachineMatcher =
+  | { field: 'action'; op: 'eq' | 'prefix'; value: string }
+  | { field: 'resource'; op: 'eq' | 'contains'; value: string }
+  | {
+      field: 'context';
+      key: string;
+      op: 'eq' | 'lt' | 'lte' | 'gt' | 'gte';
+      value: string | number | boolean;
+    };
+
+/** Limite scritto per le macchine, agganciato al diario umano. */
+export interface MachineConstraint {
+  id: string;
+  /** Spiegazione leggibile (allinea al linguaggio della scheda). */
+  description: string;
+  match: MachineMatcher[];
+  effect: GuardianVerdict;
+  /** Priorità relativa; a parità di effect vince il più alto. */
+  priority?: number;
+}
+
+/**
+ * Sezione "per le macchine" di una scheda.
+ * `defaultEffect` si applica se nessun vincolo matcha (default consigliato: escalate).
+ */
+export interface MachineConstraintSet {
+  version: 1;
+  constraints: MachineConstraint[];
+  defaultEffect?: GuardianVerdict;
+}
+
 /** Spunti di lettura sulla scheda: filosofi, consulenti, alert, domande. */
 export type DecisionInsightKind = 'spunto' | 'alert' | 'domanda' | 'consulenza';
 
@@ -271,6 +309,11 @@ export interface ReasoningRecord {
   interpretativeSummary: string;
   outcomeReviews: OutcomeReview[];
   aiAssistance?: AiAssistance;
+  /**
+   * Limiti in formato machine-readable (guardiano runtime).
+   * Complemento del testo umano: domanda, decisione, criteri di stop.
+   */
+  machineConstraints?: MachineConstraintSet;
   /** Feedback curati (filosofi, consulenti); se assenti la UI può derivarne di contestuali. */
   insights?: DecisionInsight[];
   /** Richieste di consultazione aperte dagli utenti sulla scheda. */
