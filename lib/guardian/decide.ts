@@ -123,7 +123,7 @@ export function decide(
     verdict: winner.constraint.effect,
     reason: winner.constraint.description,
     matchedConstraintIds: sameEffect.map((h) => h.constraint.id),
-    sourceRecordIds: [...new Set(sameEffect.map((h) => h.recordId))],
+    sourceRecordIds: Array.from(new Set(sameEffect.map((h) => h.recordId))),
   };
 }
 

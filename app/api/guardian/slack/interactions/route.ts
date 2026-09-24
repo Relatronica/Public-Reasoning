@@ -62,7 +62,7 @@ export async function POST(request: Request) {
   const who =
     payload.user?.username || payload.user?.name || payload.user?.id || 'slack';
 
-  const result = resolveEscalation({
+  const result = await resolveEscalation({
     pendingId: action.value,
     resolution,
     resolvedBy: `slack:${who}`,

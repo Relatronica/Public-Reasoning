@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { listPending } from '@/lib/guardian/pending';
+import { listPending, type PendingStatus } from '@/lib/guardian/pending';
 import {
   anyNotifyChannelConfigured,
   slackConfigured,
@@ -10,9 +10,10 @@ export const runtime = 'nodejs';
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const status = url.searchParams.get('status');
-  const filter =
-    status === 'open' || status === 'resolved' ? { status } : undefined;
+  const statusParam = url.searchParams.get('status');
+  const status: PendingStatus | undefined =
+    statusParam === 'open' || statusParam === 'resolved' ? statusParam : undefined;
+  const filter = status ? { status } : undefined;
 
   return NextResponse.json({
     pending: await listPending(filter),
